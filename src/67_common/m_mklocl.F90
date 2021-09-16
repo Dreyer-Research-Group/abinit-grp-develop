@@ -748,13 +748,14 @@ end subroutine mklocl_recipspace
 !!
 !! SOURCE
 
-subroutine dfpt_vlocal(atindx,cplex,gmet,gsqcut,idir,ipert,&
+!CEDrev: MS trick with cplex, also pass zion
+subroutine dfpt_vlocal(atindx,cplexin,gmet,gsqcut,idir,ipert,&
 & mpi_enreg,mqgrid,natom,nattyp,nfft,ngfft,&
-& ntypat,n1,n2,n3,ph1d,qgrid,qphon,ucvol,vlspl,vpsp1,xred)
+& ntypat,n1,n2,n3,ph1d,qgrid,qphon,ucvol,vlspl,vpsp1,xred,zion)
 
 !Arguments -------------------------------
 !scalars
- integer,intent(in) :: cplex,idir,ipert,mqgrid,n1,n2,n3,natom,nfft,ntypat
+ integer,intent(in) :: cplexin,idir,ipert,mqgrid,n1,n2,n3,natom,nfft,ntypat
  real(dp),intent(in) :: gsqcut,ucvol
  type(MPI_type),intent(in) :: mpi_enreg
 !arrays
@@ -762,7 +763,10 @@ subroutine dfpt_vlocal(atindx,cplex,gmet,gsqcut,idir,ipert,&
  real(dp),intent(in) :: gmet(3,3),ph1d(2,(2*n1+1+2*n2+1+2*n3+1)*natom)
  real(dp),intent(in) :: qgrid(mqgrid),qphon(3),vlspl(mqgrid,2,ntypat)
  real(dp),intent(in) :: xred(3,natom)
- real(dp),intent(out) :: vpsp1(cplex*nfft)
+
+ !CEDrev:
+ real(dp),intent(out) :: vpsp1(mod(cplexin,10)*nfft)
+ real(dp), intent(in) :: zion(ntypat)
 
 !Local variables -------------------------
 !scalars
@@ -779,9 +783,21 @@ subroutine dfpt_vlocal(atindx,cplex,gmet,gsqcut,idir,ipert,&
  real(dp) :: gq(3)
  real(dp),allocatable :: work1(:,:)
 
+ !CEDrev:
+ integer :: excludeg0,cplex
+ real(dp) :: facg0
+
+
 ! *********************************************************************
 
  iatom=ipert
+
+ 
+ ! CEDrev: MS implmentation of G=0 removal
+ excludeg0 = cplexin / 10
+ cplex = MOD(cplexin,10)
+
+
 
  if(iatom==natom+1 .or. iatom==natom+2 .or. iatom==natom+10  .or. iatom==natom+11 .or. iatom==natom+5)then
 
@@ -838,10 +854,21 @@ subroutine dfpt_vlocal(atindx,cplex,gmet,gsqcut,idir,ipert,&
 
 !        Note the lower limit of the next loop
          ii1=1
+         !CEDrev:
+         facg0=0.d0
          if(i3==1 .and. i2==1 .and. qeq0 .and. ig2==0 .and. ig3==0)then
            ii1=2
            ii=ii+1
          end if
+
+         ! CEDrev: Removing G=0 (MS implementation)
+         if(i3==1 .and. i2==1 .and. (.not.qeq0) .and. (excludeg0==1) .and. ig2==0 .and. ig3==0)then
+            facg0 = 4.0_dp * pi * zion(itypat) / (2.0_dp * pi)**2
+            write(std_out,*) 'NEW: Correct the G=0 term in vpsp1!'
+            write(std_out,*) 'vpsp1: zion(itypat) = ', zion(itypat)
+         end if
+
+
          do i1=ii1,n1
            ig1=i1-(i1/id1)*n1-1
            gq1=dble(ig1)+qphon(1)
@@ -865,9 +892,20 @@ subroutine dfpt_vlocal(atindx,cplex,gmet,gsqcut,idir,ipert,&
              aa = 1.0_dp-bb
              cc = aa*(aa**2-1.0_dp)*dq2div6
              dd = bb*(bb**2-1.0_dp)*dq2div6
+
+             ! CEDrev: remove G=0 (MS implementation)
              vion1 = (aa*vlspl(jj,1,itypat)+bb*vlspl(jj+1,1,itypat) + &
-&             cc*vlspl(jj,2,itypat)+dd*vlspl(jj+1,2,itypat) ) &
+&             cc*vlspl(jj,2,itypat)+dd*vlspl(jj+1,2,itypat) + facg0) &
 &             / gsquar
+!             vion1 = (aa*vlspl(jj,1,itypat)+bb*vlspl(jj+1,1,itypat) + &
+!&             cc*vlspl(jj,2,itypat)+dd*vlspl(jj+1,2,itypat) ) &
+!&             / gsquar
+             if (ABS(facg0).gt.0.001d0) then
+               write(std_out,*) 'vpsp1: vion1 = ', aa*vlspl(jj,1,itypat)+bb*vlspl(jj+1,1,itypat) + &
+&               cc*vlspl(jj,2,itypat)+dd*vlspl(jj+1,2,itypat)
+               write(std_out,*) 'vpsp1: vion1(corr) = ', aa*vlspl(jj,1,itypat)+bb*vlspl(jj+1,1,itypat) + &
+&               cc*vlspl(jj,2,itypat)+dd*vlspl(jj+1,2,itypat) + facg0
+             end if
 
 !            Phase   G*xred  (complex conjugate) * -i *2pi*(g+q)*vion
              sfr=-phimag_vl3(ig1,ig2,ig3,iatom)*2.0_dp*pi*gq(idir)*vion1
@@ -876,6 +914,10 @@ subroutine dfpt_vlocal(atindx,cplex,gmet,gsqcut,idir,ipert,&
 !            Phase   q*xred  (complex conjugate)
              work1(re,ii)=sfr*phqre+sfi*phqim
              work1(im,ii)=-sfr*phqim+sfi*phqre
+             
+             !CEDrev: Put facg0 to zero, otherwise the whole column will be affected
+             facg0 = 0.d0
+
            end if
 
          end do

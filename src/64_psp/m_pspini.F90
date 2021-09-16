@@ -181,6 +181,10 @@ subroutine pspini(dtset,dtfil,ecore,gencond,gsqcut,gsqcutdg,pawrad,pawtab,psps,r
  real(dp),allocatable :: xccc1d_alch(:,:,:),xcccrc_alch(:)
  type(nctab_t),target,allocatable :: nctab_alch(:)
 
+!CEDrev:                                                                                                                                                                                                 
+ real(dp),allocatable :: ffspl1(:,:,:)
+
+
 ! *************************************************************************
 
  DBG_ENTER("COLL")
@@ -319,6 +323,9 @@ subroutine pspini(dtset,dtfil,ecore,gencond,gsqcut,gsqcutdg,pawrad,pawtab,psps,r
    ABI_MALLOC(xccc1d,(psps%n1xccc*(1-psps%usepaw),6))
    ABI_MALLOC(ffspl,(psps%mqgrid_ff,2,psps%lnmax))
    ABI_MALLOC(vlspl,(psps%mqgrid_vl,2))
+   !CEDrev:
+   ABI_MALLOC(ffspl1,(psps%mqgrid_ff,2,psps%lnmax))
+
    if (.not.psps%vlspl_recipSpace) then
      ABI_MALLOC(dvlspl,(psps%mqgrid_vl,2))
    else
@@ -344,6 +351,10 @@ subroutine pspini(dtset,dtfil,ecore,gencond,gsqcut,gsqcutdg,pawrad,pawtab,psps,r
 
        xcccrc=zero
        ekb(:)=zero;ffspl(:,:,:)=zero;vlspl(:,:)=zero
+
+       !CEDrev:
+       ffspl1(:,:,:)=zero
+
        if (.not.psps%vlspl_recipSpace) dvlspl(:, :)=zero
        if (psps%usepaw==0) xccc1d(:,:)=zero
        indlmn=>psps%indlmn(:,:,ipsp)
@@ -355,13 +366,17 @@ subroutine pspini(dtset,dtfil,ecore,gencond,gsqcut,gsqcutdg,pawrad,pawtab,psps,r
 !      Read atomic psp V(r) and wf(r) to get local and nonlocal psp:
 !      Cannot use the same call in case of bound checking, because of pawrad/pawtab
        if(psps%usepaw==0)then
-         call pspatm(dq,dtset,dtfil,ekb,epsatm(ipsp),ffspl,indlmn,ipsp,&
+
+          ! CEDrev: pass ffspl1
+         call pspatm(dq,dtset,dtfil,ekb,epsatm(ipsp),ffspl,ffspl1,indlmn,ipsp,&
            pawrad_dum,pawtab_dum,psps,vlspl,dvlspl,xcccrc,xccc1d,psps%nctab(ipsp))
+
          psps%ekb(:,ipsp)=ekb(:)
          psps%xccc1d(:,:,ipsp)=xccc1d(:,:)
        else
+          ! CEDrev: pass ffspl1
          comm_mpi_=xmpi_comm_self;if (present(comm_mpi)) comm_mpi_=comm_mpi
-         call pspatm(dq,dtset,dtfil,ekb,epsatm(ipsp),ffspl,indlmn,ipsp,&
+         call pspatm(dq,dtset,dtfil,ekb,epsatm(ipsp),ffspl,ffspl1,indlmn,ipsp,&
            pawrad(ipsp),pawtab(ipsp),psps,vlspl,dvlspl,xcccrc,xccc1d,nctab_dum,comm_mpi=comm_mpi_)
          if (dtset%usefock==1.and.pawtab(ipsp)%has_fock==0) then
            ABI_BUG('The PAW data file does not contain Fock information. Change the PAW data file!')
@@ -372,6 +387,10 @@ subroutine pspini(dtset,dtfil,ecore,gencond,gsqcut,gsqcutdg,pawrad,pawtab,psps,r
        psps%xcccrc(ipsp)=xcccrc
        psps%znucltypat(ipsp)=psps%znuclpsp(ipsp)
        psps%ffspl(:,:,:,ipsp)=ffspl(:,:,:)
+      
+       !CEDrev:
+       psps%ffspl1(:,:,:,ipsp)=ffspl1(:,:,:)
+
        psps%vlspl(:,:,ipsp)=vlspl(:,:)
        if (.not.psps%vlspl_recipSpace) psps%dvlspl(:, :, ipsp) = dvlspl(:, :)
      end do ! ipsp
@@ -407,6 +426,10 @@ subroutine pspini(dtset,dtfil,ecore,gencond,gsqcut,gsqcutdg,pawrad,pawtab,psps,r
 
        xcccrc=zero
        ekb(:)=zero;ffspl(:,:,:)=zero;vlspl(:,:)=zero
+
+       !CEDrev:
+       ffspl1(:,:,:)=zero
+
        if (.not.psps%vlspl_recipSpace) dvlspl(:, :)=zero
        if (psps%usepaw==0) xccc1d(:,:)=zero
        indlmn(:,:)=0
@@ -421,12 +444,13 @@ subroutine pspini(dtset,dtfil,ecore,gencond,gsqcut,gsqcutdg,pawrad,pawtab,psps,r
            nctab_ptr => nctab_alch(ipsp-ntyppure)
          end if
 
-         call pspatm(dq,dtset,dtfil,ekb,epsatm_psp,ffspl,indlmn,ipsp,&
+         ! CEDrev: pass ffspl1
+         call pspatm(dq,dtset,dtfil,ekb,epsatm_psp,ffspl,ffspl1,indlmn,ipsp,&
 &         pawrad_dum,pawtab_dum,psps,vlspl,dvlspl,xcccrc,xccc1d,nctab_ptr)
 
        else if (psps%usepaw==1) then
          comm_mpi_=xmpi_comm_self;if (present(comm_mpi)) comm_mpi_=comm_mpi
-         call pspatm(dq,dtset,dtfil,ekb,epsatm_psp,ffspl,indlmn,ipsp,&
+         call pspatm(dq,dtset,dtfil,ekb,epsatm_psp,ffspl,ffspl1,indlmn,ipsp,&
 &         pawrad(ipsp),pawtab(ipsp),psps,vlspl,dvlspl,xcccrc,xccc1d,nctab_dum,&
 &         comm_mpi=comm_mpi_)
        end if
@@ -437,6 +461,10 @@ subroutine pspini(dtset,dtfil,ecore,gencond,gsqcut,gsqcutdg,pawrad,pawtab,psps,r
          psps%znucltypat(ipsp)=psps%znuclpsp(ipsp)
          if (psps%usepaw==0) psps%ekb(:,ipsp)=ekb(:)
          psps%ffspl(:,:,:,ipsp)=ffspl(:,:,:)
+         
+         !CEDrev:
+         psps%ffspl1(:,:,:,ipsp)=ffspl1(:,:,:)
+
          psps%vlspl(:,:,ipsp)=vlspl(:,:)
          if (.not.psps%vlspl_recipSpace) psps%dvlspl(:, :, ipsp)=dvlspl(:, :)
          if (psps%usepaw==0) psps%xccc1d(:,:,ipsp)=xccc1d(:,:)
@@ -802,7 +830,8 @@ end subroutine pspcor
 !!
 !! SOURCE
 
-subroutine pspatm(dq,dtset,dtfil,ekb,epsatm,ffspl,indlmn,ipsp,pawrad,pawtab,&
+!CEDrev: pass ffspl1
+subroutine pspatm(dq,dtset,dtfil,ekb,epsatm,ffspl,ffspl1,indlmn,ipsp,pawrad,pawtab,&
 &  psps,vlspl,dvlspl,xcccrc,xccc1d,nctab,comm_mpi)
 
 !Arguments ---------------------------------------------
@@ -824,6 +853,10 @@ subroutine pspatm(dq,dtset,dtfil,ekb,epsatm,ffspl,indlmn,ipsp,pawrad,pawtab,&
  real(dp),intent(inout) :: ffspl(psps%mqgrid_ff,2,psps%lnmax)
  real(dp),intent(out) :: vlspl(psps%mqgrid_vl,2)
  real(dp),intent(inout) :: xccc1d(psps%n1xccc*(1-psps%usepaw),6)
+
+
+ ! CEDrev:
+real(dp),intent(inout) :: ffspl1(psps%mqgrid_ff,2,psps%lnmax)
 
 !Local variables ---------------------------------------
 !scalars
@@ -1113,14 +1146,17 @@ subroutine pspatm(dq,dtset,dtfil,ekb,epsatm,ffspl,indlmn,ipsp,pawrad,pawtab,&
    else if (pspcod==5)then
 
      ! Old phoney pseudopotentials
+
+      ! CEDrev: pass ffspl1
      call psp5in(ekb,ekb1,ekb2,epsatm,epspsp,&
-      e990,e999,ffspl,indlmn,lloc,lmax,psps%lmnmax,psps%lnmax,&
+      e990,e999,ffspl,ffspl1,indlmn,lloc,lmax,psps%lmnmax,psps%lnmax,&
       mmax,psps%mpsang,psps%mpssoang,psps%mqgrid_ff,nproj,psps%n1xccc,psps%pspso(ipsp),qchrg,psps%qgrid_ff,&
       rcpsp,rms,psps%useylm,vlspl,xcccrc,xccc1d,zion,psps%znuclpsp(ipsp))
 
    else if (pspcod==6)then
+      ! CEDrev: pass ffspl1
      ! FHI pseudopotentials
-     call psp6in(ekb,epsatm,ffspl,indlmn,lloc,lmax,psps%lmnmax,psps%lnmax,mmax,&
+     call psp6in(ekb,epsatm,ffspl,ffspl1,indlmn,lloc,lmax,psps%lmnmax,psps%lnmax,mmax,&
        psps%mpsang,psps%mqgrid_ff,nproj,psps%n1xccc,psps%optnlxccc,psps%positron,qchrg,psps%qgrid_ff,psps%useylm,vlspl,&
        xcccrc,xccc1d,zion,psps%znuclpsp(ipsp))
 
@@ -1133,9 +1169,9 @@ subroutine pspatm(dq,dtset,dtfil,ekb,epsatm,ffspl,indlmn,ipsp,pawrad,pawtab,&
        dtset%xc_denpos,zion,psps%znuclpsp(ipsp))
 
    else if (pspcod==8)then
-
+      ! CEDrev: pass ffspl1
      ! DRH pseudopotentials
-     call psp8in(ekb,epsatm,ffspl,indlmn,lloc,lmax,psps%lmnmax,psps%lnmax,mmax,&
+     call psp8in(ekb,epsatm,ffspl,ffspl1,indlmn,lloc,lmax,psps%lmnmax,psps%lnmax,mmax,&
        psps%mpsang,psps%mpssoang,psps%mqgrid_ff,psps%mqgrid_vl,nproj,psps%n1xccc,psps%pspso(ipsp),&
        qchrg,psps%qgrid_ff,psps%qgrid_vl,psps%useylm,vlspl,xcccrc,xccc1d,zion,psps%znuclpsp(ipsp),nctab,maxrad)
 

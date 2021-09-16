@@ -689,7 +689,8 @@ end subroutine psp5lo
 !!
 !! SOURCE
 
-subroutine psp5nl(al,ekb,ffspl,lmax,mmax,mpsang,mqgrid,qgrid,rad,vloc,vpspll,wfll)
+! CEDrev: ffspl1
+subroutine psp5nl(al,ekb,ffspl,ffspl1,lmax,mmax,mpsang,mqgrid,qgrid,rad,vloc,vpspll,wfll)
 
 !Arguments ------------------------------------
 !scalars
@@ -699,6 +700,9 @@ subroutine psp5nl(al,ekb,ffspl,lmax,mmax,mpsang,mqgrid,qgrid,rad,vloc,vpspll,wfl
  real(dp),intent(in) :: qgrid(mqgrid),rad(mmax),vloc(mmax),vpspll(mmax,mpsang)
  real(dp),intent(in) :: wfll(mmax,mpsang)
  real(dp),intent(out) :: ekb(mpsang),ffspl(mqgrid,2,mpsang)
+
+ ! CEDrev:
+ real(dp),intent(out) :: ffspl1(mqgrid,2,mpsang)
 
 !Local variables-------------------------------
 !scalars
@@ -1368,7 +1372,8 @@ end subroutine psp8lo
 !!
 !! SOURCE
 
-subroutine psp8nl(amesh,ffspl,indlmn,lmax,lmnmax,lnmax,mmax,mqgrid,qgrid,rad,vpspll)
+!CEDrev: pass ffspl1
+subroutine psp8nl(amesh,ffspl,ffspl1,indlmn,lmax,lmnmax,lnmax,mmax,mqgrid,qgrid,rad,vpspll)
 
 !Arguments----------------------------------------------------------
 !scalars
@@ -1378,6 +1383,9 @@ subroutine psp8nl(amesh,ffspl,indlmn,lmax,lmnmax,lnmax,mmax,mqgrid,qgrid,rad,vps
  integer,intent(in) :: indlmn(6,lmnmax)
  real(dp),intent(in) :: qgrid(mqgrid),rad(mmax),vpspll(mmax,lnmax)
  real(dp),intent(inout) :: ffspl(mqgrid,2,lnmax) !vz_i
+
+!CEDrev
+ real(dp),intent(inout) :: ffspl1(mqgrid,2,lnmax) !vz_i
 
 !Local variables-------------------------------
 !Following parameter controls accuracy of Fourier transform based on qmax
@@ -1530,6 +1538,31 @@ subroutine psp8nl(amesh,ffspl,indlmn,lmax,lmnmax,lnmax,mmax,mqgrid,qgrid,rad,vps
 &     +50.d0*ffspl(mqgrid,1,iln))/(24.d0*qmesh)
 
      call spline(qgrid,ffspl(1,1,iln),mqgrid,yp1,ypn,ffspl(1,2,iln))
+
+     ! CEDrev: compute 1st and third derivative
+     ! Get first derivative of ffspl
+     call splfit(qgrid,ffspl1(:,1,iln),ffspl(:,:,iln),1,qgrid,ffspl(:,1,iln),mqgrid,mqgrid)
+
+     ! Refit to spline
+     ffspl1(1,1,iln)=yp1
+     ffspl1(mqgrid,1,iln)=ypn
+
+     yp1=(-50.d0*ffspl1(1,1,iln)+96.d0*ffspl1(2,1,iln)-72.d0*ffspl1(3,1,iln)&
+          &     +32.d0*ffspl1(4,1,iln)- 6.d0*ffspl1(5,1,iln))/(24.d0*qmesh)
+     ypn=(6.d0*ffspl1(mqgrid-4,1,iln)-32.d0*ffspl1(mqgrid-3,1,iln)&
+          &     +72.d0*ffspl1(mqgrid-2,1,iln)-96.d0*ffspl1(mqgrid-1,1,iln)&
+          &     +50.d0*ffspl1(mqgrid,1,iln))/(24.d0*qmesh)
+ 
+     call spline(qgrid,ffspl1(1,1,iln),mqgrid,yp1,ypn,ffspl1(1,2,iln))
+
+     ! There is some issue with the spline fit where the last few values are quite large.
+     ! It is probably due to the fact that I don't really know how the first derivative above
+     ! was determined. Quick and dirty implementation for now is to supress:
+     do iq=mqgrid-20,mqgrid
+        if (abs(ffspl1(iq,2,iln))>1.d-1) ffspl1(iq,2,iln)=0.
+     end do
+
+
    end if
  end do
 

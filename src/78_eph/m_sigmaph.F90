@@ -704,6 +704,11 @@ subroutine sigmaph(wfk0_path, dtfil, ngfft, ngfftf, dtset, cryst, ebands, dvdb, 
  complex(gwpc),allocatable :: ur_k(:,:), ur_kq(:), work_ur(:), workq_ug(:)
  type(pawcprj_type),allocatable :: cwaveprj0(:,:), cwaveprj(:,:)
  type(pawrhoij_type),allocatable :: pawrhoij(:)
+ 
+
+! CEDrev: Dummy argument for cgwf
+real(dp),allocatable :: cwave1in(:,:) 
+
 
 !************************************************************************
 
@@ -1591,18 +1596,23 @@ subroutine sigmaph(wfk0_path, dtfil, ngfft, ngfftf, dtset, cryst, ebands, dvdb, 
              bands_treated_now(band_ks) = 1
              call xmpi_sum(bands_treated_now,mpi_enreg%comm_band,ierr)
 
-             call dfpt_cgwf(band_ks, band_me, band_procs, bands_treated_now, berryopt0, &
-               cgq, cg1s_kq(:,:,ipc, ib_k), kets_k(:,:,ib_k), &
-               cwaveprj, cwaveprj0, rf2, dcwavef, &
+             ! CEDrev: make dummy cgp and pass to dfpt_cgwf. Also pass dtset,dtfil, dummy cwave1in
+             ABI_MALLOC(cwave1in,(2,npw_kq*nspinor)) 
+             call dfpt_cgwf(dtset%userib,band_ks, band_me, band_procs, bands_treated_now, berryopt0, &
+               cgq, cg1s_kq(:,:,ipc, ib_k), kets_k(:,:,ib_k),cwave1in, &
+               cwaveprj, cwaveprj0, rf2, dcwavef,dtset,dtfil, &
                ebands%eig(:, ik_ibz, spin), ebands%eig(:, ikq_ibz, spin), out_eig1_k, &
-               ghc, gh1c_n, grad_berry, gsc, gscq, &
+               ghc, gh1c_n, cryst%gprimd,grad_berry, gsc, gscq, &
                gs_hamkq, gvnlxc, gvnlx1, icgq0, idir, ipert, igscq0, &
                mcgq, mgscq, mpi_enreg, grad_berry_size_mpw1, cryst%natom, nband_kq, nband_me, &
                nbdbuf0, nline_in, npw_k, npw_kq, nspinor, &
-               opt_gvnlx1, dtset%prtvol, quit0, out_resid, rf_hamkq, dtset%dfpt_sciss, -one, dtset%tolwfr, &
+               opt_gvnlx1, dtset%prtvol, psps,quit0, out_resid, rf_hamkq, cryst%gprimd,dtset%dfpt_sciss, -one, dtset%tolwfr, &
                usedcwavef0, dtset%wfoptalg, nlines_done)
 
              ABI_FREE(bands_treated_now)
+
+             !CEDrev:
+             ABI_FREE(cwave1in)
 
              call cwtime(cpu_stern, wall_stern, gflops_stern, "stop")
 

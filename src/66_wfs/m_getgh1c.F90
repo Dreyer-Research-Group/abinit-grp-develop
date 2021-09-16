@@ -127,9 +127,10 @@ contains
 !!
 !! SOURCE
 
+! CEDrev: pass qpt
 subroutine getgh1c(berryopt,cwave,cwaveprj,gh1c,grad_berry,gs1c,gs_hamkq,&
                    gvnlx1,idir,ipert,lambda,mpi_enreg,optlocal,optnl,opt_gvnlx1,&
-                   rf_hamkq,sij_opt,tim_getgh1c,usevnl,conj)
+                   rf_hamkq,sij_opt,tim_getgh1c,usevnl,conj,qpt)
 
 !Arguments ------------------------------------
 !scalars
@@ -146,6 +147,9 @@ subroutine getgh1c(berryopt,cwave,cwaveprj,gh1c,grad_berry,gs1c,gs_hamkq,&
  real(dp),intent(out) :: gs1c(2,gs_hamkq%npw_kp*gs_hamkq%nspinor)
  real(dp),intent(inout),target :: gvnlx1(2,gs_hamkq%npw_kp*gs_hamkq%nspinor)
  type(pawcprj_type),intent(inout),target :: cwaveprj(:,:)
+
+! CEDrev
+ real(dp),optional,intent(in) :: qpt(3)
 
 !Local variables-------------------------------
 !scalars
@@ -166,6 +170,18 @@ subroutine getgh1c(berryopt,cwave,cwaveprj,gh1c,grad_berry,gs1c,gs_hamkq,&
  real(dp),pointer :: dkinpw(:),kinpw1(:)
  type(pawcprj_type),allocatable,target :: cwaveprj_tmp(:,:)
  type(pawcprj_type),pointer :: cwaveprj_ptr(:,:)
+
+ ! CEDrev:
+ integer :: iatom
+ real(dp),allocatable :: ekb_typ(:,:,:)
+ integer, allocatable :: indlmn_typ(:,:,:)
+ real(dp),allocatable :: kinin(:,:),kinout(:,:)
+ real(dp),allocatable :: denpot(:,:,:)
+ real(dp),allocatable :: dumr(:,:,:,:)
+ real(dp),allocatable :: gvnl2k(:,:)
+ real(dp),allocatable :: gvnl2kq(:,:)
+ real(dp),allocatable :: cwavek(:,:)
+
 
 ! *********************************************************************
 
@@ -269,7 +285,9 @@ subroutine getgh1c(berryopt,cwave,cwaveprj,gh1c,grad_berry,gs1c,gs_hamkq,&
 !or Electric field perturbation
 !or Strain perturbation
 !-------------------------------------------
- if (ipert<=natom+5.and.ipert/=natom+1.and.optlocal>0) then !SPr deb
+ !CEDrev: Also for metric wave pert. NOTE, changed from ipert<=natom+4 to ipert<=natom+5!!!!
+ if ((ipert<=natom+5.and.ipert/=natom+1.and.optlocal>0).or.(ipert==natom+6.and.optlocal>0)) then
+! if (ipert<=natom+5.and.ipert/=natom+1.and.optlocal>0) then !SPr deb
 
    ABI_MALLOC(work,(2,gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6))
 
@@ -430,7 +448,7 @@ subroutine getgh1c(berryopt,cwave,cwaveprj,gh1c,grad_berry,gs1c,gs_hamkq,&
 !-------------------------------------------
  if (ipert<=natom.and.(optnl>0.or.sij_opt/=0)) then
 
-!  PAW:
+    !  PAW:
    if (gs_hamkq%usepaw==1) then
 
      if (usecprj==1) then
@@ -478,7 +496,7 @@ subroutine getgh1c(berryopt,cwave,cwaveprj,gh1c,grad_berry,gs1c,gs_hamkq,&
      nullify(cwaveprj_ptr)
 
 !  Norm-conserving psps:
-   else
+  else
 !    Compute only derivatives due to projectors |p_i>^(1)
      cpopt=-1 ; choice=2 ; signs=2 ; paw_opt=0
      call nonlop(choice,cpopt,cwaveprj,enlout,gs_hamkq,idir,(/lambda/),mpi_enreg,1,nnlout,&
@@ -489,7 +507,146 @@ subroutine getgh1c(berryopt,cwave,cwaveprj,gh1c,grad_berry,gs1c,gs_hamkq,&
          gs1c(:,ipw)=zero
        end do
      end if
-   end if
+  end if
+
+
+   ! CEDrev: Metric wave perturbation
+   !-------------------------------------------
+else if (ipert==natom+6) then
+
+! This will need some work. Need to bring the nonlocal part up to date for metric.
+   
+! NOTE: abinit 9 call to nonlop should be much simpler!!
+! only normconserving
+
+!!$   do iatom=1,natom
+!!$!    Compute only derivatives due to projectors |p_i>^(1)
+!!$     cpopt=-1 ; choice=2 ; signs=2 ; paw_opt=0
+!!$     call nonlop(choice,cpopt,cwaveprj,enlout,gs_hamkq,idir,(/lambda/),mpi_enreg,1,nnlout,&
+!!$&     paw_opt,signs,svectout_dum,tim_nonlop,cwave,gvnlx1_,iatom_only=ipert)
+!!$     if (sij_opt==1) then
+!!$!$OMP PARALLEL DO
+!!$       do ipw=1,npw1*my_nspinor
+!!$         gs1c(:,ipw)=zero
+!!$       end do
+!!$     end if
+!!$
+!!$
+!!$! NOTE: This is the old implementation from AMS! Trying to bring up to date above...
+!!$   !Assume usevnl=1
+!!$   !write(*,*) 'ams: getghc1: usevnl', usevnl
+!!$   ABI_ALLOCATE(gvnl2,(2,npw1*nspinor*usevnl))
+!!$   ABI_ALLOCATE(gvnl2kq,(2,npw1*nspinor*usevnl))
+!!$   ABI_ALLOCATE(gvnl2k,(2,npw*nspinor*usevnl))
+!!$   gvnl1_(:,:)=zero 
+!!$
+!!$   !sum over atoms:
+!!$   do iatom=1,natom
+!!$      signs=2 ; nnlout=1 ; natom_der=1 ; nattyp_der(1)=1 ; ntypat_der=1
+!!$      dimekb2_der=gs_hamkq%ntypat
+!!$      ABI_ALLOCATE(enlout,(nnlout))
+!!$      matblk_der=1
+!!$
+!!$     xred_der(:)=gs_hamkq%xred(:,iatom)
+!!$     atindx_der(1)=1 ; atindx1_der(1)=1
+!!$     n1=gs_hamkq%ngfft(1) ; n2=gs_hamkq%ngfft(2) ; n3=gs_hamkq%ngfft(3)
+!!$!     iatm=gs_hamkq%atindx(iatom) !is this different from iatom?
+!!$
+!!$!    Store at the right place the 1d phases
+!!$     ! CEDrev: Obtain the phase factor of iatom
+!!$     ABI_ALLOCATE(ph1d_der,(2,(2*n1+1)+(2*n2+1)+(2*n3+1)))
+!!$     shift1=(iatom-1)*(2*n1+1)
+!!$     ph1d_der(:,1:2*n1+1)=gs_hamkq%ph1d(:,1+shift1:2*n1+1+shift1)
+!!$     shift2=(iatom-1)*(2*n2+1)+natom*(2*n1+1)
+!!$     ph1d_der(:,1+2*n1+1:2*n2+1+2*n1+1)=gs_hamkq%ph1d(:,1+shift2:2*n2+1+shift2)
+!!$     shift3=(iatom-1)*(2*n3+1)+natom*(2*n1+1+2*n2+1)
+!!$     ph1d_der(:,1+2*n1+1+2*n2+1:2*n3+1+2*n2+1+2*n1+1)=&
+!!$&     gs_hamkq%ph1d(:,1+shift3:2*n3+1+shift3)
+!!$
+!!$!    Will compute the 3D phase factors inside nonlop
+!!$     ABI_ALLOCATE(ph3din,(2,npw,1))
+!!$     ABI_ALLOCATE(ph3dout,(2,npw1,1))
+!!$     nloalg_der(:)=gs_hamkq%nloalg(:)
+!!$     nloalg_der(1)=-abs(gs_hamkq%nloalg(1))
+!!$     nloalg_der(4)=1
+!!$
+!!$!    Get pahse information, etc. for iatm/iatom
+!!$     phkxredin(:,1)=gs_hamkq%phkxred(:,iatom)
+!!$     phkxredout(:,1)=gs_hamkq%phkxred(:,iatom)
+!!$
+!!$     ABI_ALLOCATE(ffnlk_der,(npw,dimffnlk,gs_hamkq%lmnmax,1))
+!!$     ffnlk_der(:,:,:,1)=ffnlk(:,:,:,gs_hamkq%typat(iatom))
+!!$     ABI_ALLOCATE(ffnl1_der,(npw1,dimffnlkq,gs_hamkq%lmnmax,1))
+!!$     ffnl1_der(:,:,:,1)=ffnl1(:,:,:,gs_hamkq%typat(iatom))
+!!$
+!!$     ABI_ALLOCATE(ekb_typ,(gs_hamkq%dimekb1,1,gs_hamkq%nspinor**2))
+!!$     ekb_typ(:,1,:)=gs_hamkq%ekb(:,gs_hamkq%typat(iatom),:)
+!!$     ABI_ALLOCATE(indlmn_typ,(6,gs_hamkq%lmnmax,1))
+!!$     indlmn_typ(:,:,1)=gs_hamkq%indlmn(:,:,gs_hamkq%typat(iatom))
+!!$
+!!$
+!!$     ABI_ALLOCATE(cwavek,(2,npw1*nspinor))
+!!$     ABI_ALLOCATE(denpot,(gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6))
+!!$     denpot=one
+!!$     ABI_ALLOCATE(dumr,(2,gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6))
+!!$
+!!$    ! put cwave on k+q G mesh
+!!$     cwavek(:,:)=zero
+!!$     call fourwf(1,denpot,cwave,cwavek,dumr,gbound,gs_hamkq%gbound,&
+!!$          &   gs_hamkq%istwf_k,kg_k,kg1_k,gs_hamkq%mgfft,mpi_enreg,1,gs_hamkq%ngfft,npw,&
+!!$          &     npw1,gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6,2,paral_kgb,0,one,one)
+!!$
+!!$
+!!$     !      Compute only derivatives due to projectors |p_i>^(1)
+!!$     !CED: Choice 22 special for metric perturbation
+!!$     cpopt=-1 ; choice=22 ; paw_opt=0
+!!$
+!!$
+!!$     ! I had to add new variable gvnl2k, so new function nonlopmet
+!!$! AMScom OSS the if statement on qpt; otherwise I get segmentation fauls
+!!$     if(present(qpt))then
+!!$        call nonlopmet(atindx1_der,choice,cpopt,cwaveprj,gs_hamkq%dimekb1,dimekb2_der,dimffnlk,dimffnlkq,&
+!!$&         ekb_typ,enlout,ffnlk_der,ffnl1_der,gs_hamkq%gmet,gs_hamkq%gprimd,idir,&
+!!$&         indlmn_typ,gs_hamkq%istwf_k,kg_k,kg1_k,kpg_k,kpg1_k,kpt,gs_hamkq%kpoint,&
+!!$&         (/lambda/),gs_hamkq%lmnmax,matblk_der,gs_hamkq%mgfft,mpi_enreg,&
+!!$&         gs_hamkq%mpsang,gs_hamkq%mpssoang,natom_der,nattyp_der,1,&
+!!$&         gs_hamkq%ngfft,nkpg,nkpg1,nloalg_der,nnlout,npw,npw1,nspinor,nspinor,ntypat_der,&
+!!$&         0,paw_opt,phkxredin,phkxredout,ph1d_der,ph3din,ph3dout,signs,&
+!!$&         sij_dum,svectout_dum,tim_nonlop,gs_hamkq%ucvol,gs_hamkq%useylm,cwave,gvnl2,gvnl2k,cwavek,&
+!!$&         qpt,use_gpu_cuda=gs_hamkq%use_gpu_cuda)
+!!$     end if
+!!$
+!!$     if (sij_opt==1) gs1c=zero
+!!$
+!!$       gvnl2kq(:,:)=zero
+!!$
+!!$       !CEDrev: So here convert to k+q mesh
+!!$       call fourwf(1,denpot,gvnl2k,gvnl2kq,dumr,gbound,gs_hamkq%gbound,&
+!!$          &   gs_hamkq%istwf_k,kg_k,kg1_k,gs_hamkq%mgfft,mpi_enreg,1,gs_hamkq%ngfft,npw,&
+!!$          &     npw1,gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6,2,paral_kgb,0,one,one)
+!!$       
+!!$       ABI_DEALLOCATE(cwavek)
+!!$       ABI_DEALLOCATE(denpot)
+!!$       ABI_DEALLOCATE(dumr)
+!!$
+!!$       ABI_DEALLOCATE(enlout)
+!!$       ABI_DEALLOCATE(ph1d_der)
+!!$       ABI_DEALLOCATE(ph3din)
+!!$       ABI_DEALLOCATE(ph3dout)
+!!$!     if (gs_hamkq%usepaw==1) then                                                                                                                                                                                                           
+!!$       ABI_DEALLOCATE(ffnlk_der)
+!!$       ABI_DEALLOCATE(ffnl1_der)
+!!$
+!!$       ABI_DEALLOCATE(ekb_typ)
+!!$       ABI_DEALLOCATE(indlmn_typ)
+!!$
+!!$
+!!$     do ipw=1,npw1*nspinor
+!!$       gvnl1_(:,ipw) = gvnl1_(:,ipw) + gvnl2(:,ipw) + gvnl2kq(:,ipw)
+!!$     end do
+!!$     
+!!$  end do !iatom
+
 
 !  k-point perturbation
 !  -------------------------------------------

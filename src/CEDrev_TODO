@@ -1,0 +1,4 @@
+- In 66_wfs/m_getgh1c.F90, need to sort out the nonlocal part for the metric implementation 
+- In 72_response m_dfpt_rhotov, need to make sure hartremet and mkvxc3_met are called correctly
+- Need to include vloca3_ams
+- Various AMS stuff to do in  m_dfpt_vtorho.F90, including kpgmet

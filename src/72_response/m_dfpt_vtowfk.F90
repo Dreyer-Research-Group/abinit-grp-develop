@@ -173,16 +173,17 @@ contains
 !!
 !! SOURCE
 
-subroutine dfpt_vtowfk(cg,cgq,cg1,cg1_active,cplex,cprj,cprjq,cprj1,&
+! CEDrev: pass cgp,gprimd,rprimd
+subroutine dfpt_vtowfk(cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,cprj1,&
 & dim_eig2rf,dtfil,dtset,&
 & edocc_k,eeig0_k,eig0_k,eig0_kq,eig1_k,&
 & ek0_k,ek1_k,eloc0_k,end0_k,end1_k,enl0_k,enl1_k,&
-& fermie1,ffnl1,ffnl1_test,gh0c1_set,gh1c_set,grad_berry,gs_hamkq,&
+& fermie1,ffnl1,ffnl1_test,gh0c1_set,gh1c_set,gprimd,grad_berry,gs_hamkq,&
 & ibg,ibgq,ibg1,icg,icgq,icg1,idir,ikpt,ipert,&
 & isppol,mband,mband_mem,mcgq,mcprjq,mkmem,mk1mem,&
 & mpi_enreg,mpw,mpw1,natom,nband_k,ncpgr,&
 & nnsclo_now,npw_k,npw1_k,nspinor,nsppol,&
-& n4,n5,n6,occ_k,pawrhoij1,prtvol,psps,resid_k,rf_hamkq,rf_hamk_dir2,rhoaug1,rocceig,&
+& n4,n5,n6,occ_k,pawrhoij1,prtvol,psps,resid_k,rf_hamkq,rf_hamk_dir2,rhoaug1,rocceig,rprimd,&
 & ddk_f,wtk_k,nlines_done,cg1_out)
 
 !Arguments ------------------------------------
@@ -226,6 +227,10 @@ subroutine dfpt_vtowfk(cg,cgq,cg1,cg1_active,cplex,cprj,cprjq,cprj1,&
  type(pawrhoij_type),intent(inout) :: pawrhoij1(natom*gs_hamkq%usepaw)
  type(wfk_t),intent(inout) :: ddk_f(4)
 
+ ! CEDrev:
+ real(dp),intent(in) :: cgp(2,mcgq) ! CEDrev, for projector
+ real(dp),intent(in) :: gprimd(3,3),rprimd(3,3) !CEDrev: need this in cgwf, passing through
+
 !Local variables-------------------------------
 !scalars
  integer,parameter :: level=14,tim_fourwf=5
@@ -248,6 +253,9 @@ subroutine dfpt_vtowfk(cg,cgq,cg1,cg1_active,cplex,cprj,cprjq,cprj1,&
  real(dp),allocatable :: gsc(:,:),gscq(:,:),gvnlx1(:,:),gvnlxc(:,:)
  real(dp),pointer :: kinpw1(:)
  type(pawcprj_type),allocatable :: cwaveprj(:,:),cwaveprj0(:,:),cwaveprj1(:,:)
+
+ ! CEDrev:
+ real(dp),allocatable :: cwave1in(:,:)
 
 ! *********************************************************************
 
@@ -284,6 +292,10 @@ subroutine dfpt_vtowfk(cg,cgq,cg1,cg1_active,cplex,cprj,cprjq,cprj1,&
  else
    ABI_MALLOC(gsc,(0,0))
  end if
+
+ ! CEDrev: allocate input FO wf. For now do this in any case since it is passed to cgwf3
+ ABI_MALLOC(cwave1in,(2,npw1_k*nspinor))
+
 
 !Read the npw and kg records of wf files
  test_ddk=0
@@ -373,6 +385,14 @@ unit_me = 6
    ptr = 1+(iband_me-1)*npw1_k*nspinor+icg1
    call cg_zcopy(npw1_k*nspinor,cg1(1,ptr),cwavef)
 
+   !CEDrev: We want FO wf for input.
+   if (dtset%userib==1) then
+      ptr = 1+(iband-1)*npw1_k*nspinor+icg1
+      call cg_zcopy(npw1_k*nspinor,cgp(1,ptr),cwave1in)
+   end if
+
+
+
 !  Read PAW projected 1st-order WF (cprj)
 !  Unuseful for the time being (will be recomputed in dfpt_cgwf)
 !  if (gs_hamkq%usepaw==1.and.gs_hamkq%usecprj==1) then
@@ -440,11 +460,12 @@ unit_me = 6
        bands_treated_now(iband) = 1
        call xmpi_sum(bands_treated_now,mpi_enreg%comm_band,ierr)
 
-       call dfpt_cgwf(iband,iband_me,band_procs,bands_treated_now,dtset%berryopt,cgq,cwavef,cwave0,cwaveprj,cwaveprj0,&
-&       rf2,dcwavef,&
-&       eig0_k,eig0_kq,eig1_k,gh0c1,gh1c_n,grad_berry,gsc,gscq,gs_hamkq,gvnlxc,gvnlx1,icgq,&
+       !CEDrev: I am passing cwave1in in addition to be safe. Also gprimd,rprimd, dtset, dtfil,ffnl,sign_dyad
+       call dfpt_cgwf(dtset%userib,iband,iband_me,band_procs,bands_treated_now,dtset%berryopt,&
+&       cgq,cwavef,cwave0,cwave1in,cwaveprj,cwaveprj0,rf2,dcwavef,dtset,dtfil,&
+&       eig0_k,eig0_kq,eig1_k,gh0c1,gh1c_n,gprimd,grad_berry,gsc,gscq,gs_hamkq,gvnlxc,gvnlx1,icgq,&
 &       idir,ipert,igscq,mcgq,mgscq,mpi_enreg,mpw1,natom,nband_k,nband_me,dtset%nbdbuf,dtset%nline,&
-&       npw_k,npw1_k,nspinor,opt_gvnlx1,prtvol,quit,resid,rf_hamkq,dtset%dfpt_sciss,dtset%tolrde,&
+&       npw_k,npw1_k,nspinor,opt_gvnlx1,prtvol,psps,quit,resid,rf_hamkq,rprimd,dtset%dfpt_sciss,dtset%tolrde,&
 &       dtset%tolwfr,usedcwavef,dtset%wfoptalg,nlines_done)
        resid_k(iband)=resid
      else
@@ -662,6 +683,9 @@ unit_me = 6
  ABI_FREE(cwaveprj0)
  ABI_FREE(cwaveprj)
  ABI_FREE(cwaveprj1)
+
+ !CEDrev: Deallocate array:
+ ABI_FREE(cwave1in)
 
 
 !###################################################################

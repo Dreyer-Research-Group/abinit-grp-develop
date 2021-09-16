@@ -359,11 +359,12 @@ subroutine dfpt_qdrpwf(atindx,cg,cplex,dtset,gs_hamkq,gsqcut,icg,ikpt,indkpt1,is
    idir=pert_atdis(2,iatpert)
 
    !Get first-order local part of the pseudopotential
+   ! CEDrev: pass zion
    call dfpt_vlocal(atindx,cplex,gs_hamkq%gmet,gsqcut,idir,ipert,mpi_enreg, &
    &  psps%mqgrid_vl,dtset%natom,&
    &  nattyp,nfft,ngfft,dtset%ntypat,ngfft(1),ngfft(2),ngfft(3), &
    &  ph1d,psps%qgrid_vl,&
-   &  dtset%qptn,ucvol,psps%vlspl,vpsp1,xred)
+   &  dtset%qptn,ucvol,psps%vlspl,vpsp1,xred,dtset%ziontypat)
 
    !Set up local potential vlocal1 with proper dimensioning, from vpsp1 + vhxc1_atdis
    vpsp1=vpsp1+vhxc1_atdis(iatpert,:)
@@ -2025,11 +2026,12 @@ subroutine dfpt_ddmdqwf(atindx,cg,cplex,ddmdqwf_k,ddmdqwf_t1_k,ddmdqwf_t2_k,&
    idir=pert_atdis(2,iatpert)
 
    !Get first-order local part of the pseudopotential
+   ! CEDrev: Pass zion
    call dfpt_vlocal(atindx,cplex,gs_hamkq%gmet,gsqcut,idir,ipert,mpi_enreg, &
    &  psps%mqgrid_vl,dtset%natom,&
    &  nattyp,nfft,ngfft,dtset%ntypat,ngfft(1),ngfft(2),ngfft(3), &
    &  ph1d,psps%qgrid_vl,&
-   &  dtset%qptn,ucvol,psps%vlspl,vpsp1,xred)
+   &  dtset%qptn,ucvol,psps%vlspl,vpsp1,xred,dtset%ziontypat)
 
    !Set up local potential vlocal1 with proper dimensioning, from vpsp1 + vhxc1_atdis
    vpsp1=vpsp1+vhxc1_atdis(iatpert,:)
@@ -2774,11 +2776,12 @@ subroutine dfpt_isdqwf(atindx,cg,cplex,dtset,gs_hamkq,gsqcut,icg,ikpt,indkpt1,is
    idir=pert_atdis(2,iatpert)
 
    !Get first-order local part of the pseudopotential
+   ! CEDrev: pass zion
    call dfpt_vlocal(atindx,cplex,gs_hamkq%gmet,gsqcut,idir,ipert,mpi_enreg, &
    &  psps%mqgrid_vl,dtset%natom,&
    &  nattyp,nfft,ngfft,dtset%ntypat,ngfft(1),ngfft(2),ngfft(3), &
    &  ph1d,psps%qgrid_vl,&
-   &  dtset%qptn,ucvol,psps%vlspl,vpsp1,xred)
+   &  dtset%qptn,ucvol,psps%vlspl,vpsp1,xred,dtset%ziontypat)
 
    !Set up local potential vlocal1 with proper dimensioning, from vpsp1 + vhxc1_atdis
    vpsp1=vpsp1+vhxc1_atdis(iatpert,:)

@@ -64,7 +64,7 @@ module m_dfpt_loopert
  use m_fftcore,    only : fftcore_set_mixprec
  use m_kg,         only : getcut, getmpw, kpgio, getph
  use m_iowf,       only : outwf, outresid
- use m_ioarr,      only : read_rhor
+ use m_ioarr,      only : read_rhor, ioarr ! CEDrev: also need ioarr
  use m_orbmag,     only : orbmag_ddk
  use m_pawang,     only : pawang_type, pawang_init, pawang_free
  use m_pawrad,     only : pawrad_type
@@ -93,6 +93,9 @@ module m_dfpt_loopert
  use m_mklocl,     only : dfpt_vlocal, vlocalstr
  use m_cgprj,      only : ctocprj
  use m_symkpt,     only : symkpt
+
+ ! CEDrev
+ use m_dfpt_indpol
 
  implicit none
 
@@ -349,6 +352,13 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
 
  real(dp),allocatable :: doccde_tmp(:)
 
+ 
+ ! CEDrev:
+ integer :: adcalc,symon,calcden,nlfft
+ real(dp),allocatable :: cgp(:,:),eigenp(:),rhonlrout(:),rhorout(:)
+
+
+
 ! ***********************************************************************
 
  DBG_ENTER("COLL")
@@ -356,6 +366,15 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
  _IBM6("In dfpt_looppert")
 
  call timab(141,1,tsec)
+
+ 
+!CEDrev: Test if this is an adiabatic caclulation
+adcalc=dtset%userib
+symon=0 ! FOR NOW NOT USED!!!
+
+! 1: print densities, 0: no
+calcden=0
+
 
 !Structured debugging if prtvol==-level
  if(dtset%prtvol==-level)then
@@ -403,7 +422,15 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
  nkpt_max=50;if (xmpi_paral==1) nkpt_max=-1
 !TODO: this flag for paral_atom is ignored below
  paral_atom=(dtset%natom/=my_natom)
- cplex=2-timrev !cplex=2 ! DEBUG: impose cplex=2
+
+!CEDrev: This seems to mess up plotting of FO den for reg calculations...only set to 2 for metric
+ if (dtset%rfuser==2) then
+    cplex=2
+ else
+    cplex=2-timrev
+ end if
+
+! cplex=2-timrev !cplex=2 ! DEBUG: impose cplex=2
  first_entry=.true.
  initialized=0
  ecore=zero ; ek=zero ; ehart=zero ; enxc=zero ; eei=zero ; enl=zero ; eii=zero
@@ -523,7 +550,7 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
    do idir=1,maxidir
      to_compute_this_pert = 0
      if(ipert<dtset%natom+10 .and. rfpert(ipert)==1 .and. rfdir(idir) == 1 ) then
-       if ((pertsy(idir,ipert)==1).or.&
+        if ((pertsy(idir,ipert)==1).or.&
 &       ((dtset%prepanl == 1).and.(ipert == dtset%natom+2)).or.&
 &       ((dtset%prepgkk == 1).and.(ipert <= dtset%natom))  ) then
          to_compute_this_pert = 1
@@ -820,13 +847,16 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
      efrx1=eltfrxc(istr,istr)
    end if
 
+! CEDrev: I want the GS and FO wfks to have the same number of kpoints
+! For now symmetry reduction ON
+!write(*,*) "1. Symmetry reduction is",symon
+
 !  Determine the subset of symmetry operations (nsym1 operations)
 !  that leaves the perturbation invariant, and initialize corresponding arrays
 !  symaf1, symrl1, tnons1 (and pawang1%zarot, if PAW)..
    ABI_MALLOC(symaf1_tmp,(nsym))
    ABI_MALLOC(symrl1_tmp,(3,3,nsym))
    ABI_MALLOC(tnons1_tmp,(3,nsym))
-
    if (dtset%prepanl/=1.and.&
 &   dtset%berryopt/= 4.and.dtset%berryopt/= 6.and.dtset%berryopt/= 7.and.&
 &   dtset%berryopt/=14.and.dtset%berryopt/=16.and.dtset%berryopt/=17) then
@@ -971,14 +1001,25 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
 
    _IBM6("IBM6 in dfpt_looppert before getmpw")
 
+   ! CEDrev: TEST
+   !write(*,*) "Before getmpw"
+
 !  Compute maximum number of planewaves at k
    call timab(142,1,tsec)
    call getmpw(ecut_eff,dtset%exchn2n3d,gmet,istwfk_rbz,kpt_rbz,mpi_enreg,mpw,nkpt_rbz)
    call timab(142,2,tsec)
 
+   ! CEDrev: TEST
+   !write(*,*) "After getmpw,",mpw
+
+
 !  Allocate some k-dependent arrays at k
    ABI_MALLOC(npwarr,(nkpt_rbz))
    ABI_MALLOC(npwtot,(nkpt_rbz))
+
+   ! CEDrev: TEST
+   !write(*,*) "After alloc npwarr"
+   
 
 !  Determine distribution of k-points/bands over MPI processes
    if (allocated(mpi_enreg%my_kpttab)) then
@@ -995,7 +1036,14 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
    mkmem_rbz =my_nkpt_rbz ; mkqmem_rbz=my_nkpt_rbz ; mk1mem_rbz=my_nkpt_rbz
    ABI_UNUSED((/mkmem,mk1mem,mkqmem/))
 
+   ! CEDrev: TEST 
+   !write(*,*) "Inputs for initmpi_band:",mkmem_rbz,nband_rbz,nkpt_rbz,dtset%nsppol
+   
+
    call initmpi_band(mkmem_rbz,mpi_enreg,nband_rbz,nkpt_rbz,dtset%nsppol)
+
+   ! CEDrev: TEST 
+   !write(*,*) "After initmpi_band"
 
 ! given number of reduced kpt, store distribution of bands across procs
    ABI_MALLOC(distrb_flags,(nkpt_rbz,dtset%mband,dtset%nsppol))
@@ -1010,6 +1058,10 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
 &    kpt_rbz,mkmem_rbz,nband_rbz,nkpt_rbz,'PERS',mpi_enreg,&
 &    mpw,npwarr,npwtot,dtset%nsppol)
    call timab(143,2,tsec)
+
+   ! CEDrev: TEST 
+   !write(*,*) "After kpgio"
+
 
 !  Set up the spherical harmonics (Ylm) at k
    useylmgr=0; option=0 ; nylmgr=0
@@ -1046,6 +1098,9 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
      end if
      istwfk_pert(:,idir,ipert)=istwfk_rbz(:)
    end if
+
+   ! CEDrev: TEST 
+   !write(*,*) "After ieig2rf>0"
 
 !  Print a separator in output file
    write(msg,'(3a)')ch10,'--------------------------------------------------------------------------------',ch10
@@ -1543,6 +1598,16 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
 &     mpi_atmtab=mpi_enreg%my_atmtab)
    end if
 
+   !CEDrev: store the inital FO wfk for AD pert
+   
+   ! TEST: 
+   !write(*,*) "Before CGP"
+   ABI_MALLOC(cgp,(2,mcg1))
+   ABI_MALLOC(eigenp,(2*dtset%mband*dtset%mband*nkpt_rbz*dtset%nsppol))
+   cgp=cg1; eigenp=eigen1
+   !write(*,*) "after CGP"
+   
+
 !  In case of electric field, or 2nd order perturbation : open the ddk (or dE) wf file(s)
    if ((ipert==dtset%natom+2.and.sum((dtset%qptn(1:3))**2)<1.0d-7.and. &
 &   (dtset%berryopt/= 4.and.dtset%berryopt/= 6.and. &
@@ -1632,12 +1697,20 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
 &       psps%mqgrid_vl,dtset%natom,nattyp,nfftf,ngfftf,ntypat,ph1df,psps%qgrid_vl,&
 &       ucvol,psps%vlspl,vpsp1)
      else
-       call dfpt_vlocal(atindx,cplex,gmet,gsqcut,idir,ipert,mpi_enreg,psps%mqgrid_vl,dtset%natom,&
-&       nattyp,nfftf,ngfftf,ntypat,ngfftf(1),ngfftf(2),ngfftf(3),ph1df,psps%qgrid_vl,&
-&       dtset%qptn,ucvol,psps%vlspl,vpsp1,xred)
-       !SPr: need vpsp1 for -q as well, but for magnetic field it's zero, to be done later
-     end if
 
+        !CEDrev: MS implementation of G0 removal
+        if (dtset%useria==1) then
+           call dfpt_vlocal(atindx,cplex+10,gmet,gsqcut,idir,ipert,mpi_enreg,psps%mqgrid_vl,dtset%natom,&
+                &       nattyp,nfftf,ngfftf,ntypat,ngfftf(1),ngfftf(2),ngfftf(3),ph1df,psps%qgrid_vl,&
+                &       dtset%qptn,ucvol,psps%vlspl,vpsp1,xred,dtset%ziontypat)
+
+        else
+           call dfpt_vlocal(atindx,cplex,gmet,gsqcut,idir,ipert,mpi_enreg,psps%mqgrid_vl,dtset%natom,&
+                &       nattyp,nfftf,ngfftf,ntypat,ngfftf(1),ngfftf(2),ngfftf(3),ph1df,psps%qgrid_vl,&
+                &       dtset%qptn,ucvol,psps%vlspl,vpsp1,xred,dtset%ziontypat)
+       !SPr: need vpsp1 for -q as well, but for magnetic field it's zero, to be done later
+        end if
+     end if
      if(psps%n1xccc/=0)then
        call dfpt_mkcore(cplex,idir,ipert,dtset%natom,ntypat,ngfftf(1),psps%n1xccc,&
 &       ngfftf(2),ngfftf(3),dtset%qptn,rprimd,dtset%typat,ucvol,psps%xcccrc,psps%xccc1d,xccc3d1,xred)
@@ -1861,8 +1934,9 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
 
 !    Main calculation: get 1st-order wavefunctions from Sternheimer equation (SCF cycle)
 !    if ipert==natom+10 or natom+11 : get 2nd-order wavefunctions
+! CEDrev: pass cpg
      if (kramers_deg) then
-       call dfpt_scfcv(atindx,blkflg,cg,cgq,cg1,cg1_active,cplex,cprj,cprjq,cpus,&
+       call dfpt_scfcv(atindx,blkflg,cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,cpus,&
 &       dielt,dim_eig2rf,doccde_rbz,docckqde,dtfil,dtset_tmp,&
 &       d2bbb,d2lo,d2nl,d2ovl,eberry,edocc,eeig0,eew,efrhar,efrkin,efrloc,efrnl,efrx1,efrx2,&
 &       ehart01,ehart1,eigenq,eigen0,eigen1,eii,ek0,ek1,eloc0,elpsp1,&
@@ -1881,7 +1955,7 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
 &       wtk_rbz,xccc3d1,xred,ylm,ylm1,ylmgr,ylmgr1,zeff,dfpt_scfcv_retcode,&
 &       kramers_deg)
      else
-       call dfpt_scfcv(atindx,blkflg,cg,cgq,cg1,cg1_active,cplex,cprj,cprjq,cpus,&
+       call dfpt_scfcv(atindx,blkflg,cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,cpus,&
 &       dielt,dim_eig2rf,doccde_rbz,docckqde,dtfil,dtset_tmp,&
 &       d2bbb,d2lo,d2nl,d2ovl,eberry,edocc,eeig0,eew,efrhar,efrkin,efrloc,efrnl,efrx1,efrx2,&
 &       ehart01,ehart1,eigenq,eigen0,eigen1,eii,ek0,ek1,eloc0,elpsp1,&
@@ -1906,6 +1980,18 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
      end if
 
      _IBM6("after dfpt_scfcv")
+
+     ! CEDrev: TEST Print out the G=0 term of the first order density (to check my implementation in indpol)
+     if (adcalc==0) then 
+!        iwrite=0        
+#ifdef HAVE_MPI
+        if (mpi_enreg%me_kpt==0) then
+           write(*,'(a20,5e18.8e3)') 'G=0 of rhog1 proc', two_pi*matmul(gprimd(:,:),dtset%qptn(:)),rhog1(:,1)
+        end if
+#endif
+     end if
+
+
 
 !    2nd-order eigenvalues stuff
      if (dtset%ieig2rf>0) then
@@ -2144,6 +2230,33 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
 #endif
 
 
+! *************************************************************
+! CEDrev: Adiabatic wf calculation, etc.
+
+   if (adcalc==1.or.adcalc==2) then
+
+      !CED: DO I NEED THIS???
+      ! Everyone on the same page
+#ifdef HAVE_MPI
+      call xmpi_barrier(mpi_enreg%comm_kpt)
+#endif
+      
+      nlfft=dtset%ngfft(1)*dtset%ngfft(2)*dtset%ngfft(3)
+      ABI_MALLOC(rhonlrout,(nlfft))
+      ABI_MALLOC(rhorout,(nlfft))
+            
+      !TEST
+      write(*,*) "NKPT_RBZ",nkpt_rbz
+
+      call indpol(calcden,1,cg,cg1,cgp,cgq,dtfil,dtset,gmet,gprimd,idir,ipert,istwfk_rbz,kg,kg1,kpt_rbz, &
+           & mcg,mcgq,mcg1,mk1mem_rbz,mkmem_rbz,mpi_enreg,mpw,mpw1,nband_rbz,nlfft,npwarr,npwar1, &
+           & nkpt_rbz,occ_rbz,psps,rhorout,rhonlrout,rmet,rprimd,ucvol,wtk_rbz)
+   
+      ! For now, no output of rhonlrtst etc with calcden!!!
+
+   end if !adcalc
+! **************************************************************
+
 !  If the perturbation is d/dk, evaluate the f-sum rule.
    if (ipert==dtset%natom+1 )then
 !    Note : the factor of two is related to the difference
@@ -2224,6 +2337,7 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
    end if
 
 !Release the temporary arrays (for k, k+q and 1st-order)
+   ABI_FREE(cgp) !CEDrev
    ABI_FREE(cg)
    ABI_FREE(cgq)
    ABI_FREE(cg1)

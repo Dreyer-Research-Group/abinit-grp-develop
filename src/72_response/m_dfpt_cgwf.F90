@@ -40,6 +40,14 @@ module m_dfpt_cgwf
  use m_getghc,      only : getghc
  use m_getgh1c,     only : getgh1c, getdc1
 
+ ! CEDrev:
+ use m_dtset
+ use m_dtfil
+ use m_psps
+ use defs_datatypes,  only : pseudopotential_type
+ use m_dfpt_indpol
+ use m_fft
+
  implicit none
 
  private
@@ -151,12 +159,13 @@ contains
 !!
 !! SOURCE
 
-subroutine dfpt_cgwf(band,band_me,band_procs,bands_treated_now,berryopt,cgq,cwavef,cwave0,cwaveprj,cwaveprj0,&
-& rf2,dcwavef,&
-& eig0_k,eig0_kq,eig1_k,ghc,gh1c_n,grad_berry,gsc,gscq,&
+!CEDrev: passed adcalc, gprimd,,dtset,dtfil,psps
+subroutine dfpt_cgwf(adcalc,band,band_me,band_procs,bands_treated_now,berryopt,cgq,cwavef,cwave0,cwave1in,cwaveprj,cwaveprj0,&
+& rf2,dcwavef,dtset,dtfil,&
+& eig0_k,eig0_kq,eig1_k,ghc,gh1c_n,gprimd,grad_berry,gsc,gscq,&
 & gs_hamkq,gvnlxc,gvnlx1,icgq,idir,ipert,igscq,&
 & mcgq,mgscq,mpi_enreg,mpw1,natom,nband,nband_me,nbdbuf,nline_in,npw,npw1,nspinor,&
-& opt_gvnlx1,prtvol,quit,resid,rf_hamkq,dfpt_sciss,tolrde,tolwfr,&
+& opt_gvnlx1,prtvol,psps,quit,resid,rf_hamkq,rprimd,dfpt_sciss,tolrde,tolwfr,&
 & usedcwavef,wfoptalg,nlines_done)
 
 !Arguments ------------------------------------
@@ -179,7 +188,7 @@ subroutine dfpt_cgwf(band,band_me,band_procs,bands_treated_now,berryopt,cgq,cwav
  real(dp),intent(in) :: cgq(2,mcgq),eig0_kq(nband)
  real(dp),intent(in) :: eig0_k(nband)
  real(dp),intent(in) :: grad_berry(2,mpw1*nspinor,nband),gscq(2,mgscq)
- real(dp),intent(inout) :: cwave0(2,npw*nspinor),cwavef(2,npw1*nspinor)
+ real(dp),intent(inout) :: cwave0(2,npw*nspinor),cwavef(2,npw1*nspinor),cwave1in(2,npw1*nspinor)
  real(dp),intent(inout) :: dcwavef(2,npw1*nspinor*((usedcwavef+1)/2))
  real(dp),intent(inout) :: eig1_k(2*nband**2)
  real(dp),intent(out) :: gh1c_n(2,npw1*nspinor)
@@ -188,6 +197,14 @@ subroutine dfpt_cgwf(band,band_me,band_procs,bands_treated_now,berryopt,cgq,cwav
  real(dp),intent(inout) :: gvnlx1(2,npw1*nspinor),gvnlxc(2,npw1*nspinor)
  type(pawcprj_type),intent(inout) :: cwaveprj(natom,nspinor)
  type(pawcprj_type),intent(inout) :: cwaveprj0(natom,nspinor*gs_hamkq%usecprj)
+
+ ! CEDrev
+ integer :: adcalc
+ real(dp),intent(in) :: gprimd(3,3),rprimd(3,3)  !CEDrev
+ type(datafiles_type), intent(in) :: dtfil
+ type(dataset_type), intent(in), target :: dtset
+ type(pseudopotential_type),intent(in) :: psps
+ 
 
 !Local variables-------------------------------
 !scalars
@@ -213,6 +230,14 @@ subroutine dfpt_cgwf(band,band_me,band_procs,bands_treated_now,berryopt,cgq,cwav
  real(dp),pointer :: kinpw1(:)
  type(pawcprj_type),allocatable :: conjgrprj(:,:)
  type(pawcprj_type) :: cprj_dummy(0,0)
+
+ !CEDrev: for diamagnetic suceptability
+ integer :: ikg,irfdir
+ real(dp) :: kplusg(3),qpc(3)
+ real(dp), allocatable :: cwave0_npw1(:,:,:),dumr(:,:,:,:),denconst(:,:,:)
+ character(len=10) :: filbnd !CEDrev: for file name
+! real(dp) :: cwave1in(2,npw1*nspinor) ! CEDrev: FO input wf 
+
 
 ! *********************************************************************
 
@@ -475,8 +500,47 @@ subroutine dfpt_cgwf(band,band_me,band_procs,bands_treated_now,berryopt,cgq,cwav
      ABI_MALLOC(gvnlx1_saved,(2,npw1*nspinor))
      gvnlx1_saved(:,:) = gvnlx1(:,:)
    end if
-   call getgh1c(berryopt,cwave0,cwaveprj0,gh1c,gberry,gs1c,gs_hamkq,gvnlx1,idir,ipert,eshift,&
+
+   ! CEDrev: modified for adiabatic pert and diamag
+ if (adcalc==1) then ! Adiabatic perturbation theory
+    gh1c(1:2,1:npw1*nspinor) = cwave1in(1:2,1:npw1*nspinor)
+
+    !TEST
+    !write(*,*)  gh1c(1:2,1:npw1*nspinor)
+    !stop
+    
+ else if (adcalc==2) then ! Diamagnetic sucseptability
+
+    ! Need to FFT cwave0 onto npw1 mesh
+    ABI_MALLOC(cwave0_npw1,(3,2,npw1))
+    ABI_MALLOC(dumr,(2,gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6))
+    ABI_MALLOC(denconst,(gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6))
+    denconst=one
+    call fourwf(1,denconst,cwave0,cwave0_npw1(1,:,:),dumr,gs_hamkq%gbound_k,gs_hamkq%gbound_kp,&
+         &   gs_hamkq%istwf_k,gs_hamkq%kg_k,gs_hamkq%kg_kp,gs_hamkq%mgfft,mpi_enreg,1,gs_hamkq%ngfft,&
+         &   npw,npw1,gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6,2,0,one,one)
+    
+    if (dtset%rfdir(1)==1) irfdir=1
+    if (dtset%rfdir(2)==1) irfdir=2
+    if (dtset%rfdir(3)==1) irfdir=3
+    ! Cartesian q
+    qpc(:)=two_pi*matmul(gprimd(:,:),dtset%qptn(:))
+    call joper(0,cwave0_npw1,dtfil,dtset,gprimd,gs_hamkq%kg_kp,gs_hamkq%kpt_k,mpi_enreg,npw1,psps,qpc)
+
+    gh1c(1:2,1:npw1)=cwave0_npw1(irfdir,1:2,1:npw1)
+
+ else
+!!$    !AMSrev: pass qpt
+!!$    call getgh1c(berryopt,cplex,cwave0,cwaveprj0,dimcprj,dimffnlk,dimffnl1,dimffnl1,dimphkxred,dkinpw,&
+!!$         & ffnlk,ffnlkq,ffnl1,filstat,gbound,gh1c,gberry,gs1c,gs_hamkq,gvnl1,idir,&
+!!$         & ipert,kg_k,kg1_k,kinpw1,kpg_k,kpg1_k,kpt,eshift,mpi_enreg,natom,&
+!!$         & nkpg,nkpg1,npw,npw1,nspinor,optlocal,optnl,opt_gvnl1,paral_kgb,ph3d,phkxred,prtvol,&
+!!$         & rf_hamkq,sij_opt,tim_getgh1c,usecprj,usevnl,vlocal1,wfraug,dtset%qptn)
+    
+    call getgh1c(berryopt,cwave0,cwaveprj0,gh1c,gberry,gs1c,gs_hamkq,gvnlx1,idir,ipert,eshift,&
      mpi_enreg,optlocal,optnl,opt_gvnlx1,rf_hamkq,sij_opt,tim_getgh1c,usevnl)
+end if
+
 
    if (gen_eigenpb) then
      if (ipert/=natom+2) then  ! S^(1) is zero for ipert=natom+2

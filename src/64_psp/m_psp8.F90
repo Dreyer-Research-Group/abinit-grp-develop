@@ -103,7 +103,8 @@ contains
 !!
 !! SOURCE
 
-subroutine psp8in(ekb,epsatm,ffspl,indlmn,lloc,lmax,lmnmax,lnmax,&
+!CEDrev: new variable for 3rd derivatives
+subroutine psp8in(ekb,epsatm,ffspl,ffspl1,indlmn,lloc,lmax,lmnmax,lnmax,&
 &                  mmax,mpsang,mpssoang,mqgrid,mqgrid_vl,nproj,n1xccc,pspso,qchrg,qgrid,qgrid_vl,&
 &                  useylm,vlspl,xcccrc,xccc1d,zion,znucl,nctab,maxrad)
 
@@ -119,6 +120,8 @@ subroutine psp8in(ekb,epsatm,ffspl,indlmn,lloc,lmax,lmnmax,lnmax,&
  real(dp),intent(in) :: qgrid(mqgrid),qgrid_vl(mqgrid_vl)
  real(dp),intent(out) :: ekb(lnmax),ffspl(mqgrid,2,lnmax),vlspl(mqgrid,2)
  real(dp),intent(inout) :: xccc1d(n1xccc,6) !vz_i
+!CEDrev:
+ real(dp),intent(out) :: ffspl1(mqgrid,2,lnmax)
 
 !Local variables-------------------------------
 !scalars
@@ -413,8 +416,9 @@ subroutine psp8in(ekb,epsatm,ffspl,indlmn,lloc,lmax,lmnmax,lnmax,&
    call wrtout([std_out, ab_out], msg)
  else
 
+! CEDrev: pass ffspl1
 !  Compute Vanderbilt-KB form factors and fit splines
-   call psp8nl(amesh,ffspl,indlmn,lmax,lmnmax,lnmax,mmax,mqgrid,qgrid,rad,vpspll)
+   call psp8nl(amesh,ffspl,ffspl1,indlmn,lmax,lmnmax,lnmax,mmax,mqgrid,qgrid,rad,vpspll)
 
  end if
 

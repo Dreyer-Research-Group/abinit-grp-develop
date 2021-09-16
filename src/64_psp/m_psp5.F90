@@ -105,7 +105,8 @@ contains
 !!
 !! SOURCE
 
-subroutine psp5in(ekb,ekb1,ekb2,epsatm,epspsp,e990,e999,ffspl,indlmn,&
+! CEDrev: pass ffspl1
+subroutine psp5in(ekb,ekb1,ekb2,epsatm,epspsp,e990,e999,ffspl,ffspl1,indlmn,&
 &                  lloc,lmax,lmnmax,lnmax,mmax,mpsang,mpssoang,mqgrid,&
 &                  nproj,n1xccc,pspso,qchrg,qgrid,rcpsp,rms,&
 &                  useylm,vlspl,xcccrc,xccc1d,zion,znucl)
@@ -129,6 +130,9 @@ subroutine psp5in(ekb,ekb1,ekb2,epsatm,epspsp,e990,e999,ffspl,indlmn,&
  real(dp),intent(out) :: vlspl(mqgrid,2) !vz_i
  real(dp),intent(inout) :: xccc1d(n1xccc,6) !vz_i
 
+ ! CEDrev: 
+ real(dp),intent(inout) :: ffspl1(mqgrid,2,lnmax)
+
 !Local variables-------------------------------
 !scalars
  integer :: i1,i2,ii,iln,index,ipsang,kk,lhigh,ll,mm,mproj,nn,nso,pspso0
@@ -140,6 +144,9 @@ subroutine psp5in(ekb,ekb1,ekb2,epsatm,epspsp,e990,e999,ffspl,indlmn,&
  real(dp),allocatable :: ffspl_sr(:,:,:),ffspl_tmp(:,:,:,:),rad(:),vloc(:)
  real(dp),allocatable :: vpspll(:,:),vpspll_so(:,:),wfll(:,:),wfll_so(:,:)
  real(dp),allocatable :: work_space(:),work_spl(:)
+
+ ! CEDrev:
+ real(dp),allocatable :: ffspl1_sr(:,:,:),ffspl1_tmp(:,:,:,:),ffspl1_so(:,:,:)
 
 ! ***************************************************************************
 
@@ -426,15 +433,27 @@ subroutine psp5in(ekb,ekb1,ekb2,epsatm,epspsp,e990,e999,ffspl,indlmn,&
 
    ABI_MALLOC(ekb_sr,(mpsang))
    ABI_MALLOC(ffspl_sr,(mqgrid,2,mpsang))
-   call psp5nl(al,ekb_sr(:),ffspl_sr(:,:,:),lmax,mmax,mpsang,mqgrid,&
+
+   ! CEDrev: ffspl1
+   ABI_MALLOC(ffspl1_tmp,(mqgrid,2,mpssoang,max(nso,mproj)))
+   ABI_MALLOC(ffspl1_sr,(mqgrid,2,mpsang))
+
+   call psp5nl(al,ekb_sr(:),ffspl_sr(:,:,:),ffspl1_sr(:,:,:),lmax,mmax,mpsang,mqgrid,&
 &   qgrid,rad,vloc,vpspll,wfll)
    ekb_tmp(1:mpsang,1)=ekb_sr(1:mpsang)
    ffspl_tmp(:,:,1:mpsang,1)=ffspl_sr(:,:,1:mpsang)
 
+   !CEDrev: ffspl1
+   ffspl1_tmp(:,:,1:mpsang,1)=ffspl1_sr(:,:,1:mpsang)
+
    if (pspso/=0) then
      ABI_MALLOC(ekb_so,(mpsang))
      ABI_MALLOC(ffspl_so,(mqgrid,2,mpsang))
-     call psp5nl(al,ekb_so,ffspl_so,lmax,mmax,mpsang,mqgrid,&
+
+     ! CEDrev: ffspl1
+     ABI_MALLOC(ffspl1_so,(mqgrid,2,mpsang))
+
+     call psp5nl(al,ekb_so,ffspl_so,ffspl1_so,lmax,mmax,mpsang,mqgrid,&
 &     qgrid,rad,vloc,vpspll_so,wfll_so)
      ekb_tmp(mpsang+1:mpssoang,1)=ekb_so(2:mpsang)
      do ipsang=2,lmax+1
@@ -457,6 +476,10 @@ subroutine psp5in(ekb,ekb1,ekb2,epsatm,epspsp,e990,e999,ffspl,indlmn,&
      do i1=1,mqgrid
        do i2=1,2
          ffspl_tmp(i1,i2,1,1)=ffspl_sr(i1,i2,1)*sqrt(abs(ekb_sr(1)))
+
+         ! CEDrev: Not sure about this, going to do the same for ffspl1 and ffspl
+         ffspl1_tmp(i1,i2,1,1)=ffspl1_sr(i1,i2,1)*sqrt(abs(ekb_sr(1)))
+         
          do ipsang=2,mpsang
            ffspl_tmp(i1,i2,ipsang,1)=((ffspl_sr(i1,i2,ipsang)*&
 &           sqrt(abs(ekb_sr(ipsang)))*(ipsang-1))+&
@@ -468,6 +491,20 @@ subroutine psp5in(ekb,ekb1,ekb2,epsatm,epspsp,e990,e999,ffspl,indlmn,&
 &           ffspl_so(i1,i2,ipsang)*&
 &           sqrt(abs(ekb_so(ipsang))))*2.d0&
 &           /(2.d0*ipsang-1)
+
+           ! CEDrev: Also not sure here, just copy ffspl
+           ffspl1_tmp(i1,i2,ipsang,1)=((ffspl1_sr(i1,i2,ipsang)*&
+&           sqrt(abs(ekb_sr(ipsang)))*(ipsang-1))+&
+&           (ffspl1_so(i1,i2,ipsang)*&
+&           sqrt(abs(ekb_so(ipsang)))*(ipsang)))&
+&           /(2.d0*ipsang-1)
+           ffspl1_tmp(i1,i2,mpsang+ipsang-1,1)=(-ffspl1_sr(i1,i2,ipsang)*&
+&           sqrt(abs(ekb_sr(ipsang)))+&
+&           ffspl1_so(i1,i2,ipsang)*&
+&           sqrt(abs(ekb_so(ipsang))))*2.d0&
+&           /(2.d0*ipsang-1)
+
+
          end do
        end do
      end do
@@ -475,6 +512,11 @@ subroutine psp5in(ekb,ekb1,ekb2,epsatm,epspsp,e990,e999,ffspl,indlmn,&
      ABI_FREE(ffspl_so)
      ABI_FREE(vpspll_so)
      ABI_FREE(wfll_so)
+
+     ! CEDrev: 
+     ABI_FREE(ffspl1_so)
+
+
 
 !    The non local contribution is written as quadratic form of the vector
 !    V=(v_ion,v_so)
@@ -488,6 +530,10 @@ subroutine psp5in(ekb,ekb1,ekb2,epsatm,epspsp,e990,e999,ffspl,indlmn,&
        do i1=1,mqgrid
          do i2=1,2
            ffspl_tmp(i1,i2,ipsang,2)= ffspl_tmp(i1,i2,mpsang+ipsang-1,1)
+
+           ! CEDrev: Not sura about this, but again going to copy ffspl
+            ffspl1_tmp(i1,i2,ipsang,2)= ffspl1_tmp(i1,i2,mpsang+ipsang-1,1)
+           
          end do
        end do
        ekb_tmp(ipsang,2)=ekb_tmp(mpsang+ipsang-1,1)*ipsang*(ipsang-1)*0.25d0
@@ -513,6 +559,19 @@ subroutine psp5in(ekb,ekb1,ekb2,epsatm,epspsp,e990,e999,ffspl,indlmn,&
 &           (ffspl_tmp(i1,i2,ipsang,1)+&
 &           ((sqrt(17.d0)-1)*0.25d0)*&
 &           ffspl_tmp(i1,i2,ipsang,2))
+
+           ! CEDrev: Copying ffspl
+           ffspl1_tmp(i1,i2,mpsang+ipsang-1,1)=-2.d0/sqrt(17.d0)*&
+&           (ffspl1_tmp(i1,i2,ipsang,1)-&
+&           ((sqrt(17.d0)+1)*0.25d0)*&
+           ffspl1_tmp(i1,i2,ipsang,2))
+           ffspl1_tmp(i1,i2,mpsang+ipsang-1,2)=2.d0/sqrt(17.d0)*&
+&           (ffspl1_tmp(i1,i2,ipsang,1)+&
+&           ((sqrt(17.d0)-1)*0.25d0)*&
+&           ffspl1_tmp(i1,i2,ipsang,2))
+           
+
+
          end do
        end do
        ekb_tmp(mpsang+ipsang-1,1)=-(sqrt(17.d0)*0.5d0)*ekb_tmp(ipsang,1)
@@ -523,6 +582,9 @@ subroutine psp5in(ekb,ekb1,ekb2,epsatm,epspsp,e990,e999,ffspl,indlmn,&
 
    ABI_FREE(ekb_sr)
    ABI_FREE(ffspl_sr)
+
+   ! CEDrev:
+    ABI_FREE(ffspl1_sr)
 
 !  FJ WARNING : No spin orbit if nproj>1
    if (pspso==0) then
@@ -555,7 +617,8 @@ subroutine psp5in(ekb,ekb1,ekb2,epsatm,epspsp,e990,e999,ffspl,indlmn,&
 
 !    Compute KB form factors and fit splines for second wf if any
      if (lhigh>-1) then
-       call psp5nl(al,ekb_tmp(:,2),ffspl_tmp(:,:,:,2),lmax,&
+        ! CEDrev: ffspl1
+       call psp5nl(al,ekb_tmp(:,2),ffspl_tmp(:,:,:,2),ffspl1_tmp(:,:,:,2),lmax,&
 &       mmax,mpsang,mqgrid,qgrid,rad,vloc,vpspll,wfll)
      end if
 
@@ -571,9 +634,17 @@ subroutine psp5in(ekb,ekb1,ekb2,epsatm,epspsp,e990,e999,ffspl,indlmn,&
        if (indlmn(6,ii)==1) then
          ekb(kk)=ekb_tmp(1+ll,nn)
          ffspl(:,:,kk)=ffspl_tmp(:,:,1+ll,nn)
+         
+         ! CEDrev: ffspl1
+         ffspl1(:,:,kk)=ffspl1_tmp(:,:,1+ll,nn)
+
        else
          ekb(kk)=ekb_tmp(mpsang+ll,nn)
          ffspl(:,:,kk)=ffspl_tmp(:,:,mpsang+ll,nn)
+         
+         ! CEDrev: ffspl1
+         ffspl1(:,:,kk)=ffspl1_tmp(:,:,mpsang+ll,nn)
+
        end if
      end if
    end do
@@ -581,6 +652,10 @@ subroutine psp5in(ekb,ekb1,ekb2,epsatm,epspsp,e990,e999,ffspl,indlmn,&
    ABI_FREE(ekb_tmp)
    ABI_FREE(ffspl_tmp)
    ABI_FREE(wfll)
+   
+   ! CEDrev:
+   ABI_FREE(ffspl1_tmp)
+
 
 !  end of if concerning lloc
  end if

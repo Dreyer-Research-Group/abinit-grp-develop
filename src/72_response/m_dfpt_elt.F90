@@ -2715,6 +2715,12 @@ subroutine dfpt_ewalddq(dyewdq,gmet,my_natom,natom,qphon,rmet,sumg0,typat,ucvol,
  integer,pointer :: my_atmtab(:)
  real(dp) :: dakk(3),gpq(3),rq(3)
 
+ ! CEDrev:
+ real(dp) :: facg0
+ logical :: computeit
+
+ 
+
 ! *************************************************************************
 
 !Set up parallelism over atoms
@@ -2761,21 +2767,44 @@ subroutine dfpt_ewalddq(dyewdq,gmet,my_natom,natom,qphon,rmet,sumg0,typat,ucvol,
            dot2=gmet(2,2)*gpq(2)**2+gdot12+gdot23
            dot3=gmet(3,3)*gpq(3)**2+gdot13+gdot23
            gsq=dot1+dot2+dot3
-  !        Skip q=0:
+           ! CEDrev: remove G=0 term, MS implementation 
+ !        Skip q=0:
+!           if (gsq<1.0d-20) then
+!             if (sumg0==1) then
+!               write(message,'(3a)')&
+!  &             'The G=0 term has no contributions at first order in q: ',ch10,&
+!  &             'Action : sumg0=0 '
+!               ABI_ERROR(message)
+!             end if
+!           else
+           facg0 = 0.d0
+           computeit = .true.
            if (gsq<1.0d-20) then
-             if (sumg0==1) then
-               write(message,'(3a)')&
-  &             'The G=0 term has no contributions at first order in q: ',ch10,&
-  &             'Action : sumg0=0 '
-               ABI_ERROR(message)
-             end if
-           else
+              computeit = .false.
+
+              if (sumg0==1) then
+                 write(message,'(5a)')&
+                      & '  The phonon wavelength should not be zero : ',ch10,&
+                      & '  there are non-analytical terms that the code cannot handle.',ch10,&
+                      & '  Action : subtract this wavelength from the input.'
+                 ABI_ERROR(message)
+         end if
+       else
+         if ((ig1==0 .and. ig2==0 .and. ig3==0).and. sumg0==0) then
+           facg0 = 1.d0
+           write(*,*) 'NEW: Excluding G=0 from Ewald!'
+         end if
+       end if
+       if (computeit) then
+
              arg=fac*gsq
   !          Larger arg gives 0 contribution:
              if (arg <= 80._dp) then
 !              When any term contributes then include next shell
                newg=1
-               term=exp(-arg)/gsq
+               ! CEDrev: added facg0
+               term=(exp(-arg)-facg0)/gsq
+               !term=exp(-arg)/gsq
                do ia0=1,my_natom
                  ia=ia0;if(paral_atom)ia=my_atmtab(ia0)
                  arga=two_pi*(gpq(1)*xred(1,ia)+gpq(2)*xred(2,ia)+gpq(3)*xred(3,ia))

@@ -515,20 +515,24 @@ end subroutine make_vectornd
 !!
 !! SOURCE
 
-subroutine hartre(cplex,gsqcut,icutcoul,izero,mpi_enreg,nfft,ngfft,nkpt,&
+! Max's trick, cplexin
+subroutine hartre(cplexin,gsqcut,icutcoul,izero,mpi_enreg,nfft,ngfft,nkpt,&
                  &rcut,rhog,rprimd,vcutgeo,vhartr,&
                  &qpt) ! Optional arguments
 
 !Arguments ------------------------------------
 !scalars
- integer,intent(in) :: cplex,icutcoul,izero,nfft,nkpt
+ integer,intent(in) :: cplexin,icutcoul,izero,nfft,nkpt
  real(dp),intent(in) :: gsqcut,rcut
  type(MPI_type),intent(in) :: mpi_enreg
 !arrays
  integer,intent(in) :: ngfft(18)
  real(dp),intent(in) :: rprimd(3,3),rhog(2,nfft),vcutgeo(3)
  real(dp),intent(in),optional :: qpt(3)
- real(dp),intent(out) :: vhartr(cplex*nfft)
+
+ ! CEDrev: Max's trick
+ real(dp),intent(out) :: vhartr(mod(cplexin,10)*nfft)
+! real(dp),intent(out) :: vhartr(cplex*nfft)
 
 !Local variables-------------------------------
 !scalars
@@ -547,10 +551,18 @@ subroutine hartre(cplex,gsqcut,icutcoul,izero,mpi_enreg,nfft,ngfft,nkpt,&
  real(dp),allocatable :: gcutoff(:)
  real(dp),allocatable :: gq(:,:),work1(:,:)
 
+! CEDrev:
+ integer ::  excludeg0,nog0,cplex
+
 ! *************************************************************************
 
  ! Keep track of total time spent in hartre
  call timab(10,1,tsec)
+
+ ! CEDrev: Use Max's trick with cplex
+ excludeg0 = cplexin / 10
+ cplex = mod(cplexin,10)
+
 
  ! Check that cplex has an allowed value
  if(cplex/=1 .and. cplex/=2)then
@@ -581,6 +593,9 @@ subroutine hartre(cplex,gsqcut,icutcoul,izero,mpi_enreg,nfft,ngfft,nkpt,&
  if (qeq0==0) then
    if (abs(abs(qpt_(1))-half)<tol12.or.abs(abs(qpt_(2))-half)<tol12.or.abs(abs(qpt_(3))-half)<tol12) qeq05=1
  end if
+
+ !CEDrev: From MS
+ if (qeq0==1 .or. excludeg0==1) nog0=1
 
  ! If cplex=1 then qpt_ should be 0 0 0
  if (cplex==1.and. qeq0/=1) then
@@ -637,7 +652,12 @@ subroutine hartre(cplex,gsqcut,icutcoul,izero,mpi_enreg,nfft,ngfft,nkpt,&
        i23=n1*(i2_local-1 +(n2/nproc_fft)*(i3-1))
        ! Do the test that eliminates the Gamma point outside of the inner loop
        ii1=1
-       if(i23==0 .and. qeq0==1  .and. ig2==0 .and. ig3==0)then
+
+
+       !CEDrev: From MS
+       !if(i23==0 .and. qeq0==1  .and. ig2==0 .and. ig3==0)then
+       if(i23==0 .and. nog0==1  .and. ig2==0 .and. ig3==0)then
+
          ii1=2
          work1(re,1+i23)=zero
          work1(im,1+i23)=zero

@@ -101,7 +101,8 @@ contains
 !!
 !! SOURCE
 
-subroutine psp6in(ekb,epsatm,ffspl,indlmn,lloc,lmax,lmnmax,lnmax,&
+! CEDrev: Pass ffspl1
+subroutine psp6in(ekb,epsatm,ffspl,ffspl1,indlmn,lloc,lmax,lmnmax,lnmax,&
 &                  mmax,mpsang,mqgrid,nproj,n1xccc,optnlxccc,positron,qchrg,qgrid,&
 &                  useylm,vlspl,xcccrc,xccc1d,zion,znucl)
 
@@ -120,6 +121,9 @@ subroutine psp6in(ekb,epsatm,ffspl,indlmn,lloc,lmax,lmnmax,lnmax,&
  real(dp),intent(inout) :: ffspl(mqgrid,2,lnmax) !vz_i
  real(dp),intent(inout) :: xccc1d(n1xccc,6) !vz_i
 
+ !CEDrev:
+ real(dp),intent(inout) :: ffspl1(mqgrid,2,lnmax)
+
 !Local variables-------------------------------
 !scalars
  integer :: ii,index,ipsang,irad,jj,jpsang,mm,mmax2
@@ -130,6 +134,10 @@ subroutine psp6in(ekb,epsatm,ffspl,indlmn,lloc,lmax,lmnmax,lnmax,&
  real(dp),allocatable :: ekb_tmp(:),ffspl_tmp(:,:,:),rad(:),vloc(:)
 !real(dp),allocatable :: radbis
  real(dp),allocatable :: vpspll(:,:),wfll(:,:),work_space(:),work_spl(:)
+
+
+ ! CEDrev:
+ real(dp),allocatable :: ffspl1_tmp(:,:,:)
 
 ! ***************************************************************************
 
@@ -250,6 +258,10 @@ subroutine psp6in(ekb,epsatm,ffspl,indlmn,lloc,lmax,lmnmax,lnmax,&
  ABI_MALLOC(ekb_tmp,(mpsang))
  ABI_MALLOC(ffspl_tmp,(mqgrid,2,mpsang))
 
+ !CEDrev:
+ABI_MALLOC(ffspl1_tmp,(mqgrid,2,mpsang))
+
+
 !Zero out all Kleinman-Bylander energies to initialize
  ekb_tmp(:)=zero
  ekb(:)=zero
@@ -264,7 +276,9 @@ subroutine psp6in(ekb,epsatm,ffspl,indlmn,lloc,lmax,lmnmax,lnmax,&
 !  ----------------------------------------------------------------------
 !  Compute KB form factors and fit splines
 
-   call psp5nl(al,ekb_tmp,ffspl_tmp,lmax,mmax,mpsang,mqgrid,qgrid,rad,vloc, vpspll,wfll)
+
+    !CEDrev: pass ffspl1
+   call psp5nl(al,ekb_tmp,ffspl_tmp,ffspl1_tmp,lmax,mmax,mpsang,mqgrid,qgrid,rad,vloc, vpspll,wfll)
 
  end if
 
@@ -305,6 +319,11 @@ subroutine psp6in(ekb,epsatm,ffspl,indlmn,lloc,lmax,lmnmax,lnmax,&
    if(nproj(ipsang)/=0)then
      ekb(jpsang)=ekb_tmp(ipsang)
      ffspl(:,:,jpsang)=ffspl_tmp(:,:,ipsang)
+
+     !CEDrev:
+     ffspl1(:,:,jpsang)=ffspl1_tmp(:,:,ipsang)
+
+
      jpsang=jpsang+1
      if(jpsang>lnmax)then
        write(message,'(3a,2i6)')&

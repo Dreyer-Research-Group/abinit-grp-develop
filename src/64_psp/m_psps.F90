@@ -430,12 +430,23 @@ subroutine psps_init_from_dtset(dtset, idtset, psps, pspheads)
      if (allocated(psps%ffspl))  then
        ABI_FREE(psps%ffspl)
      end if
+
+     !CEDrev: For first and third derivatives 
+     if (allocated(psps%ffspl1))  then
+       ABI_FREE(psps%ffspl1)
+     end if
+
+
      if (allocated(psps%qgrid_ff))  then
        ABI_FREE(psps%qgrid_ff)
      end if
    end if
+
    ABI_MALLOC(psps%ffspl,(psps%mqgrid_ff,2,psps%lnmax,dtset%ntypat))
    ABI_MALLOC(psps%qgrid_ff,(psps%mqgrid_ff))
+   !CEDrev: For first and third derivatives
+   ABI_MALLOC(psps%ffspl1,(psps%mqgrid_ff,2,psps%lnmax,dtset%ntypat))
+
    mqgridff_old=psps%mqgrid_ff
    lnmax_old=psps%lnmax
  end if
@@ -562,6 +573,10 @@ subroutine psps_free(psps)
  ABI_SFREE(psps%ekb)
  ABI_SFREE(psps%indlmn)
  ABI_SFREE(psps%ffspl)
+
+ ! CEDrev:
+ ABI_SFREE(psps%ffspl1)
+
  ABI_SFREE(psps%qgrid_ff)
  ABI_SFREE(psps%qgrid_vl)
  ABI_SFREE(psps%vlspl)
@@ -673,6 +688,12 @@ subroutine psps_copy(pspsin, pspsout)
  if (allocated(pspsin%ffspl)) then
    call alloc_copy( pspsin%ffspl, pspsout%ffspl)
  end if
+
+ !CEDrev:
+ if (allocated(pspsin%ffspl1)) then
+   call alloc_copy( pspsin%ffspl1, pspsout%ffspl1)
+ end if
+
  if (allocated(pspsin%mixalch)) then
    call alloc_copy(pspsin%mixalch, pspsout%mixalch)
  end if

@@ -1046,13 +1046,14 @@ function ass_leg_pol(l,m,xarg)
 ! *************************************************************************
 
  x=xarg
- if (m.lt.0.or.m.gt.l.or.abs(x).gt.1.d0) then
-   if (m.lt.0.or.m.gt.l.or.abs(x).gt.1.d0+1.d-10) then
-    msg='Bad choice of l, m or x !'
-    LIBPAW_BUG(msg)
-   endif
-   x=1.d0
- endif
+! CEDrev: Need to get rid of this for now. For derivatives need m>l
+! if (m.lt.0.or.m.gt.l.or.abs(x).gt.1.d0) then
+!   if (m.lt.0.or.m.gt.l.or.abs(x).gt.1.d0+1.d-10) then
+!    msg='Bad choice of l, m or x !'
+!    LIBPAW_BUG(msg)
+!   endif
+!   x=1.d0
+! endif
 
  polmm=1.d0
  if (m>0) then

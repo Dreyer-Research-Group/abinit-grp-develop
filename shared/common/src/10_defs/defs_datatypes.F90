@@ -439,6 +439,9 @@ module defs_datatypes
    ! Gives, on the radial grid, the different non-local projectors,
    ! in both the norm-conserving case, and the PAW case
 
+  !CEDrev: Additional ffspl for 3rd derivatives
+  real(dp), allocatable :: ffspl1(:,:,:,:)
+
   real(dp), allocatable :: mixalch(:,:)
    ! mixalch(npspalch,ntypalch)
    ! Mixing coefficients to generate alchemical pseudo atoms

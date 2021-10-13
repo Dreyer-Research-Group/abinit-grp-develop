@@ -1601,11 +1601,11 @@ calcden=0
    !CEDrev: store the inital FO wfk for AD pert
    
    ! TEST: 
-   !write(*,*) "Before CGP"
+   write(*,*) "Before CGP"
    ABI_MALLOC(cgp,(2,mcg1))
    ABI_MALLOC(eigenp,(2*dtset%mband*dtset%mband*nkpt_rbz*dtset%nsppol))
    cgp=cg1; eigenp=eigen1
-   !write(*,*) "after CGP"
+   write(*,*) "after CGP"
    
 
 !  In case of electric field, or 2nd order perturbation : open the ddk (or dE) wf file(s)
@@ -2337,6 +2337,13 @@ calcden=0
    end if
 
 !Release the temporary arrays (for k, k+q and 1st-order)
+
+   ! CEDrev: Don't use these for now, but causing issues
+   if (adcalc==1.or.adcalc==2) then
+      ABI_FREE(rhonlrout)
+      ABI_FREE(rhorout)
+   end if
+
    ABI_FREE(cgp) !CEDrev
    ABI_FREE(cg)
    ABI_FREE(cgq)
@@ -2348,6 +2355,7 @@ calcden=0
      ABI_FREE(docckde_mq)
    end if
    ABI_FREE(doccde_rbz)
+   ABI_FREE(eigenp) !CEDrev
    ABI_FREE(eigen0)
    ABI_FREE(eigenq)
    ABI_FREE(eigen1)

@@ -232,7 +232,7 @@ subroutine dfpt_cgwf(adcalc,band,band_me,band_procs,bands_treated_now,berryopt,c
  type(pawcprj_type) :: cprj_dummy(0,0)
 
  !CEDrev: for diamagnetic suceptability
- integer :: ikg,irfdir
+ integer :: ikg!,irfdir
  real(dp) :: kplusg(3),qpc(3)
  real(dp), allocatable :: cwave0_npw1(:,:,:),dumr(:,:,:,:),denconst(:,:,:)
  character(len=10) :: filbnd !CEDrev: for file name
@@ -520,14 +520,16 @@ subroutine dfpt_cgwf(adcalc,band,band_me,band_procs,bands_treated_now,berryopt,c
          &   gs_hamkq%istwf_k,gs_hamkq%kg_k,gs_hamkq%kg_kp,gs_hamkq%mgfft,mpi_enreg,1,gs_hamkq%ngfft,&
          &   npw,npw1,gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6,2,0,one,one)
     
-    if (dtset%rfdir(1)==1) irfdir=1
-    if (dtset%rfdir(2)==1) irfdir=2
-    if (dtset%rfdir(3)==1) irfdir=3
+    ! This fails for multiple directions!!! Use idir instead
+    !if (dtset%rfdir(1)==1) irfdir=1
+    !if (dtset%rfdir(2)==1) irfdir=2
+    !if (dtset%rfdir(3)==1) irfdir=3
     ! Cartesian q
     qpc(:)=two_pi*matmul(gprimd(:,:),dtset%qptn(:))
     call joper(0,cwave0_npw1,dtfil,dtset,gprimd,gs_hamkq%kg_kp,gs_hamkq%kpt_k,mpi_enreg,npw1,psps,qpc)
 
-    gh1c(1:2,1:npw1)=cwave0_npw1(irfdir,1:2,1:npw1)
+    !gh1c(1:2,1:npw1)=cwave0_npw1(irfdir,1:2,1:npw1)
+    gh1c(1:2,1:npw1)=cwave0_npw1(idir,1:2,1:npw1)
 
  else
 !!$    !AMSrev: pass qpt

@@ -333,3 +333,4 @@ doxygen_docs
 doxygen.err
 
 build/
+build_rome/

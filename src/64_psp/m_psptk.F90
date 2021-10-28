@@ -714,6 +714,10 @@ subroutine psp5nl(al,ekb,ffspl,ffspl1,lmax,mmax,mpsang,mqgrid,qgrid,rad,vloc,vps
  real(dp) :: ckb(dpsang),dvms(dpsang),eta(dpsang),renorm(dpsang)
  real(dp),allocatable :: work1(:),work2(:),work3(:),work4(:)
 
+!CEDrev: Variables for 1st and 3rd derivative
+integer :: iln
+real(dp) :: qmesh
+
 !*************************************************************************
 
 !l=0,1,2 and 3 spherical Bessel functions
@@ -1121,6 +1125,70 @@ subroutine psp5nl(al,ekb,ffspl,ffspl1,lmax,mmax,mpsang,mqgrid,qgrid,rad,vloc,vps
 !write(std_out,*) 'EKB=',(ekb(iq),iq=1,3)
 !write(std_out,*) 'COSKB=',(ckb(iq),iq=1,3)
 !ENDDEBUG
+
+!*************************************************************************
+!CEDrev: Need to get 1st and 3rd derivatives for current operator        *
+!*************************************************************************
+
+write(*,*) "Before 1 and 3 deriv"
+qmesh=qgrid(2)-qgrid(1)
+
+do iln=1,lmax+1
+
+   if (ekb(iln)/=0.0d0) then
+
+!          Compute derivatives of form factors at ends of interval
+      yp1=(-50.d0*ffspl(1,1,iln)+96.d0*ffspl(2,1,iln)-72.d0*ffspl(3,1,iln)&
+           &     +32.d0*ffspl(4,1,iln)- 6.d0*ffspl(5,1,iln))/(24.d0*qmesh)
+      ypn=(6.d0*ffspl(mqgrid-4,1,iln)-32.d0*ffspl(mqgrid-3,1,iln)&
+           &     +72.d0*ffspl(mqgrid-2,1,iln)-96.d0*ffspl(mqgrid-1,1,iln)&
+           &     +50.d0*ffspl(mqgrid,1,iln))/(24.d0*qmesh)
+
+
+      ! Get 1st derivative:
+      call splfit(qgrid,ffspl1(:,1,iln),ffspl(:,:,iln),1,qgrid,ffspl(:,1,iln),mqgrid,mqgrid)
+
+      !Refit to spline
+      ffspl1(1,1,iln)=yp1
+      ffspl1(mqgrid,1,iln)=ypn
+      yp1=(-50.d0*ffspl1(1,1,iln)+96.d0*ffspl1(2,1,iln)-72.d0*ffspl1(3,1,iln)&
+           &     +32.d0*ffspl1(4,1,iln)- 6.d0*ffspl1(5,1,iln))/(24.d0*qmesh)
+      ypn=(6.d0*ffspl1(mqgrid-4,1,iln)-32.d0*ffspl1(mqgrid-3,1,iln)&
+           &     +72.d0*ffspl1(mqgrid-2,1,iln)-96.d0*ffspl1(mqgrid-1,1,iln)&
+           &     +50.d0*ffspl1(mqgrid,1,iln))/(24.d0*qmesh)
+
+      !CEDrev: TEST
+      !write(*,*) 'ffspl1 yp iln', iln, 'yp1',yp1,'ypn', ypn
+      call spline(qgrid,ffspl1(1,1,iln),mqgrid,yp1,ypn,ffspl1(1,2,iln))
+
+      ! There is some issue with the spline fit where the last few values are quite large.
+      ! It is probably due to the fact that I don't really know how the first derivative above
+      ! was determined. Quick and dirty implementation for now is to supress:
+      do iq=mqgrid-20,mqgrid
+         if (abs(ffspl1(iq,2,iln))>1.d-1) ffspl1(iq,2,iln)=0.
+      end do
+
+   else 
+      ffspl1(:,:,iln)=zero
+   end if
+end do
+
+write(*,*) "after 1 and 3"
+
+!CEDrev: want to see what ffspl looks like
+!open (unit=21, file='ffspl.test', status='replace')
+!do iq=1,mqgrid
+!   write(21,'(5e16.6e3)') qgrid(iq),ffspl(iq,1,1),ffspl(iq,2,1),ffspl1(iq,1,1),ffspl1(iq,2,1)
+!end do
+!close(unit=21)
+!stop
+
+
+
+!*************************************************************************
+
+
+
 
  ABI_FREE(work1)
  ABI_FREE(work2)

@@ -386,7 +386,7 @@ unit_me = 6
    call cg_zcopy(npw1_k*nspinor,cg1(1,ptr),cwavef)
 
    !CEDrev: We want FO wf for input.
-   if (dtset%userib==1) then
+   if (dtset%adcalc==1) then
       ptr = 1+(iband-1)*npw1_k*nspinor+icg1
       call cg_zcopy(npw1_k*nspinor,cgp(1,ptr),cwave1in)
    end if
@@ -461,7 +461,7 @@ unit_me = 6
        call xmpi_sum(bands_treated_now,mpi_enreg%comm_band,ierr)
 
        !CEDrev: I am passing cwave1in in addition to be safe. Also gprimd,rprimd, dtset, dtfil,ffnl,sign_dyad
-       call dfpt_cgwf(dtset%userib,iband,iband_me,band_procs,bands_treated_now,dtset%berryopt,&
+       call dfpt_cgwf(dtset%adcalc,iband,iband_me,band_procs,bands_treated_now,dtset%berryopt,&
 &       cgq,cwavef,cwave0,cwave1in,cwaveprj,cwaveprj0,rf2,dcwavef,dtset,dtfil,&
 &       eig0_k,eig0_kq,eig1_k,gh0c1,gh1c_n,gprimd,grad_berry,gsc,gscq,gs_hamkq,gvnlxc,gvnlx1,icgq,&
 &       idir,ipert,igscq,mcgq,mgscq,mpi_enreg,mpw1,natom,nband_k,nband_me,dtset%nbdbuf,dtset%nline,&

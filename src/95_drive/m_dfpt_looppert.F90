@@ -354,10 +354,12 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
 
  
  ! CEDrev:
- integer :: adcalc,symon,calcden,nlfft
- real(dp),allocatable :: cgp(:,:),eigenp(:),rhonlrout(:),rhorout(:)
-
-
+ integer :: adcalc,symon,calcden,nlfft,prt_eigen1_dk
+ integer :: bantot0,bantot1,dig_gkk
+ real(dp),allocatable :: cgp(:,:),eigenp(:),rhonlrout(:),rhorout(:),eigen_dcovab(:)
+ real(dp),allocatable :: cg1_tilde_dk(:,:),eigen1_dk(:)
+ character(len=fnlen) :: fiwf1o_tild
+ character(len=fnlen) :: gkkfilnam_vlfrc
 
 ! ***********************************************************************
 
@@ -366,15 +368,21 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
  _IBM6("In dfpt_looppert")
 
  call timab(141,1,tsec)
-
  
 !CEDrev: Test if this is an adiabatic caclulation
-adcalc=dtset%userib
+adcalc=dtset%adcalc
 symon=0 ! FOR NOW NOT USED!!!
-
 ! 1: print densities, 0: no
 calcden=0
 
+! CEDrev: Note: Whether we calculate force-velocity given by dtset%vfstep
+!TEST
+write(*,*) 'VFSTEP',dtset%vfstep
+write(*,*) 'ADCALC',dtset%adcalc,adcalc
+
+! CEDrev:
+prt_eigen1_dk=0 ! 0 = do not print 1st order eigenfunctions
+if (dtset%userie==-1) prt_eigen1_dk=1
 
 !Structured debugging if prtvol==-level
  if(dtset%prtvol==-level)then
@@ -1001,24 +1009,15 @@ calcden=0
 
    _IBM6("IBM6 in dfpt_looppert before getmpw")
 
-   ! CEDrev: TEST
-   !write(*,*) "Before getmpw"
-
 !  Compute maximum number of planewaves at k
    call timab(142,1,tsec)
    call getmpw(ecut_eff,dtset%exchn2n3d,gmet,istwfk_rbz,kpt_rbz,mpi_enreg,mpw,nkpt_rbz)
    call timab(142,2,tsec)
 
-   ! CEDrev: TEST
-   !write(*,*) "After getmpw,",mpw
-
 
 !  Allocate some k-dependent arrays at k
    ABI_MALLOC(npwarr,(nkpt_rbz))
    ABI_MALLOC(npwtot,(nkpt_rbz))
-
-   ! CEDrev: TEST
-   !write(*,*) "After alloc npwarr"
    
 
 !  Determine distribution of k-points/bands over MPI processes
@@ -1035,15 +1034,9 @@ calcden=0
    my_nkpt_rbz=maxval(mpi_enreg%my_kpttab)
    mkmem_rbz =my_nkpt_rbz ; mkqmem_rbz=my_nkpt_rbz ; mk1mem_rbz=my_nkpt_rbz
    ABI_UNUSED((/mkmem,mk1mem,mkqmem/))
-
-   ! CEDrev: TEST 
-   !write(*,*) "Inputs for initmpi_band:",mkmem_rbz,nband_rbz,nkpt_rbz,dtset%nsppol
    
 
    call initmpi_band(mkmem_rbz,mpi_enreg,nband_rbz,nkpt_rbz,dtset%nsppol)
-
-   ! CEDrev: TEST 
-   !write(*,*) "After initmpi_band"
 
 ! given number of reduced kpt, store distribution of bands across procs
    ABI_MALLOC(distrb_flags,(nkpt_rbz,dtset%mband,dtset%nsppol))
@@ -1058,9 +1051,6 @@ calcden=0
 &    kpt_rbz,mkmem_rbz,nband_rbz,nkpt_rbz,'PERS',mpi_enreg,&
 &    mpw,npwarr,npwtot,dtset%nsppol)
    call timab(143,2,tsec)
-
-   ! CEDrev: TEST 
-   !write(*,*) "After kpgio"
 
 
 !  Set up the spherical harmonics (Ylm) at k
@@ -1098,9 +1088,6 @@ calcden=0
      end if
      istwfk_pert(:,idir,ipert)=istwfk_rbz(:)
    end if
-
-   ! CEDrev: TEST 
-   !write(*,*) "After ieig2rf>0"
 
 !  Print a separator in output file
    write(msg,'(3a)')ch10,'--------------------------------------------------------------------------------',ch10
@@ -1514,7 +1501,9 @@ calcden=0
    formeig=1; ask_accurate=0; optorth=0
 ! NB: 4 Sept 2013: this was introducing a bug - for ieig2rf ==0 the dim was being set to 1 and passed to dfpt_vtowfk
    dim_eig2rf=0
-   if ((dtset%ieig2rf > 0 .and. dtset%ieig2rf/=2) .or. dtset%efmas > 0) then
+!CEDrev: Make sure cg_active gets initialized and populated... 
+!  if ((dtset%ieig2rf > 0 .and. dtset%ieig2rf/=2) .or. dtset%efmas > 0) then
+   if ((dtset%ieig2rf > 0 .and. dtset%ieig2rf/=2) .or. dtset%efmas > 0 .or. dtset%vfstep > 0) then
      dim_eig2rf=1
    end if
    mcg1=mpw1*dtset%nspinor*mband_mem_rbz*mk1mem_rbz*dtset%nsppol
@@ -1546,6 +1535,17 @@ calcden=0
      ABI_MALLOC(gh1c_set_mq,(2,mpw1_mq*dtset%nspinor*mband_mem_rbz*mk1mem_rbz*dtset%nsppol*dim_eig2rf))
      ABI_MALLOC(gh0c1_set_mq,(2,mpw1_mq*dtset%nspinor*mband_mem_rbz*mk1mem_rbz*dtset%nsppol*dim_eig2rf))
    end if
+
+   ! CEDrev: If velfr second pert, alloacte cg1 for \tilde{dk}
+   if (dtset%vfstep == 2) then
+      if (.not.allocated(cg1_tilde_dk)) ABI_MALLOC(cg1_tilde_dk,(2,mcg1))
+      cg1_tilde_dk=0.
+
+!      ireadwf0=0
+!   else
+!      ireadwf0=dtfil%ireadwf
+   end if
+
 !  XG090606 This is needed in the present 5.8.2 , for portability for the pathscale machine.
 !  However, it is due to a bug to be corrected by Paul Boulanger. When the bug will be corrected,
 !  this line should be removed.
@@ -1562,15 +1562,18 @@ calcden=0
    ABI_MALLOC(eigen1,(2*dtset%mband*dtset%mband*nkpt_rbz*dtset%nsppol))
    ABI_MALLOC(resid,(dtset%mband*nkpt_rbz*dtset%nsppol))
    call timab(144,1,tsec)
+
+
+!CEDrev: Only read in wavefunction if vfstep=0
    if ((file_exists(nctk_ncify(fiwf1i)) .or. file_exists(fiwf1i)) .and. &
-&      (dtset%get1wf /= 0 .or. dtset%ird1wf /= 0)) then
-     call wfk_read_my_kptbands(fiwf1i, distrb_flags, spacecomm, dtset%ecut*(dtset%dilatmx)**2,&
-&          formeig, istwfk_rbz, kpq_rbz, mcg1, dtset%mband, mband_mem_rbz, mk1mem_rbz, mpw1,&
-&          dtset%natom, nkpt_rbz, npwar1, dtset%nspinor, dtset%nsppol, dtset%usepaw,&
-&          cg1, eigen=eigen1, ask_accurate_=0)
+        &      (dtset%get1wf /= 0 .or. dtset%ird1wf /= 0) .and. dtset%vfstep /= 2) then
+      call wfk_read_my_kptbands(fiwf1i, distrb_flags, spacecomm, dtset%ecut*(dtset%dilatmx)**2,&
+           &          formeig, istwfk_rbz, kpq_rbz, mcg1, dtset%mband, mband_mem_rbz, mk1mem_rbz, mpw1,&
+           &          dtset%natom, nkpt_rbz, npwar1, dtset%nspinor, dtset%nsppol, dtset%usepaw,&
+           &          cg1, eigen=eigen1, ask_accurate_=0)
    else
-     cg1 = zero
-     eigen1 = zero
+      cg1 = zero
+      eigen1 = zero
    end if
 
    call timab(144,2,tsec)
@@ -1592,6 +1595,32 @@ calcden=0
      call timab(144,2,tsec)
    end if
 
+
+!CEDrev: Second step of velocity force
+if (dtset%vfstep == 2) then 
+
+   ii=99 ! Temp, name for the previous perturbation to read in
+   call appdig(ii,dtfil%fnamewff1,fiwf1o_tild)
+
+   if (.not.allocated(eigen1_dk)) ABI_MALLOC(eigen1_dk,(2*dtset%mband*dtset%mband*nkpt_rbz*dtset%nsppol))
+   eigen1_dk=zero
+
+   call wfk_read_my_kptbands(fiwf1o_tild, distrb_flags, spacecomm, dtset%ecut*(dtset%dilatmx)**2,&
+        &          formeig, istwfk_rbz, kpq_rbz, mcg1, dtset%mband, mband_mem_rbz, mk1mem_rbz, mpw1,&
+        &          dtset%natom, nkpt_rbz, npwar1, dtset%nspinor, dtset%nsppol, dtset%usepaw,&
+        &          cg1_tilde_dk, eigen=eigen1_dk, ask_accurate_=0)
+
+
+   ! TEST
+!!$   open (unit=19, file='cg1_tilde_test.dat', status='replace')
+!!$   do ii=1,mcg1
+!!$      write(19,'(4e20.10e2)') cg1_tilde_dk(:,ii)
+!!$   end do
+!!$   close(unit=19)
+!!$   stop
+
+end if
+
 !  Eventually reytrieve 1st-order PAW occupancies from file header
    if (psps%usepaw==1.and.dtfil%ireadwf/=0) then
      call pawrhoij_copy(hdr%pawrhoij,pawrhoij1,comm_atom=mpi_enreg%comm_atom , &
@@ -1601,11 +1630,11 @@ calcden=0
    !CEDrev: store the inital FO wfk for AD pert
    
    ! TEST: 
-   write(*,*) "Before CGP"
+   !write(*,*) "Before CGP"
    ABI_MALLOC(cgp,(2,mcg1))
    ABI_MALLOC(eigenp,(2*dtset%mband*dtset%mband*nkpt_rbz*dtset%nsppol))
    cgp=cg1; eigenp=eigen1
-   write(*,*) "after CGP"
+   !write(*,*) "after CGP"
    
 
 !  In case of electric field, or 2nd order perturbation : open the ddk (or dE) wf file(s)
@@ -1699,7 +1728,7 @@ calcden=0
      else
 
         !CEDrev: MS implementation of G0 removal
-        if (dtset%useria==1) then
+        if (dtset%nogzero==1) then
            call dfpt_vlocal(atindx,cplex+10,gmet,gsqcut,idir,ipert,mpi_enreg,psps%mqgrid_vl,dtset%natom,&
                 &       nattyp,nfftf,ngfftf,ntypat,ngfftf(1),ngfftf(2),ngfftf(3),ph1df,psps%qgrid_vl,&
                 &       dtset%qptn,ucvol,psps%vlspl,vpsp1,xred,dtset%ziontypat)
@@ -1992,6 +2021,98 @@ calcden=0
      end if
 
 
+     !*******************************************************
+     ! CEDrev: Calculate the velocity/force matrix elements *
+     !*******************************************************
+     
+     ! NOTE: A bit of care was necessary for parallel implementation, since cg's are split by k over
+     ! processes, but whole eigen, eigen1, etc. arrays are on all processes.  
+     
+     if (dtset%vfstep == 2) then
+
+        ABI_MALLOC(eigen_dcovab,(2*dtset%mband*dtset%mband*nkpt_rbz*dtset%nsppol))
+
+        call velfrc(cg,cg1_active,cg1_tilde_dk,cplex,dig_gkk,doccde_rbz,docckqde,dtfil,dtset,eigen0,eigen1,eigenq,eigen_dcovab,gh1c_set, &
+          & gmet,gprimd,hdr,hdr0,idir,ipert,istwfk_rbz,kg,kg1,mcg,mcg1,mk1mem_rbz,mpi_enreg,mpw,mpw1,nband_rbz,nfftf,nkpt_rbz, &
+          & npwarr,npwar1,occ_rbz,occkq,paw_ij,pawfgr,pawtab,pertcase,ph1d,psps,prt_eigen1_dk,rmet,rprimd,usecprj,useylmgr1,vtrial,wtk_rbz,xred)
+     
+
+        if (dtset%userie==2) then
+           ! Need to put the output to gkk here to preserve the dependency structure
+           ! Use outgkk to output in correct format
+           bantot0=sum(nband_rbz(1:nkpt_rbz*dtset%nsppol))
+           bantot1=dtset%mband*dtset%mband*nkpt_rbz*dtset%nsppol
+           phasecg(1,:) = one ! This is not even really used
+           phasecg(2,:) = zero
+
+           write(*,*) "BEFORE OUTGKK",dig_gkk
+
+           call appdig(dig_gkk,dtfil%fnameabo_gkk,gkkfilnam_vlfrc) 
+           call outgkk(bantot0,bantot1,gkkfilnam_vlfrc,eigen0,eigen_dcovab,hdr0,hdr,mpi_enreg,phasecg)
+
+        end if
+
+     ! CEDrev: For velfr 1, write out FO wf orthogonal to active
+     ! space. Still contains eigen1. Bit dirty, prob better to do this with ddk file...
+     else if (dtset%vfstep  == 1) then
+
+        ! Want this wf to have a specific name. Right append 98 for local joper, 99 for local+nl 
+        ii=99
+
+        call appdig(ii,dtfil%fnameabo_1wf,fiwf1o_tild)
+        
+        ! TEST
+!!$        open (unit=19, file='cg1_active.dat', status='replace')
+!!$        do ii=1,mcg1
+!!$           write(19,'(4e20.10e2)') cg1_active(:,ii)
+!!$        end do
+!!$        close(unit=19)
+
+
+
+        ! Output 1st-order wavefunctions in file
+        call wfk_write_my_kptbands(fiwf1o_tild, distrb_flags, spacecomm, formeig, hdr, dtset%iomode, &
+             &          dtset%mband, mband_mem_rbz, mk1mem_rbz, dtset%mpw, nkpt_rbz, dtset%nspinor, dtset%nsppol, &
+             &          cg1_active, kg1, eigen1)
+
+        ! Need to write our FO eigenvalues separately since they cannot be read in by wfsinp. 
+        ! CAN WE FINALLY GET RID OF THIS??
+
+        ! eigen1 should already be on all processors, so no need to sum again !
+        !  call xmpi_barrier(mpi_enreg%comm_kpt)
+        !  call xmpi_sum_master(eigen1,0,mpi_enreg%comm_kpt,ierr)
+        !  if (ierr==1) write(*,*) 'ERROR: Summation of dedw2'
+
+        if (mpi_enreg%me_kpt==0) then
+
+           open (unit=19, file='eigen1_dk.dat', status='replace')
+           ! Document the perturbation and direction
+           if (dtset%adcalc==2.and.dtset%joperloc==0) then ! finite q dk
+              write(19,*) dtset%natom+99,dtset%rfdir
+           else if(dtset%adcalc==2.and.dtset%joperloc==-1) then ! local only
+              write(19,*) dtset%natom+98,dtset%rfdir
+           else
+              write(19,*) ipert,dtset%rfdir
+           end if
+
+           if (prt_eigen1_dk == 1) then ! only print eigen1 if we need it
+              do ii=1,2*dtset%mband*dtset%mband*nkpt_rbz*dtset%nsppol
+                 write(19,'(2e40.30e2)') eigen1(ii)
+              end do
+           end if
+           close(unit=19)                                                  
+
+        end if
+
+
+
+     end if
+
+     !*********************************************************
+
+
+
+
 
 !    2nd-order eigenvalues stuff
      if (dtset%ieig2rf>0) then
@@ -2173,8 +2294,10 @@ calcden=0
    end if
 
    ! Write wavefunctions file only if convergence was not achieved.
+! CEDrev: check for velfr 
    write_1wfk = .True.
-   if (dtset%prtwf==-1 .and. dfpt_scfcv_retcode == 0) then
+!   if (dtset%prtwf==-1 .and. dfpt_scfcv_retcode == 0) then
+   if (dtset%prtwf==-1 .and. dfpt_scfcv_retcode == 0 .and. dtset%vfstep) then
      write_1wfk = .False.
      call wrtout(ab_out," dfpt_looppert: DFPT cycle converged with prtwf=-1. Will skip output of the 1st-order WFK file.")
    end if
@@ -2231,9 +2354,9 @@ calcden=0
 
 
 ! *************************************************************
-! CEDrev: Adiabatic wf calculation, etc.
+! CEDrev: Adiabatic wf calculation, etc., but no indpol
 
-   if (adcalc==1.or.adcalc==2) then
+   if (adcalc==1.or.adcalc==2.and.dtset%vfstep==0) then
 
       !CED: DO I NEED THIS???
       ! Everyone on the same page
@@ -2339,10 +2462,8 @@ calcden=0
 !Release the temporary arrays (for k, k+q and 1st-order)
 
    ! CEDrev: Don't use these for now, but causing issues
-   if (adcalc==1.or.adcalc==2) then
-      ABI_FREE(rhonlrout)
-      ABI_FREE(rhorout)
-   end if
+   if (allocated(rhonlrout) ABI_FREE(rhonlrout)
+   if (allocated(rhorout) ABI_FREE(rhorout)
 
    ABI_FREE(cgp) !CEDrev
    ABI_FREE(cg)

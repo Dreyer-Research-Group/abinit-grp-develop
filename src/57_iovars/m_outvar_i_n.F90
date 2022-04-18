@@ -541,6 +541,10 @@ subroutine outvar_i_n (dtsets,iout,&
  call prttagm_images(dprarr_images,iout,jdtset_,1,marr,narrm,&
 & ncid,ndtset_alloc,'jpawu','ENE',mxvals%nimage,nimagem,ndtset,prtimg,strimg)
 
+ !CEDrev:
+ intarr(1,:)=dtsets(:)%joperloc
+ call prttagm(dprarr,intarr,iout,jdtset_,2,marr,1,narrm,ncid,ndtset_alloc,'joperloc','INT',0)
+
 
 !write(ab_out,*)' outvar_i_n : K '
 !call flush(ab_out)

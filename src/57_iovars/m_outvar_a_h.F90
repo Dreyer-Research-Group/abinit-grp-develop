@@ -265,6 +265,13 @@ subroutine outvar_a_h (choice,dmatpuflag,dtsets,iout,&
  intarr(1,:)=dtsets(:)%awtr
  call prttagm(dprarr,intarr,iout,jdtset_,2,marr,1,narrm,ncid,ndtset_alloc,'awtr','INT',0)
 
+ !CEDrev:
+ intarr(1,:)=dtsets(:)%adcalc
+ call prttagm(dprarr,intarr,iout,jdtset_,2,marr,1,narrm,ncid,ndtset_alloc,'adcalc','INT',0)
+ intarr(1,:)=dtsets(:)%drudewt
+ call prttagm(dprarr,intarr,iout,jdtset_,2,marr,1,narrm,ncid,ndtset_alloc,'drudewt','INT',0)
+
+
 !###########################################################
 !### 03. Print all the input variables (B)
 !##

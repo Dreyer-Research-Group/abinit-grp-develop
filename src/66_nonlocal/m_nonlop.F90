@@ -510,6 +510,11 @@ subroutine nonlop(choice,cpopt,cprjin,enlout,hamk,idir,lambda,mpi_enreg,ndat,nnl
 !Check some sizes for safety
 !if (paw_opt==0.or.cpopt<2.or.((cpopt==2.or.cpopt==3).and.choice>1)) then
  if (size(ffnlin,1)/=npwin.or.size(ffnlin,3)/=hamk%lmnmax) then
+
+    ! CEDrev: TEST
+    write(*,*) size(ffnlin,1),npwin,size(ffnlin,3),hamk%lmnmax
+    write(*,*) 'select_k',select_k_
+
    msg = 'Incorrect size for ffnlin!'
 !   ABI_BUG(msg)
  end if

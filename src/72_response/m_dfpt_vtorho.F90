@@ -663,8 +663,10 @@ subroutine dfpt_vtorho(cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,cprj1,dbl_nnsc
      ABI_FREE(kinpw1)
      ABI_FREE(kg_k)
      ABI_FREE(kg1_k)
-     ABI_FREE(kpg_k)
-     ABI_FREE(kpg1_k)
+
+! CEDrev: Some issue with kpg_k and kpg1_k being allocated or not. Put a check here to be safe...
+     if (allocated(kpg_k)) ABI_FREE(kpg_k)
+     if (allocated(kpg1_k)) ABI_FREE(kpg1_k)
      ABI_FREE(dkinpw)
      if (ipert==natom+10) then
        ABI_FREE(ddkinpw)

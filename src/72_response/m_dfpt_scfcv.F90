@@ -448,6 +448,10 @@ subroutine dfpt_scfcv(atindx,blkflg,cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,c
  type(paw_ij_type),allocatable :: paw_ij1(:)
  type(pawrhoij_type),allocatable :: pawrhoijfermi(:)
 
+! CEDrev:
+ character(13) :: file_name
+
+
 ! *********************************************************************
 
  DBG_ENTER("COLL")
@@ -814,7 +818,7 @@ subroutine dfpt_scfcv(atindx,blkflg,cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,c
      !CEDrev: G=0 removed, passed dtset%useria
      call dfpt_rhotov(cplex,ehart01,ehart1,elpsp1,exc1,elmag1,gsqcut,idir,ipert,&
 &     dtset%ixc,kxc,mpi_enreg,dtset%natom,nfftf,ngfftf,nhat,nhat1,nhat1gr,nhat1grdim,&
-&     nkxc,nspden,n3xccc,dtset%useria,nmxc,optene,option,dtset%qptn,&
+&     nkxc,nspden,n3xccc,dtset%nogzero,nmxc,optene,option,dtset%qptn,&
 &     rhog,rhog1,rhor,rhor1,rprimd,ucvol,psps%usepaw,usexcnhat,vhartr1,vpsp1,&
 &     nvresid1,res2,vtrial1,vxc,vxc1,xccc3d1,dtset%ixcrot)
 
@@ -1093,7 +1097,7 @@ subroutine dfpt_scfcv(atindx,blkflg,cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,c
 ! CEDrev: Removed G=0 term (MS implementation)
      call dfpt_rhotov(cplex,ehart01,ehart1,elpsp1,exc1,elmag1,gsqcut,idir,ipert,&
 &     dtset%ixc,kxc,mpi_enreg,dtset%natom,nfftf,ngfftf,nhat,nhat1,nhat1gr,nhat1grdim,nkxc,&
-&     nspden,n3xccc,dtset%useria,nmxc,optene,optres,dtset%qptn,rhog,rhog1,rhor,rhor1,&
+&     nspden,n3xccc,dtset%nogzero,nmxc,optene,optres,dtset%qptn,rhog,rhog1,rhor,rhor1,&
 &     rprimd,ucvol,psps%usepaw,usexcnhat,vhartr1,vpsp1,nvresid1,res2,vtrial1,vxc,vxc1,xccc3d1,dtset%ixcrot)
    end if
 
@@ -1508,6 +1512,30 @@ subroutine dfpt_scfcv(atindx,blkflg,cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,c
    ! TODO: should we write pawrhoij1 or pawrhoij. Note that ioarr writes hdr%pawrhoij
    call fftdatar_write_from_hdr("first_order_potential",fi1o,dtset%iomode,hdr,&
    ngfftf,cplex,nfftf,dtset%nspden,vtrial1,mpi_enreg)
+
+!CEDrev: write out vtrial1:
+   if (mpi_enreg%me_kpt==0) then
+      
+      write(file_name,'(a8,i1,a4)') "vtrial1_",dtset%vfstep,".dat"
+      open (unit=19, file=file_name, status='replace')
+
+      ! Write direction of perturbation
+      if (dtset%rfdir(1)==1) then
+         write(19,*) "1"
+      else if (dtset%rfdir(2)==1) then
+         write(19,*) "2"
+      else
+         write(19,*) "3"
+      end if
+
+      do ifft=1,nfftf
+         write(19,'(2e50.30e2)') vtrial1(ifft,:)
+      end do
+      close(unit=19)
+      
+   end if
+
+
 
 ! output files for perturbed potential components: vhartr1,vpsp1,vxc
 ! NB: only 1 spin for these
@@ -3475,7 +3503,7 @@ subroutine dfpt_nstdy(atindx,blkflg,cg,cg1,cplex,dtfil,dtset,d2bbb,d2lo,d2nl,eig
 
 !        Get first-order local potential and first-order pseudo core density
           ! CEDrev: G=0 removed MS implementaion, and pass zion
-          if (dtset%useria==1) then
+          if (dtset%nogzero==1) then
              call dfpt_vlocal(atindx,cplex+10,gmet,gsqcut,idir1,ipert1,mpi_enreg,psps%mqgrid_ff,dtset%natom,&
                   &         nattyp,nfft,ngfft,dtset%ntypat,n1,n2,n3,ph1d,psps%qgrid_ff,&
                   &         dtset%qptn,ucvol,psps%vlspl,vpsp1,xred,dtset%ziontypat)

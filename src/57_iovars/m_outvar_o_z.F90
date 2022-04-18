@@ -1351,6 +1351,11 @@ contains
  dprarr(2,:)=dtsets(:)%vprtrb(2)
  call prttagm(dprarr,intarr,iout,jdtset_,1,marr,2,narrm,ncid,ndtset_alloc,'vprtrb','ENE',0)
 
+ dprarr(1,:)=dtsets(:)%vlfrceta
+ call prttagm(dprarr,intarr,iout,jdtset_,1,marr,1,narrm,ncid,ndtset_alloc,'vlfrceta','DPR',0)
+ intarr(1,:)=dtsets(:)%vfstep
+ call prttagm(dprarr,intarr,iout,jdtset_,1,marr,1,narrm,ncid,ndtset_alloc,'vfstep','INT',0)
+
 
 !###########################################################
 !### 03. Print all the input variables (W)

@@ -81,6 +81,7 @@ type, public :: dataset_type
  integer :: autoparal
  integer :: auxc_ixc
  integer :: awtr = 1
+ integer :: adcalc = 0 ! CEDrev: Triggers joper in cgwf3
 !B
  integer :: bandpp
  integer :: bdeigrf
@@ -155,6 +156,7 @@ type, public :: dataset_type
  integer :: dmftqmc_l
  integer :: dmftqmc_seed
  integer :: dmftqmc_therm
+ integer :: drudewt = 0 ! CEDrev: Turn on Drude weight, first digit is direction a, second is direction b 
  integer :: dvdb_add_lr = 1
  integer :: dvdb_rspace_cell = 0
  integer :: d3e_pert1_elfd
@@ -321,6 +323,8 @@ type, public :: dataset_type
 !J
  integer :: jdtset !  jdtset contains the current dataset number
  integer :: jellslab
+ integer :: joperloc = 0 ! CEDrev: Default (0) means joper uses local+nl; -1 mean joper uses only local 
+
 !K
  integer :: kptopt
  integer :: kssform = 1
@@ -383,6 +387,7 @@ type, public :: dataset_type
  integer :: nline
  integer :: nnsclo
  integer :: nnsclohf
+ integer :: nogzero = 0 ! CEDrev: Remove the G=0 contribution (MS implementation)
  integer :: nomegasf = 100
  integer :: nomegasi = 12
  integer :: nomegasrd = 9
@@ -470,6 +475,7 @@ type, public :: dataset_type
  integer :: plowan_natom
  integer :: plowan_nt
  integer :: plowan_realspace
+ integer :: pmpath = 0 ! CEDrev: use PM path in indpol
  integer :: posdoppler
  integer :: positron
  integer :: posnstep
@@ -611,6 +617,7 @@ type, public :: dataset_type
  integer :: vdw_df_nsmooth
  integer :: vdw_df_tweaks
  integer :: vdw_xc
+ integer :: vfstep = 0 ! CEDrev: Triggers velfrc, 1 for first pert, 2 for second 
 !W
  integer :: wfoptalg
  integer :: wfk_task
@@ -845,6 +852,7 @@ type, public :: dataset_type
  real(dp) :: xc_denpos
  real(dp) :: xc_tb09_c
  real(dp) :: zcut
+ real(dp) :: vlfrceta = 1.0d-5 ! CEDrev: size of the imaginary part for causality in vlfrc
 
 !Real arrays
  real(dp) :: boxcenter(3)
@@ -1947,6 +1955,15 @@ type(dataset_type) function dtset_copy(dtin) result(dtout)
  dtout%xclevel            = dtin%xclevel
  dtout%xc_denpos          = dtin%xc_denpos
  dtout%x1rdm              = dtin%x1rdm
+
+!CEDrev:
+ dtout%vfstep             = dtin%vfstep
+ dtout%adcalc             = dtin%adcalc
+ dtout%drudewt            = dtin%drudewt
+ dtout%nogzero            = dtin%nogzero
+ dtout%pmpath             = dtin%pmpath
+ dtout%vlfrceta           = dtin%vlfrceta
+ dtout%joperloc           = dtout%joperloc
 
 !Copy allocated integer arrays from dtin to dtout
  dtout%bdberry(:)         = dtin%bdberry(:)
@@ -3446,6 +3463,11 @@ subroutine chkvars(string)
 !Y
 !Z
  list_vars=trim(list_vars)//' zcut zeemanfield znucl'
+
+! CED: My new ones here for now
+list_vars=trim(list_vars)//' adcalc vfstep drudewt joperloc vlfrceta pmpath nogzero'
+
+
 
 !List of input variables for which the image index can be added
  list_vars_img=' acell amu angdeg cellcharge dmatpawu jpawu mixalch occ rprim scalecart'

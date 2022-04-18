@@ -199,7 +199,7 @@ subroutine dfpt_cgwf(adcalc,band,band_me,band_procs,bands_treated_now,berryopt,c
  type(pawcprj_type),intent(inout) :: cwaveprj0(natom,nspinor*gs_hamkq%usecprj)
 
  ! CEDrev
- integer :: adcalc
+ integer,intent(in) :: adcalc
  real(dp),intent(in) :: gprimd(3,3),rprimd(3,3)  !CEDrev
  type(datafiles_type), intent(in) :: dtfil
  type(dataset_type), intent(in), target :: dtset
@@ -234,8 +234,10 @@ subroutine dfpt_cgwf(adcalc,band,band_me,band_procs,bands_treated_now,berryopt,c
  !CEDrev: for diamagnetic suceptability
  integer :: ikg!,irfdir
  real(dp) :: kplusg(3),qpc(3)
- real(dp), allocatable :: cwave0_npw1(:,:,:),dumr(:,:,:,:),denconst(:,:,:)
+ !real(dp), allocatable :: cwave0_npw1(:,:,:),dumr(:,:,:,:),denconst(:,:,:)
  character(len=10) :: filbnd !CEDrev: for file name
+ real(dp) :: cwave0_npw1(3,2,npw1*nspinor),cwave0_tmp(2,npw),cwave0_npw1_sp(2,npw1) 
+ real(dp) :: dumr(2,gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6),denconst(gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6)
 ! real(dp) :: cwave1in(2,npw1*nspinor) ! CEDrev: FO input wf 
 
 
@@ -244,6 +246,17 @@ subroutine dfpt_cgwf(adcalc,band,band_me,band_procs,bands_treated_now,berryopt,c
  DBG_ENTER("COLL")
 
  call timab(122,1,tsec)
+
+
+ ! TEST
+!!$ open (unit=19, file='cwave0_test.dat', status='replace')
+!!$ do ipw=1,npw1*nspinor
+!!$    write(19,'(4e20.10e2)') cwavef(:,ipw)
+!!$ end do
+!!$ close(unit=19)
+!!$ stop
+
+
 
  !======================================================================
  !========= LOCAL VARIABLES DEFINITIONS AND ALLOCATIONS ================
@@ -511,25 +524,45 @@ subroutine dfpt_cgwf(adcalc,band,band_me,band_procs,bands_treated_now,berryopt,c
     
  else if (adcalc==2) then ! Diamagnetic sucseptability
 
-    ! Need to FFT cwave0 onto npw1 mesh
-    ABI_MALLOC(cwave0_npw1,(3,2,npw1))
-    ABI_MALLOC(dumr,(2,gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6))
-    ABI_MALLOC(denconst,(gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6))
-    denconst=one
-    call fourwf(1,denconst,cwave0,cwave0_npw1(1,:,:),dumr,gs_hamkq%gbound_k,gs_hamkq%gbound_kp,&
-         &   gs_hamkq%istwf_k,gs_hamkq%kg_k,gs_hamkq%kg_kp,gs_hamkq%mgfft,mpi_enreg,1,gs_hamkq%ngfft,&
-         &   npw,npw1,gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6,2,0,one,one)
-    
-    ! This fails for multiple directions!!! Use idir instead
-    !if (dtset%rfdir(1)==1) irfdir=1
-    !if (dtset%rfdir(2)==1) irfdir=2
-    !if (dtset%rfdir(3)==1) irfdir=3
     ! Cartesian q
     qpc(:)=two_pi*matmul(gprimd(:,:),dtset%qptn(:))
-    call joper(0,cwave0_npw1,dtfil,dtset,gprimd,gs_hamkq%kg_kp,gs_hamkq%kpt_k,mpi_enreg,npw1,psps,qpc)
+    denconst=one
 
-    !gh1c(1:2,1:npw1)=cwave0_npw1(irfdir,1:2,1:npw1)
+    do ispinor=1,nspinor
+
+       cwave0_tmp(:,:)=cwave0(:,1+npw*(ispinor-1):npw*(ispinor))
+
+
+       ! Need to FFT cwave0 onto npw1 mesh
+       !ABI_MALLOC(cwave0_npw1,(3,2,npw1))
+       !ABI_MALLOC(dumr,(2,gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6))
+       !ABI_MALLOC(denconst,(gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6))
+       call fourwf(1,denconst,cwave0_tmp,cwave0_npw1_sp,dumr,gs_hamkq%gbound_k,gs_hamkq%gbound_kp,&
+            &   gs_hamkq%istwf_k,gs_hamkq%kg_k,gs_hamkq%kg_kp,gs_hamkq%mgfft,mpi_enreg,1,gs_hamkq%ngfft,&
+            &   npw,npw1,gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6,2,0,one,one)
+
+
+       cwave0_npw1(1,:,1+npw1*(ispinor-1):npw1*(ispinor))=cwave0_npw1_sp(:,:)
+       cwave0_npw1(2,:,1+npw1*(ispinor-1):npw1*(ispinor))=cwave0_npw1_sp(:,:)
+       cwave0_npw1(3,:,1+npw1*(ispinor-1):npw1*(ispinor))=cwave0_npw1_sp(:,:)
+
+    end do
+
+
+    call joper(dtset%joperloc+1,cwave0_npw1,dtfil,dtset,gprimd,gs_hamkq%kg_kp,gs_hamkq%kpt_k,mpi_enreg,npw1,psps,qpc)
+
     gh1c(1:2,1:npw1)=cwave0_npw1(idir,1:2,1:npw1)
+    
+    ! TEST
+!!$    open (unit=19, file='gh1c_test.dat', status='replace')
+!!$    do ipw=1,npw1*nspinor
+!!$       write(19,'(4e20.10e2)') gh1c(:,ipw)
+!!$    end do
+!!$    close(unit=19)
+!!$    stop
+    
+
+
 
  else
 !!$    !AMSrev: pass qpt
@@ -1517,6 +1550,16 @@ end if
  ABI_FREE(gberry)
 
  call timab(122,2,tsec)
+
+ ! TEST
+!!$ open (unit=19, file='cwavef_test.dat', status='replace')
+!!$ do ipw=1,npw1*nspinor
+!!$    write(19,'(4e20.10e2)') cwavef(:,ipw)
+!!$ end do
+!!$ close(unit=19)
+!!$stop
+
+
 
  DBG_EXIT("COLL")
 

@@ -949,6 +949,23 @@ subroutine invars2(bravais,dtset,iout,jdtset,lenstr,mband,msym,npsp,string,usepa
    if(tread==1) dtset%prepalw=intarr(1)
 ! end if
 
+! CEDrev: My added input variables for velfrc
+   call intagm(dprarr,intarr,jdtset,marr,1,string(1:lenstr),'vfstep',tread,'INT')
+   if(tread==1) dtset%vfstep=intarr(1)
+
+   call intagm(dprarr,intarr,jdtset,marr,1,string(1:lenstr),'adcalc',tread,'INT')
+   if(tread==1) dtset%adcalc=intarr(1)
+
+   call intagm(dprarr,intarr,jdtset,marr,1,string(1:lenstr),'joperloc',tread,'INT')
+   if(tread==1) dtset%joperloc=intarr(1)
+
+   call intagm(dprarr,intarr,jdtset,marr,1,string(1:lenstr),'drudewt',tread,'INT')
+   if(tread==1) dtset%drudewt=intarr(1)
+
+   call intagm(dprarr,intarr,jdtset,marr,1,string(1:lenstr),'vlfrceta',tread,'DPR')
+   if(tread==1) dtset%vlfrceta=dprarr(1) ! Should I make this ENE??
+
+
  ! Recursion input variables
  call intagm(dprarr,intarr,jdtset,marr,1,string(1:lenstr),'tfkinfunc',tread,'INT')
  if(tread==1) dtset%tfkinfunc=intarr(1)

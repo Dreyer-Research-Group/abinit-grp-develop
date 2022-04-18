@@ -1187,7 +1187,12 @@ subroutine getgh1c_setup(gs_hamkq, rf_hamkq, dtset, psps, kpoint, kpq, idir, ipe
  ! Compute k+G vectors
  nkpg = 0; if (ipert >= 1 .and. ipert <= natom) nkpg = 3*dtset%nloalg(3)
  if (reuse_kpg_k_ == 0) then
+
+    ! CEDrev: Not sure why, but this is causing problems. At random times says it is already allocated
+    ! Just put a test to see if it is allocated.
+    if (allocated(kpg_k)) ABI_FREE(kpg_k) 
    ABI_MALLOC(kpg_k, (npw_k,  nkpg))
+
    if (nkpg > 0) call mkkpg(kg_k, kpg_k, kpoint, nkpg, npw_k)
  else
    ABI_CHECK(all(shape(kpg_k) == [npw_k,  nkpg]), "Wrong shape in input kpg_k")
@@ -1196,6 +1201,10 @@ subroutine getgh1c_setup(gs_hamkq, rf_hamkq, dtset, psps, kpoint, kpq, idir, ipe
  ! Compute k+q+G vectors
  nkpg1 = 0; if (ipert >= 1 .and. ipert <= natom) nkpg1 = 3*dtset%nloalg(3)
  if (reuse_kpg1_k_ == 0) then
+
+    ! CEDrev: Not sure why, but this is causing problems. At random times says it is already allocated
+    ! Just put a test to see if it is allocated.
+   if (allocated(kpg1_k)) ABI_FREE(kpg1_k)  
    ABI_MALLOC(kpg1_k, (npw1_k, nkpg1))
    if (nkpg1 > 0) call mkkpg(kg1_k, kpg1_k, kpq(:), nkpg1, npw1_k)
  else
@@ -1208,6 +1217,9 @@ subroutine getgh1c_setup(gs_hamkq, rf_hamkq, dtset, psps, kpoint, kpq, idir, ipe
  ! Compute nonlocal form factors ffnlk at (k+G)
  ! (only for atomic displacement perturbation)
  if (reuse_ffnlk_ == 0) then
+    ! CEDrev: Not sure why, but this is causing problems. At random times says it is already allocated
+    ! Just put a test to see if it is allocated.
+   if (allocated(ffnlk)) ABI_FREE(ffnlk)
    ABI_MALLOC(ffnlk, (npw_k, dimffnlk, psps%lmnmax, ntypat))
    if (ipert<=natom) then
      ider=0;idir0=0
@@ -1253,6 +1265,9 @@ subroutine getgh1c_setup(gs_hamkq, rf_hamkq, dtset, psps, kpoint, kpq, idir, ipe
  if (ider==2.and.idir0==4) dimffnl1=3+7*psps%useylm
 
  if (reuse_ffnl1_ == 0) then
+    ! CEDrev: Not sure why, but this is causing problems. At random times says it is already allocated
+    ! Just put a test to see if it is allocated.
+   if (allocated(ffnl1)) ABI_FREE(ffnl1)
    ABI_MALLOC(ffnl1, (npw1_k, dimffnl1, psps%lmnmax, ntypat))
 
    call mkffnl(psps%dimekb,dimffnl1,psps%ekb,ffnl1,psps%ffspl,gmet,gprimd,ider,idir0,&

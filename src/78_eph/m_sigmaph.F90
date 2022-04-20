@@ -1598,7 +1598,7 @@ real(dp),allocatable :: cwave1in(:,:)
 
              ! CEDrev: make dummy cgp and pass to dfpt_cgwf. Also pass dtset,dtfil, dummy cwave1in
              ABI_MALLOC(cwave1in,(2,npw_kq*nspinor)) 
-             call dfpt_cgwf(dtset%userib,band_ks, band_me, band_procs, bands_treated_now, berryopt0, &
+             call dfpt_cgwf(dtset%adcalc,band_ks, band_me, band_procs, bands_treated_now, berryopt0, &
                cgq, cg1s_kq(:,:,ipc, ib_k), kets_k(:,:,ib_k),cwave1in, &
                cwaveprj, cwaveprj0, rf2, dcwavef,dtset,dtfil, &
                ebands%eig(:, ik_ibz, spin), ebands%eig(:, ikq_ibz, spin), out_eig1_k, &

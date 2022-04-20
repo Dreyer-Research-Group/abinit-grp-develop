@@ -2011,14 +2011,14 @@ end if
      _IBM6("after dfpt_scfcv")
 
      ! CEDrev: TEST Print out the G=0 term of the first order density (to check my implementation in indpol)
-     if (adcalc==0) then 
-!        iwrite=0        
-#ifdef HAVE_MPI
-        if (mpi_enreg%me_kpt==0) then
-           write(*,'(a20,5e18.8e3)') 'G=0 of rhog1 proc', two_pi*matmul(gprimd(:,:),dtset%qptn(:)),rhog1(:,1)
-        end if
-#endif
-     end if
+!!$     if (adcalc==0) then 
+!!$!        iwrite=0        
+!!$#ifdef HAVE_MPI
+!!$        if (mpi_enreg%me_kpt==0) then
+!!$           write(*,'(a20,5e18.8e3)') 'G=0 of rhog1 proc', two_pi*matmul(gprimd(:,:),dtset%qptn(:)),rhog1(:,1)
+!!$        end if
+!!$#endif
+!!$     end if
 
 
      !*******************************************************
@@ -2297,7 +2297,7 @@ end if
 ! CEDrev: check for velfr 
    write_1wfk = .True.
 !   if (dtset%prtwf==-1 .and. dfpt_scfcv_retcode == 0) then
-   if (dtset%prtwf==-1 .and. dfpt_scfcv_retcode == 0 .and. dtset%vfstep) then
+   if (dtset%prtwf==-1 .and. dfpt_scfcv_retcode == 0 .and. dtset%vfstep==0) then
      write_1wfk = .False.
      call wrtout(ab_out," dfpt_looppert: DFPT cycle converged with prtwf=-1. Will skip output of the 1st-order WFK file.")
    end if
@@ -2462,8 +2462,8 @@ end if
 !Release the temporary arrays (for k, k+q and 1st-order)
 
    ! CEDrev: Don't use these for now, but causing issues
-   if (allocated(rhonlrout) ABI_FREE(rhonlrout)
-   if (allocated(rhorout) ABI_FREE(rhorout)
+   if (allocated(rhonlrout)) ABI_FREE(rhonlrout)
+   if (allocated(rhorout)) ABI_FREE(rhorout)
 
    ABI_FREE(cgp) !CEDrev
    ABI_FREE(cg)

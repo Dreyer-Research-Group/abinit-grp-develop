@@ -371,7 +371,7 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
  
 !CEDrev: Test if this is an adiabatic caclulation
 adcalc=dtset%adcalc
-symon=0 ! FOR NOW NOT USED!!!
+symon=1 ! 
 ! 1: print densities, 0: no
 calcden=0
 
@@ -857,7 +857,7 @@ if (dtset%userie==-1) prt_eigen1_dk=1
 
 ! CEDrev: I want the GS and FO wfks to have the same number of kpoints
 ! For now symmetry reduction ON
-!write(*,*) "1. Symmetry reduction is",symon
+if (mpi_enreg%me_kpt==0)  write(*,*) "1. Symmetry reduction is",symon
 
 !  Determine the subset of symmetry operations (nsym1 operations)
 !  that leaves the perturbation invariant, and initialize corresponding arrays
@@ -867,7 +867,7 @@ if (dtset%userie==-1) prt_eigen1_dk=1
    ABI_MALLOC(tnons1_tmp,(3,nsym))
    if (dtset%prepanl/=1.and.&
 &   dtset%berryopt/= 4.and.dtset%berryopt/= 6.and.dtset%berryopt/= 7.and.&
-&   dtset%berryopt/=14.and.dtset%berryopt/=16.and.dtset%berryopt/=17) then
+&   dtset%berryopt/=14.and.dtset%berryopt/=16.and.dtset%berryopt/=17.and.symon==0) then
      call littlegroup_pert(gprimd,idir,indsym,ab_out,ipert,dtset%natom,nsym,nsym1,2,&
 &     dtset%symafm,symaf1_tmp,symq,symrec,dtset%symrel,symrl1_tmp,0,dtset%tnons,tnons1_tmp)
    else

@@ -5,7 +5,7 @@
 !! FUNCTION
 !!
 !! COPYRIGHT
-!!  Copyright (C) 1998-2021 ABINIT group (XG, AR, GG, MT)
+!!  Copyright (C) 1998-2022 ABINIT group (XG, AR, GG, MT)
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .
@@ -177,7 +177,9 @@ contains
 !!      m_driver,m_gwls_sternheimer
 !!
 !! CHILDREN
-!!      hist2var,mkrdim,precpred_1geo,var2hist,vel2hist
+!!      copy_results_gs,destroy_results_gs,destroy_results_img
+!!      gather_results_img,hist2var,init_results_gs,mkrdim,precpred_1geo
+!!      results_gs_lincomb%yaml_write,var2hist,vel2hist
 !!
 !! SOURCE
 
@@ -826,7 +828,9 @@ end subroutine gstateimg
 !!      m_gstateimg
 !!
 !! CHILDREN
-!!      hist2var,mkrdim,precpred_1geo,var2hist,vel2hist
+!!      copy_results_gs,destroy_results_gs,destroy_results_img
+!!      gather_results_img,hist2var,init_results_gs,mkrdim,precpred_1geo
+!!      results_gs_lincomb%yaml_write,var2hist,vel2hist
 !!
 !! SOURCE
 
@@ -1022,7 +1026,9 @@ end subroutine prtimg
 !!      m_gstateimg
 !!
 !! CHILDREN
-!!      hist2var,mkrdim,precpred_1geo,var2hist,vel2hist
+!!      copy_results_gs,destroy_results_gs,destroy_results_img
+!!      gather_results_img,hist2var,init_results_gs,mkrdim,precpred_1geo
+!!      results_gs_lincomb%yaml_write,var2hist,vel2hist
 !!
 !! SOURCE
 
@@ -1058,11 +1064,6 @@ subroutine predictimg(deltae,imagealgo_str,imgmov,itimimage,itimimage_eff,list_d
  character(len=500) :: msg
 
 ! *************************************************************************
-
-!DEBUG
-!  write(std_out,'(a)')' m_gstate_img : enter '
-!  call flush(std_out)
-!ENDDEBUG
 
  is_pimd=(imgmov==9.or.imgmov==10.or.imgmov==13)
 
@@ -1180,7 +1181,9 @@ end subroutine predictimg
 !!      m_gstateimg
 !!
 !! CHILDREN
-!!      hist2var,mkrdim,precpred_1geo,var2hist,vel2hist
+!!      copy_results_gs,destroy_results_gs,destroy_results_img
+!!      gather_results_img,hist2var,init_results_gs,mkrdim,precpred_1geo
+!!      results_gs_lincomb%yaml_write,var2hist,vel2hist
 !!
 !! SOURCE
 
@@ -1262,7 +1265,9 @@ end subroutine predict_copy
 !!      m_gstateimg
 !!
 !! CHILDREN
-!!      hist2var,mkrdim,precpred_1geo,var2hist,vel2hist
+!!      copy_results_gs,destroy_results_gs,destroy_results_img
+!!      gather_results_img,hist2var,init_results_gs,mkrdim,precpred_1geo
+!!      results_gs_lincomb%yaml_write,var2hist,vel2hist
 !!
 !! SOURCE
 
@@ -1291,12 +1296,6 @@ subroutine move_1geo(itimimage_eff,m1geo_param,mpi_enreg,nimage,nimage_tot,ntimi
 
 ! *************************************************************************
 
-!DEBUG
-!write(std_out,'(a)')' m_gstateimg, move_1geo : enter'
-!write(std_out,'(a,i4)')' itimimage_eff=',itimimage_eff
-!call flush(std_out)
-!ENDDEBUG
-
  natom=m1geo_param%ab_mover%natom
  ihist=m1geo_param%hist_1geo%ihist
 
@@ -1310,14 +1309,6 @@ subroutine move_1geo(itimimage_eff,m1geo_param,mpi_enreg,nimage,nimage_tot,ntimi
  rprim(:,:)   =results_img(1,itimimage_eff)%rprim(:,:)
  vel(:,:)     =results_img(1,itimimage_eff)%vel(:,:)
  vel_cell(:,:)=results_img(1,itimimage_eff)%vel_cell(:,:)
-
-!DEBUG
-!write(std_out,'(a,i4)')' m_gstateimg, move_1geo, init : ionmov=',m1geo_param%ab_mover%ionmov
-!do iatom=1,natom
-!  write(std_out,'(i4,3es14.6)') iatom,xred(1:3,iatom)
-!enddo
-!ENDDEBUG
-
 
  call mkrdim(acell,rprim,rprimd)
 
@@ -1440,22 +1431,9 @@ subroutine move_1geo(itimimage_eff,m1geo_param,mpi_enreg,nimage,nimage_tot,ntimi
 !    results_img(iimage,next_itimimage)%vel_cell(:,:)=vel_cell(:,:)
    end do
  endif
-
-!DEBUG
-!write(std_out,'(a,i4)')' m_gstateimg, move_1geo, moved : ionmov=',m1geo_param%ab_mover%ionmov
-!do iatom=1,natom
-!  write(std_out,'(i4,3es14.6)') iatom,xred(1:3,iatom)
-!enddo
-!ENDDEBUG
-
  ABI_FREE(fcart)
  ABI_FREE(vel)
  ABI_FREE(xred)
-
-!DEBUG
-!write(std_out,'(a)')' m_gstateimg, move_1geo : exit'
-!call flush(std_out)
-!ENDDEBUG
 
 end subroutine move_1geo
 !!***

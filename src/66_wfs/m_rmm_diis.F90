@@ -6,7 +6,7 @@
 !!  This module contains routines for the RMM-DIIS eigenvalue solver.
 !!
 !! COPYRIGHT
-!!  Copyright (C) 2020-2021 ABINIT group (MG)
+!!  Copyright (C) 2020-2022 ABINIT group (MG)
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .
@@ -165,6 +165,8 @@ contains
 !!      m_vtowfk
 !!
 !! CHILDREN
+!!      abi_zgemm_2r,cg_zcopy,cg_zdotg_zip,cg_zgemm,cwtime,cwtime_report,dgemm
+!!      getghc,my_pack_matrix,pack_matrix,prep_getghc,subdiago,xmpi_sum
 !!
 !! SOURCE
 
@@ -712,6 +714,8 @@ end subroutine rmm_diis
 !! PARENTS
 !!
 !! CHILDREN
+!!      abi_zgemm_2r,cg_zcopy,cg_zdotg_zip,cg_zgemm,cwtime,cwtime_report,dgemm
+!!      getghc,my_pack_matrix,pack_matrix,prep_getghc,subdiago,xmpi_sum
 !!
 !! SOURCE
 
@@ -862,6 +866,8 @@ end function rmm_diis_exit_iter
 !! PARENTS
 !!
 !! CHILDREN
+!!      abi_zgemm_2r,cg_zcopy,cg_zdotg_zip,cg_zgemm,cwtime,cwtime_report,dgemm
+!!      getghc,my_pack_matrix,pack_matrix,prep_getghc,subdiago,xmpi_sum
 !!
 !! SOURCE
 
@@ -917,8 +923,11 @@ end subroutine rmm_diis_print_block
 !! OUTPUT
 !!
 !! PARENTS
+!!      m_rmm_diis
 !!
 !! CHILDREN
+!!      abi_zgemm_2r,cg_zcopy,cg_zdotg_zip,cg_zgemm,cwtime,cwtime_report,dgemm
+!!      getghc,my_pack_matrix,pack_matrix,prep_getghc,subdiago,xmpi_sum
 !!
 !! SOURCE
 
@@ -1051,6 +1060,8 @@ end function rmm_diis_new
 !! PARENTS
 !!
 !! CHILDREN
+!!      abi_zgemm_2r,cg_zcopy,cg_zdotg_zip,cg_zgemm,cwtime,cwtime_report,dgemm
+!!      getghc,my_pack_matrix,pack_matrix,prep_getghc,subdiago,xmpi_sum
 !!
 !! SOURCE
 
@@ -1089,6 +1100,8 @@ end subroutine rmm_diis_free
 !! PARENTS
 !!
 !! CHILDREN
+!!      abi_zgemm_2r,cg_zcopy,cg_zdotg_zip,cg_zgemm,cwtime,cwtime_report,dgemm
+!!      getghc,my_pack_matrix,pack_matrix,prep_getghc,subdiago,xmpi_sum
 !!
 !! SOURCE
 
@@ -1183,6 +1196,8 @@ end subroutine rmm_diis_update_block
 !! PARENTS
 !!
 !! CHILDREN
+!!      abi_zgemm_2r,cg_zcopy,cg_zdotg_zip,cg_zgemm,cwtime,cwtime_report,dgemm
+!!      getghc,my_pack_matrix,pack_matrix,prep_getghc,subdiago,xmpi_sum
 !!
 !! SOURCE
 
@@ -1246,8 +1261,11 @@ end subroutine rmm_diis_eval_mats
 !! mat_out(cplx*N*N+1/2)= packed matrix (upper triangle)
 !!
 !! PARENTS
+!!      m_rmm_diis
 !!
 !! CHILDREN
+!!      abi_zgemm_2r,cg_zcopy,cg_zdotg_zip,cg_zgemm,cwtime,cwtime_report,dgemm
+!!      getghc,my_pack_matrix,pack_matrix,prep_getghc,subdiago,xmpi_sum
 !!
 !! SOURCE
 
@@ -1284,7 +1302,7 @@ end subroutine my_pack_matrix
 !!  The main difference with respect to other similar routines is that this implementation does not require
 !!  the <i|H|j> matrix elements as input so it can be used before starting the wavefunction optimation
 !!  as required e.g. by the RMM-DIIS method.
-!!  Moreover, the routine computes the new rediduals after the subspace rotation by rotating the
+!!  Moreover, the routine computes the new residuals after the subspace rotation by rotating the
 !!  matrix elements of the Hamiltonian in the new basis (requires more memory but client code
 !!  can avoid calling getghc after subspace_rotation.
 !!
@@ -1308,8 +1326,11 @@ end subroutine my_pack_matrix
 !!  gsc(2,*)=update <G|S|C>
 !!
 !! PARENTS
+!!      m_rmm_diis
 !!
 !! CHILDREN
+!!      abi_zgemm_2r,cg_zcopy,cg_zdotg_zip,cg_zgemm,cwtime,cwtime_report,dgemm
+!!      getghc,my_pack_matrix,pack_matrix,prep_getghc,subdiago,xmpi_sum
 !!
 !! SOURCE
 
@@ -1447,7 +1468,7 @@ subroutine subspace_rotation(gs_hamk, prtvol, mpi_enreg, nband, npw, my_nspinor,
  ! ========================
  ! Subspace diagonalization
  ! =======================
- ! Rotate cg, gsc and compute new eigevalues.
+ ! Rotate cg, gsc and compute new eigenvalues.
  ABI_MALLOC(evec, (2, nband, nband))
  mcg = npwsp * nband; mgsc = npwsp * nband * usepaw
  call subdiago(cg, eig, evec, gsc, 0, 0, istwf_k, mcg, mgsc, nband, npw, my_nspinor, paral_kgb, &

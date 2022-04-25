@@ -14,7 +14,7 @@
 !!  can be easily included once an appropriate model is added to the ab-initio e-ph scattering rates.
 !!
 !! COPYRIGHT
-!!  Copyright (C) 2008-2021 ABINIT group (HM, MG)
+!!  Copyright (C) 2008-2022 ABINIT group (HM, MG)
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .
@@ -285,6 +285,7 @@ contains  !=====================================================
 !!      m_eph_driver
 !!
 !! CHILDREN
+!!      safe_div
 !!
 !! SOURCE
 
@@ -677,6 +678,7 @@ end function rta_new
 !! PARENTS
 !!
 !! CHILDREN
+!!      safe_div
 !!
 !! SOURCE
 
@@ -768,7 +770,7 @@ subroutine compute_rta(self, cryst, dtset, dtfil, comm)
 
  ! Set default energy range for DOS
  ! If sigma_erange is set, get emin and emax from this variable
- ! MG: TODO This value should be read from SIGPEH
+ ! MG: TODO This value should be read from SIGEPH
  ! Recheck metals
  if (self%assume_gap) then
    emin = huge(one); emax = -huge(one)
@@ -1097,6 +1099,7 @@ end subroutine compute_rta
 !! PARENTS
 !!
 !! CHILDREN
+!!      safe_div
 !!
 !! SOURCE
 
@@ -1214,9 +1217,9 @@ end subroutine compute_rta_mobility
 !! ncid=Netcdf file handle.
 !!
 !! PARENTS
-!!      m_rta
 !!
 !! CHILDREN
+!!      safe_div
 !!
 !! SOURCE
 
@@ -1350,6 +1353,7 @@ end subroutine rta_ncwrite
 !! PARENTS
 !!
 !! CHILDREN
+!!      safe_div
 !!
 !! SOURCE
 
@@ -1541,6 +1545,7 @@ end subroutine write_tensor
 !! PARENTS
 !!
 !! CHILDREN
+!!      safe_div
 !!
 !! SOURCE
 
@@ -1609,6 +1614,7 @@ end subroutine rta_free
 !!      m_eph_driver
 !!
 !! CHILDREN
+!!      safe_div
 !!
 !! SOURCE
 
@@ -2134,8 +2140,10 @@ end subroutine ibte_driver
 !! comm=MPI communicator.
 !!
 !! PARENTS
+!!      m_rta
 !!
 !! CHILDREN
+!!      safe_div
 !!
 !! SOURCE
 

@@ -7,7 +7,7 @@
 !! Can use either FoX or pure Fortran routines.
 !!
 !! COPYRIGHT
-!! Copyright (C) 2005-2021 ABINIT group (MT, FJ)
+!! Copyright (C) 2005-2022 ABINIT group (MT, FJ)
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -1049,7 +1049,8 @@ end subroutine paw_end_element1
 !! PARENTS
 !!
 !! CHILDREN
-!!      bound_deriv,paw_rdfromline,paw_spline,paw_splint,pawrad_init
+!!      bound_deriv,paw_rdfromline,paw_spline,paw_splint,pawrad_free
+!!      pawrad_init
 !!
 !! SOURCE
 subroutine pawdata_chunk(chunk)
@@ -1132,7 +1133,8 @@ end subroutine pawdata_chunk
 !!      m_pspheads,m_pspini
 !!
 !! CHILDREN
-!!      bound_deriv,paw_rdfromline,paw_spline,paw_splint,pawrad_init
+!!      bound_deriv,paw_rdfromline,paw_spline,paw_splint,pawrad_free
+!!      pawrad_init
 !!
 !! SOURCE
 
@@ -1257,7 +1259,8 @@ end subroutine paw_setup_free
 !! PARENTS
 !!
 !! CHILDREN
-!!      bound_deriv,paw_rdfromline,paw_spline,paw_splint,pawrad_init
+!!      bound_deriv,paw_rdfromline,paw_spline,paw_splint,pawrad_free
+!!      pawrad_init
 !!
 !! SOURCE
 
@@ -1494,7 +1497,8 @@ end subroutine paw_setup_copy
 !!      m_pawxmlps
 !!
 !! CHILDREN
-!!      bound_deriv,paw_rdfromline,paw_spline,paw_splint,pawrad_init
+!!      bound_deriv,paw_rdfromline,paw_spline,paw_splint,pawrad_free
+!!      pawrad_init
 !!
 !! SOURCE
 
@@ -1545,7 +1549,8 @@ end subroutine paw_setup_copy
 !!      m_pspheads
 !!
 !! CHILDREN
-!!      bound_deriv,paw_rdfromline,paw_spline,paw_splint,pawrad_init
+!!      bound_deriv,paw_rdfromline,paw_spline,paw_splint,pawrad_free
+!!      pawrad_init
 !!
 !! SOURCE
 
@@ -1933,7 +1938,8 @@ end subroutine paw_setup_copy
 !!      m_pspheads
 !!
 !! CHILDREN
-!!      bound_deriv,paw_rdfromline,paw_spline,paw_splint,pawrad_init
+!!      bound_deriv,paw_rdfromline,paw_spline,paw_splint,pawrad_free
+!!      pawrad_init
 !!
 !! SOURCE
 
@@ -2744,7 +2750,8 @@ end subroutine paw_setup_copy
 !!      m_pawpsp
 !!
 !! CHILDREN
-!!      bound_deriv,paw_rdfromline,paw_spline,paw_splint,pawrad_init
+!!      bound_deriv,paw_rdfromline,paw_spline,paw_splint,pawrad_free
+!!      pawrad_init
 !!
 !! SOURCE
 

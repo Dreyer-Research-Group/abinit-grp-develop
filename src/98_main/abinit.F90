@@ -6,7 +6,7 @@
 !! Main routine for conducting Density-Functional Theory calculations or Many-Body Perturbation Theory calculations.
 !!
 !! COPYRIGHT
-!! Copyright (C) 1998-2021 ABINIT group (DCA, XG, GMR, MKV, MT)
+!! Copyright (C) 1998-2022 ABINIT group (DCA, XG, GMR, MKV, MT)
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -65,14 +65,14 @@
 !! CHILDREN
 !!      abi_io_redirect,abimem_init,abinit_doctor,bigdft_init_errors
 !!      bigdft_init_timing_categories,chkinp,chkvars,clnmpi_atom,clnmpi_grid
-!!      clnmpi_img,clnmpi_pert,date_and_time,destroy_mpi_enreg
+!!      clnmpi_img,clnmpi_pert,date_and_time,delete_file,destroy_mpi_enreg
 !!      destroy_results_out,driver,dtsets,dump_config,dump_cpp_options
-!!      dump_optim,f_lib_finalize,f_lib_initialize,flush_unit
+!!      dump_optim,f_lib_finalize,f_lib_initialize,f_timing_reset,flush_unit
 !!      gather_results_out,get_dtsets_pspheads,herald,init_results_out,iofn1
 !!      libpaw_spmsg_getcount,memory_eval,mpi_setup,nctk_test_mpiio,out_acknowl
 !!      outvars,outxml_finalise,outxml_open,print_kinds,setdevice_cuda
 !!      specialmsg_getcount,testfi,timab,timana,timein,unsetdevice_cuda,wrtout
-!!      xmpi_init,xmpi_show_info,xmpi_sum,xomp_show_info,xpapi_init
+!!      wvl_timing,xmpi_init,xmpi_show_info,xmpi_sum,xomp_show_info,xpapi_init
 !!      xpapi_show_info,xpapi_shutdown
 !!
 !! SOURCE
@@ -489,7 +489,7 @@ program abinit
 !------------------------------------------------------------------------------
 
  ! 19) Delete the status file, and, for build-in tests, analyse the correctness of results.
- if (ndtset == 0) then
+ if (ndtset == 0 .and. me == 0 .and. dtsets(1)%builtintest /= 0) then
    call testfi(dtsets(1)%builtintest,etotal,filstat,gred,natom,strten,xred)
  end if
 

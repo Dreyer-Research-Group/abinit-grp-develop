@@ -7,7 +7,7 @@
 !!  As the type contains MPI-dependent fields, it has to be declared in a MPI-managed directory.
 !!
 !! COPYRIGHT
-!! Copyright (C) 2009-2021 ABINIT group (MT,MB,MVer,ZL,MD)
+!! Copyright (C) 2009-2022 ABINIT group (MT,MB,MVer,ZL,MD)
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -1190,9 +1190,9 @@ end subroutine WffOpen
 !! ierr=error code
 !!
 !! PARENTS
-!!      m_conducti,m_dfpt_looppert,m_dfpt_lw,m_dfptnl_loop,m_elpolariz,m_gstate
-!!      m_ioarr,m_iowf,m_longwave,m_nonlinear,m_optics_vloc,m_paw_optics
-!!      m_pead_nl_loop,m_positron,m_respfn_driver,m_wfk
+!!      m_conducti,m_dfpt_lw,m_dfptnl_loop,m_elpolariz,m_gstate,m_ioarr,m_iowf
+!!      m_longwave,m_nonlinear,m_optics_vloc,m_paw_optics,m_pead_nl_loop
+!!      m_positron,m_wfk
 !!
 !! CHILDREN
 !!

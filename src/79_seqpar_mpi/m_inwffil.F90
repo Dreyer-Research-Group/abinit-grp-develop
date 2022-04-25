@@ -6,7 +6,7 @@
 !!  Do initialization of wavefunction files.
 !!
 !! COPYRIGHT
-!!  Copyright (C) 1998-2021 ABINIT group (DCA, XG, GMR, AR, MB, MVer, ZL, MB, TD)
+!!  Copyright (C) 1998-2022 ABINIT group (DCA, XG, GMR, AR, MB, MVer, ZL, MB, TD)
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .
@@ -168,12 +168,10 @@ contains
 !! NOT OUTPUT NOW !
 !!
 !! PARENTS
-!!      m_dfpt_looppert,m_dfpt_lw,m_dfptnl_loop,m_gstate,m_longwave,m_nonlinear
-!!      m_pead_nl_loop,m_respfn_driver
+!!      m_dfpt_lw,m_dfptnl_loop,m_gstate,m_longwave,m_nonlinear,m_pead_nl_loop
 !!
 !! CHILDREN
-!!      cg_envlop,getph,getspinrot,kpgsph,mati3inv,ph1d3d,pw_orthon,sphere
-!!      sphereboundary,timab,wrtout,xmpi_sum
+!!      timab,xmpi_bcast,xmpi_sum
 !!
 !! SOURCE
 
@@ -254,7 +252,7 @@ subroutine inwffil(ask_accurate,cg,dtset,ecut,ecut_eff,eigen,exchn2n3d,&
  headform0=0 !Default value for headform0 (will be needed later, to read wf blocks)
 
 !Chebyshev is more sensitive to the quality of input random numbers, so use a new algorithm
- if(dtset%wfoptalg == 1) then
+ if(dtset%wfoptalg == 1 .or. dtset%wfoptalg == 111) then
    randalg = 1
  else
    ! Otherwise, use compatibility mode
@@ -977,6 +975,7 @@ subroutine inwffil(ask_accurate,cg,dtset,ecut,ecut_eff,eigen,exchn2n3d,&
 &   dtset%prtvol,randalg,restart,hdr%rprimd,sppoldbl_eff,symrel,tnons,unkg,wff1,wffnow)
 
    if (nsppol2nspinor/=0)  then
+     ABI_FREE(indkk_eff)
      ABI_FREE(nband_eff)
    end if
 
@@ -1106,8 +1105,7 @@ end subroutine inwffil
 !!      m_inwffil
 !!
 !! CHILDREN
-!!      cg_envlop,getph,getspinrot,kpgsph,mati3inv,ph1d3d,pw_orthon,sphere
-!!      sphereboundary,timab,wrtout,xmpi_sum
+!!      timab,xmpi_bcast,xmpi_sum
 !!
 !! SOURCE
 
@@ -1832,8 +1830,7 @@ end subroutine wfsinp
 !!      m_inwffil
 !!
 !! CHILDREN
-!!      cg_envlop,getph,getspinrot,kpgsph,mati3inv,ph1d3d,pw_orthon,sphere
-!!      sphereboundary,timab,wrtout,xmpi_sum
+!!      timab,xmpi_bcast,xmpi_sum
 !!
 !! SOURCE
 
@@ -2060,8 +2057,7 @@ end subroutine initwf
 !!      m_inwffil
 !!
 !! CHILDREN
-!!      cg_envlop,getph,getspinrot,kpgsph,mati3inv,ph1d3d,pw_orthon,sphere
-!!      sphereboundary,timab,wrtout,xmpi_sum
+!!      timab,xmpi_bcast,xmpi_sum
 !!
 !! SOURCE
 
@@ -2655,8 +2651,7 @@ end subroutine newkpt
 !!      m_inwffil
 !!
 !! CHILDREN
-!!      cg_envlop,getph,getspinrot,kpgsph,mati3inv,ph1d3d,pw_orthon,sphere
-!!      sphereboundary,timab,wrtout,xmpi_sum
+!!      timab,xmpi_bcast,xmpi_sum
 !!
 !! SOURCE
 
@@ -3300,7 +3295,7 @@ end subroutine wfconv
 !!   it does not treat the eigenvalues as a matrix.
 !!
 !! PARENTS
-!!      newkpt,wfsinp
+!!      m_inwffil
 !!
 !! CHILDREN
 !!      timab,xmpi_bcast,xmpi_sum

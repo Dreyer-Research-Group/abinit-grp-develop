@@ -6,7 +6,7 @@
 !!
 !!
 !! COPYRIGHT
-!!  Copyright (C) 2008-2021 ABINIT group (MG)
+!!  Copyright (C) 2008-2022 ABINIT group (MG)
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .
@@ -83,7 +83,7 @@ contains
 !!  Inspired to wfconv.
 !!
 !! CHILDREN
-!!      sphere
+!!      pawcprj_zaxpby,timab,xmpi_sum
 !!
 !! SOURCE
 
@@ -243,7 +243,7 @@ end subroutine cgtk_rotate
 !!      m_wfd
 !!
 !! CHILDREN
-!!      sphere
+!!      pawcprj_zaxpby,timab,xmpi_sum
 !!
 !! SOURCE
 
@@ -317,7 +317,7 @@ end subroutine cgtk_change_gsphere
 !!      m_vtowfk
 !!
 !! CHILDREN
-!!      timab,xmpi_sum
+!!      pawcprj_zaxpby,timab,xmpi_sum
 !!
 !! SOURCE
 

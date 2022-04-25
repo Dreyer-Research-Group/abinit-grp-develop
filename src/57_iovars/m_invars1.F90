@@ -7,7 +7,7 @@
 !!
 !!
 !! COPYRIGHT
-!! Copyright (C) 1998-2021 ABINIT group (DCA, XG, GMR, AR, MKV, FF, MM)
+!! Copyright (C) 1998-2022 ABINIT group (DCA, XG, GMR, AR, MKV, FF, MM)
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .
@@ -1881,7 +1881,7 @@ subroutine invars1(bravais,dtset,iout,jdtset,lenstr,mband_upper,msym,npsp1,&
      sum_spinat=zero
      do iatom=1,natom
        zval=zval+dtset%ziontypat(dtset%typat(iatom))
-       sum_spinat=sum_spinat+dtset%spinat(3,dtset%typat(iatom))
+       sum_spinat=sum_spinat+dtset%spinat(3,iatom)
      end do
      zelect=zval-cellcharge_min
      mband_upper=nspinor * ((ceiling(zelect-tol10)+1)/2 + ceiling( fband*natom - tol10 )) &
@@ -1965,7 +1965,12 @@ subroutine invars1(bravais,dtset,iout,jdtset,lenstr,mband_upper,msym,npsp1,&
  dtset%usepawu=0
  call intagm(dprarr,intarr,jdtset,marr,1,string(1:lenstr),'usepawu',tread,'INT')
  if(tread==1) dtset%usepawu=intarr(1)
- if ( dtset%usedmft > 0 .and. dtset%usepawu >= 0 ) dtset%usepawu = 1
+!if(dtset%usedmft>0.and.(dtset%usepawu==14.or.dtset%usepawu==4)) then
+!   dtset%usepawu=14
+!else if(dtset%usedmft>0.and.dtset%usepawu>=0) then
+!   dtset%usepawu=1
+!endif
+
 
  dtset%usedmatpu=0
  dtset%lpawu(1:dtset%ntypat)=-1
@@ -2233,6 +2238,7 @@ subroutine indefo(dtsets, ndtset_alloc, nprocs)
    dtsets(idtset)%dmftctqmc_check =0
    dtsets(idtset)%dmftctqmc_correl=0
    dtsets(idtset)%dmftctqmc_grnns =0
+   dtsets(idtset)%dmftctqmc_config =0
    dtsets(idtset)%dmftctqmc_meas  =1
    dtsets(idtset)%dmftctqmc_mrka  =0
    dtsets(idtset)%dmftctqmc_mov   =0
@@ -2586,6 +2592,7 @@ subroutine indefo(dtsets, ndtset_alloc, nprocs)
    dtsets(idtset)%rfmeth=1
    dtsets(idtset)%rfphon=0
    dtsets(idtset)%rfstrs=0
+   dtsets(idtset)%rfstrs_ref=0
    dtsets(idtset)%rfuser=0
    dtsets(idtset)%rf2_dkdk=0
    dtsets(idtset)%rf2_dkde=0

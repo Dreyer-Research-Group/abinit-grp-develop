@@ -6,7 +6,7 @@
 !! Procedures for the IO of the WFK file.
 !!
 !! COPYRIGHT
-!! Copyright (C) 1998-2021 ABINIT group (DCA, XG, GMR, AR, MB, MVer, MG)
+!! Copyright (C) 1998-2022 ABINIT group (DCA, XG, GMR, AR, MB, MVer, MG)
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .
@@ -85,9 +85,10 @@ CONTAINS  !=====================================================================
 !! NOTES
 !!
 !! PARENTS
-!!      berryphase_new,dfpt_looppert,gstate
+!!      m_berryphase_new,m_dfpt_looppert,m_gstate
 !!
 !! CHILDREN
+!!      xmpi_sum_master
 !!
 !! SOURCE
 
@@ -212,7 +213,7 @@ end subroutine outresid
 !! * The name of the file wff2 might be the same as that of the file wff1.
 !!
 !! PARENTS
-!!      m_berryphase_new,m_dfpt_looppert,m_gstate
+!!      m_berryphase_new,m_gstate
 !!
 !! CHILDREN
 !!      xmpi_sum_master

@@ -8,7 +8,7 @@
 !! pure plane waves.
 !!
 !! COPYRIGHT
-!! Copyright (C) 2018-2021 ABINIT group (A. Blanchet)
+!! Copyright (C) 2018-2022 ABINIT group (A. Blanchet)
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -94,10 +94,8 @@ contains
   !!  this=extfpmd_type object concerned
   !!
   !! PARENTS
-  !!  m_gstate
   !!
   !! CHILDREN
-  !!  metric
   !!
   !! SOURCE
   subroutine init(this,mband,nbcut,nfftf,nspden,rprimd,version)
@@ -145,7 +143,6 @@ contains
   !!  this=extfpmd_type object concerned
   !!
   !! PARENTS
-  !!  m_gstate
   !!
   !! CHILDREN
   !!
@@ -180,7 +177,7 @@ contains
   !!  compute_shiftfactor
   !!
   !! FUNCTION
-  !!  Compute the energy shift factor $U_0$ corresponding to constant
+  !!  Computes the energy shift factor $U_0$ corresponding to constant
   !!  potential contribution.
   !!
   !! INPUTS
@@ -197,7 +194,6 @@ contains
   !!  this=extfpmd_type object concerned
   !!
   !! PARENTS
-  !!  m_vtorho
   !!
   !! CHILDREN
   !!
@@ -221,13 +217,13 @@ contains
 
     ! *********************************************************************
 
-    ! Compute U_0 from the sum of local
+    ! Computes U_0 from the sum of local
     ! potentials (vtrial), averaging over all space.
     ! Simplest and most precise way to evaluate U_0.
     if(this%version==1) then
       this%shiftfactor=sum(this%vtrial)/(this%nfftf*this%nspden)
 
-      ! Compute the relative error of the model vs last eigenvalues
+      ! Computes the relative error of the model vs last eigenvalues
       if(me==0) then
         band_index=0
         rel_err=zero
@@ -255,7 +251,7 @@ contains
       end if
     end if
 
-    ! Compute U_0^{HEG} from the difference between
+    ! Computes U_0^{HEG} from the difference between
     ! eigenvalues and Fermi gas energies, averaged
     ! over lasts nbcut bands.
     if(this%version==2) then
@@ -274,7 +270,7 @@ contains
       this%shiftfactor=this%shiftfactor/this%nbcut
     end if
 
-    ! Compute U_0^K from the difference between
+    ! Computes U_0^K from the difference between
     ! eigenvalues and kinetic energies, averaged
     ! over lasts nbcut bands.
     if(this%version==3) then
@@ -302,7 +298,7 @@ contains
   !!  compute_nelect
   !!
   !! FUNCTION
-  !!  Compute the value of the integral corresponding to the missing
+  !!  Computes the value of the integral corresponding to the missing
   !!  free electrons contribution after band cut, with an order 1/2
   !!  incomplete Fermi-Dirac integral.
   !!
@@ -316,7 +312,6 @@ contains
   !!  this=extfpmd_type object concerned
   !!
   !! PARENTS
-  !!  m_gstate,m_vtorho,m_occ
   !!
   !! CHILDREN
   !!
@@ -337,7 +332,7 @@ contains
 
     factor=sqrt(2.)/(PI*PI)*this%ucvol*tsmear**(1.5)
 
-    ! Compute extfpmd contribution to nelect integrating
+    ! Computes extfpmd contribution to nelect integrating
     ! over accessible states from bcut to infinity with
     ! order 1/2 incomplete Fermi-Dirac integral.
     if(this%version==1.or.this%version==2) then
@@ -346,7 +341,7 @@ contains
       nelect=nelect+factor*djp12(xcut,gamma)
     end if
 
-    ! Compute extfpmd contribution to nelect integrating
+    ! Computes extfpmd contribution to nelect integrating
     ! over energy from e_bcut to infinity with order 1/2
     ! incomplete Fermi-Dirac integral.
     if(this%version==3) then
@@ -355,7 +350,7 @@ contains
       nelect=nelect+factor*djp12(xcut,gamma)
     end if
 
-    ! Compute extfpmd contribution to nelect using a sum
+    ! Computes extfpmd contribution to nelect using a sum
     ! of Fermi gas contributions for each point of the fftf grid.
     ! Warning: This is not yet operational. Work in progress.
     if(this%version==4) then
@@ -375,35 +370,28 @@ contains
   !!  compute_e_kinetic
   !!
   !! FUNCTION
-  !!  Compute the value of the integral corresponding to the missing
+  !!  Computes the value of the integral corresponding to the missing
   !!  kinetic energy contribution of free electrons after band cut,
   !!  with an order 3/2 incomplete Fermi-Dirac integral.
   !!
   !! INPUTS
   !!  this=extfpmd_type object concerned
   !!  fermie=chemical potential (Hartree)
-  !!  nfftf=number of points in the fine FFT mesh (for this processor)
-  !!  nspden=number of spin-density components
   !!  tsmear=smearing width (or temperature)
-  !!  vtrial(nfft,nspden)= trial potential (Hartree)
   !!
   !! OUTPUT
   !!  this=extfpmd_type object concerned
   !!
   !! PARENTS
-  !!  m_gstate,m_vtorho
   !!
   !! CHILDREN
   !!
   !! SOURCE
-  subroutine compute_e_kinetic(this,fermie,nfftf,nspden,tsmear,vtrial)
+  subroutine compute_e_kinetic(this,fermie,tsmear)
     ! Arguments -------------------------------
     ! Scalars
     class(extfpmd_type),intent(inout) :: this
     real(dp),intent(in) :: fermie,tsmear
-    integer,intent(in) :: nfftf,nspden
-    ! Arrays
-    real(dp),intent(in) :: vtrial(nfftf,nspden)
 
     ! Local variables -------------------------
     ! Scalars
@@ -415,7 +403,7 @@ contains
     this%e_kinetic=zero
     factor=sqrt(2.)/(PI*PI)*this%ucvol*tsmear**(2.5)
 
-    ! Compute extfpmd contribution to kinetic energy integrating
+    ! Computes extfpmd contribution to kinetic energy integrating
     ! over accessible states from bcut to infinity with
     ! order 3/2 incomplete Fermi-Dirac integral.
     if(this%version==1.or.this%version==2) then
@@ -424,7 +412,7 @@ contains
       this%e_kinetic=this%e_kinetic+factor*djp32(xcut,gamma)
     end if
 
-    ! Compute extfpmd contribution to kinetic energy integrating
+    ! Computes extfpmd contribution to kinetic energy integrating
     ! over energy from e_bcut to infinity with order 3/2
     ! incomplete Fermi-Dirac integral.
     if(this%version==3) then
@@ -433,7 +421,7 @@ contains
       this%e_kinetic=this%e_kinetic+factor*djp32(xcut,gamma)
     end if
 
-    ! Compute extfpmd contribution to kinetic energy using a sum
+    ! Computes extfpmd contribution to kinetic energy using a sum
     ! of Fermi gas contributions for each point of the fftf grid.
     ! Warning: This is not yet operational. Work in progress.
     if(this%version==4) then
@@ -447,15 +435,10 @@ contains
       end do
     end if
 
-    ! Compute the double counting term of the contribution to
-    ! kinetic energy from the vtrial potential.
-    this%edc_kinetic=zero
-    do ispden=1,nspden
-      do ifftf=1,nfftf
-        this%edc_kinetic=this%edc_kinetic+vtrial(ifftf,ispden)
-      end do
-    end do
-    this%edc_kinetic=this%edc_kinetic*this%nelect/nspden/nfftf/nspden
+    ! Computes the double counting term from the shiftfactor, and
+    ! from the contributions to the kinetic energy and
+    ! the number of electrons
+    this%edc_kinetic=this%e_kinetic+this%nelect*this%shiftfactor
   end subroutine compute_e_kinetic
   !!***
 
@@ -464,7 +447,7 @@ contains
   !!  compute_entropy
   !!
   !! FUNCTION
-  !!  Compute the value of the integral corresponding to the missing
+  !!  Computes the value of the integral corresponding to the missing
   !!  entropy contribution of free electrons after band cut using
   !!  incomplete Fermi-Dirac integrals.
   !!
@@ -477,7 +460,6 @@ contains
   !!  this=extfpmd_type object concerned
   !!
   !! PARENTS
-  !!  m_vtorho
   !!
   !! CHILDREN
   !!
@@ -499,7 +481,7 @@ contains
 
     this%entropy=zero
 
-    ! Compute extfpmd contribution to the entropy integrating
+    ! Computes extfpmd contribution to the entropy integrating
     ! over accessible states with Fermi-Dirac complete integrals and
     ! substracting 0 to bcut contribution with numeric integration.
     if(this%version==1.or.this%version==2) then
@@ -528,7 +510,7 @@ contains
       ABI_FREE(valuesent)
     end if
 
-    ! Compute extfpmd contribution to the entropy integrating
+    ! Computes extfpmd contribution to the entropy integrating
     ! over energy with Fermi-Dirac complete integrals and
     ! substracting 0 to bcut contribution with numeric integration.
     if(this%version==3) then
@@ -559,7 +541,7 @@ contains
       ABI_FREE(valuesent)
     end if
 
-    ! Compute extfpmd contribution to the entropy using a sum
+    ! Computes extfpmd contribution to the entropy using a sum
     ! of Fermi gas contributions for each point of the fftf grid,
     ! as we do for version=1 and version=2.
     ! Warning: This is not yet operational. Work in progress.

@@ -6,7 +6,7 @@
 !!  Compute the matrix elements of the Fan-Migdal Debye-Waller self-energy in the KS basis set.
 !!
 !! COPYRIGHT
-!!  Copyright (C) 2008-2021 ABINIT group (MG, HM)
+!!  Copyright (C) 2008-2022 ABINIT group (MG, HM)
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .
@@ -600,8 +600,8 @@ contains  !=====================================================
 !!      m_eph_driver
 !!
 !! CHILDREN
-!!      cwtime,cwtime_report,kpts_ibz_from_kptrlatt,krank%free,listkk,wrtout
-!!      xmpi_sum
+!!      cwtime,cwtime_report,kpts_ibz_from_kptrlatt,krank%free,qrank%free
+!!      qrank%get_mapping,wrtout,xmpi_sum
 !!
 !! SOURCE
 
@@ -3311,8 +3311,8 @@ end function sigmaph_new
 !! PARENTS
 !!
 !! CHILDREN
-!!      cwtime,cwtime_report,kpts_ibz_from_kptrlatt,krank%free,listkk,wrtout
-!!      xmpi_sum
+!!      cwtime,cwtime_report,kpts_ibz_from_kptrlatt,krank%free,qrank%free
+!!      qrank%get_mapping,wrtout,xmpi_sum
 !!
 !! SOURCE
 
@@ -3899,8 +3899,8 @@ end function sigmaph_get_ebands
 !! PARENTS
 !!
 !! CHILDREN
-!!      cwtime,cwtime_report,kpts_ibz_from_kptrlatt,krank%free,listkk,wrtout
-!!      xmpi_sum
+!!      cwtime,cwtime_report,kpts_ibz_from_kptrlatt,krank%free,qrank%free
+!!      qrank%get_mapping,wrtout,xmpi_sum
 !!
 !! SOURCE
 
@@ -3960,8 +3960,8 @@ end subroutine sigmaph_compare
 !! PARENTS
 !!
 !! CHILDREN
-!!      cwtime,cwtime_report,kpts_ibz_from_kptrlatt,krank%free,listkk,wrtout
-!!      xmpi_sum
+!!      cwtime,cwtime_report,kpts_ibz_from_kptrlatt,krank%free,qrank%free
+!!      qrank%get_mapping,wrtout,xmpi_sum
 !!
 !! SOURCE
 
@@ -4081,8 +4081,8 @@ end subroutine sigmaph_free
 !! PARENTS
 !!
 !! CHILDREN
-!!      cwtime,cwtime_report,kpts_ibz_from_kptrlatt,krank%free,listkk,wrtout
-!!      xmpi_sum
+!!      cwtime,cwtime_report,kpts_ibz_from_kptrlatt,krank%free,qrank%free
+!!      qrank%get_mapping,wrtout,xmpi_sum
 !!
 !! SOURCE
 
@@ -4366,8 +4366,8 @@ end function sigmaph_skip_phmode
 !!      m_sigmaph
 !!
 !! CHILDREN
-!!      cwtime,cwtime_report,kpts_ibz_from_kptrlatt,krank%free,listkk,wrtout
-!!      xmpi_sum
+!!      cwtime,cwtime_report,kpts_ibz_from_kptrlatt,krank%free,qrank%free
+!!      qrank%get_mapping,wrtout,xmpi_sum
 !!
 !! SOURCE
 
@@ -4583,8 +4583,8 @@ end subroutine sigmaph_setup_qloop
 !! PARENTS
 !!
 !! CHILDREN
-!!      cwtime,cwtime_report,kpts_ibz_from_kptrlatt,krank%free,listkk,wrtout
-!!      xmpi_sum
+!!      cwtime,cwtime_report,kpts_ibz_from_kptrlatt,krank%free,qrank%free
+!!      qrank%get_mapping,wrtout,xmpi_sum
 !!
 !! SOURCE
 
@@ -5050,8 +5050,8 @@ end subroutine sigmaph_gather_and_write
 !! PARENTS
 !!
 !! CHILDREN
-!!      cwtime,cwtime_report,kpts_ibz_from_kptrlatt,krank%free,listkk,wrtout
-!!      xmpi_sum
+!!      cwtime,cwtime_report,kpts_ibz_from_kptrlatt,krank%free,qrank%free
+!!      qrank%get_mapping,wrtout,xmpi_sum
 !!
 !! SOURCE
 
@@ -5171,8 +5171,8 @@ end subroutine sigmaph_print
 !!      m_sigmaph
 !!
 !! CHILDREN
-!!      cwtime,cwtime_report,kpts_ibz_from_kptrlatt,krank%free,listkk,wrtout
-!!      xmpi_sum
+!!      cwtime,cwtime_report,kpts_ibz_from_kptrlatt,krank%free,qrank%free
+!!      qrank%get_mapping,wrtout,xmpi_sum
 !!
 !! SOURCE
 
@@ -5349,8 +5349,8 @@ end subroutine sigmaph_get_all_qweights
 !!      m_sigmaph
 !!
 !! CHILDREN
-!!      cwtime,cwtime_report,kpts_ibz_from_kptrlatt,krank%free,listkk,wrtout
-!!      xmpi_sum
+!!      cwtime,cwtime_report,kpts_ibz_from_kptrlatt,krank%free,qrank%free
+!!      qrank%get_mapping,wrtout,xmpi_sum
 !!
 !! SOURCE
 

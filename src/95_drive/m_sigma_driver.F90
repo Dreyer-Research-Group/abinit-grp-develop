@@ -8,7 +8,7 @@
 !! Calculate the matrix elements of the self-energy operator.
 !!
 !! COPYRIGHT
-!!  Copyright (C) 1999-2021 ABINIT group (MG, GMR, VO, LR, RWG, MT)
+!!  Copyright (C) 1999-2022 ABINIT group (MG, GMR, VO, LR, RWG, MT)
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .
@@ -182,9 +182,7 @@ contains
 !!      For compatibility reasons, (nfftf,ngfftf,mgfftf) are set equal to (nfft,ngfft,mgfft) in that case.
 !!
 !! CHILDREN
-!!      paw_an_init,paw_an_nullify,paw_ij_init,paw_ij_nullify,pawdenpot
-!!      pawmknhat,pawrhoij_alloc,pawrhoij_inquire_dim,pawrhoij_symrhoij
-!!      pawrhoij_unpack,wfd%pawrhoij,wrtout
+!!      get_xclevel,vcoul_init
 !!
 !! SOURCE
 
@@ -512,7 +510,7 @@ subroutine sigma(acell,codvsn,Dtfil,Dtset,Pawang,Pawrad,Pawtab,Psps,rprim,conver
    ! Initialize and compute data for DFT+U
    Paw_dmft%use_dmft=Dtset%usedmft
    call pawpuxinit(Dtset%dmatpuopt,Dtset%exchmix,Dtset%f4of2_sla,Dtset%f6of2_sla,&
-      is_dfpt,Dtset%jpawu,Dtset%lexexch,Dtset%lpawu,Cryst%ntypat,Pawang,Dtset%pawprtvol,&
+      is_dfpt,Dtset%jpawu,Dtset%lexexch,Dtset%lpawu,dtset%nspinor,Cryst%ntypat,Pawang,Dtset%pawprtvol,&
       Pawrad,Pawtab,Dtset%upawu,Dtset%usedmft,Dtset%useexexch,Dtset%usepawu,dtset%ucrpa)
 
    if (my_rank == master) call pawtab_print(Pawtab)
@@ -3062,9 +3060,7 @@ end subroutine sigma
 !!      m_sigma_driver
 !!
 !! CHILDREN
-!!      paw_an_init,paw_an_nullify,paw_ij_init,paw_ij_nullify,pawdenpot
-!!      pawmknhat,pawrhoij_alloc,pawrhoij_inquire_dim,pawrhoij_symrhoij
-!!      pawrhoij_unpack,wfd%pawrhoij,wrtout
+!!      get_xclevel,vcoul_init
 !!
 !! SOURCE
 
@@ -4051,9 +4047,7 @@ end subroutine setup_sigma
 !!      m_sigma_driver
 !!
 !! CHILDREN
-!!      paw_an_init,paw_an_nullify,paw_ij_init,paw_ij_nullify,pawdenpot
-!!      pawmknhat,pawrhoij_alloc,pawrhoij_inquire_dim,pawrhoij_symrhoij
-!!      pawrhoij_unpack,wfd%pawrhoij,wrtout
+!!      get_xclevel,vcoul_init
 !!
 !! SOURCE
 
@@ -4238,9 +4232,7 @@ end subroutine sigma_tables
 !!      m_sigma_driver
 !!
 !! CHILDREN
-!!      paw_an_init,paw_an_nullify,paw_ij_init,paw_ij_nullify,pawdenpot
-!!      pawmknhat,pawrhoij_alloc,pawrhoij_inquire_dim,pawrhoij_symrhoij
-!!      pawrhoij_unpack,wfd%pawrhoij,wrtout
+!!      get_xclevel,vcoul_init
 !!
 !! SOURCE
 
@@ -4390,9 +4382,7 @@ end subroutine sigma_bksmask
 !!      m_sigma_driver
 !!
 !! CHILDREN
-!!      paw_an_init,paw_an_nullify,paw_ij_init,paw_ij_nullify,pawdenpot
-!!      pawmknhat,pawrhoij_alloc,pawrhoij_inquire_dim,pawrhoij_symrhoij
-!!      pawrhoij_unpack,wfd%pawrhoij,wrtout
+!!      get_xclevel,vcoul_init
 !!
 !! SOURCE
 

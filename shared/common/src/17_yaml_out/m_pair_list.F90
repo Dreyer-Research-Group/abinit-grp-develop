@@ -8,7 +8,7 @@
 !!  It is implemented in C as a simple linked pair list (associative list).
 !!
 !! COPYRIGHT
-!! Copyright (C) 2009-2021 ABINIT group (TC, MG)
+!! Copyright (C) 2009-2022 ABINIT group (TC, MG)
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -182,9 +182,10 @@ end function pair_list_length
 !!  r <real(kind=c_double)>=
 !!
 !! PARENTS
+!!      m_pair_list
 !!
 !! CHILDREN
-!!      pair_list_look,pair_list_next_c
+!!      pair_list_get,pair_list_set
 !!
 !! SOURCE
 
@@ -227,7 +228,7 @@ end subroutine pair_list_get
 !!      m_pair_list
 !!
 !! CHILDREN
-!!      pair_list_look,pair_list_next_c
+!!      pair_list_get,pair_list_set
 !!
 !! SOURCE
 
@@ -256,7 +257,7 @@ end subroutine pair_list_look
 !! PARENTS
 !!
 !! CHILDREN
-!!      pair_list_look,pair_list_next_c
+!!      pair_list_get,pair_list_set
 !!
 !! SOURCE
   subroutine pair_list_next(pl)
@@ -276,7 +277,7 @@ end subroutine pair_list_look
 !! PARENTS
 !!
 !! CHILDREN
-!!      pair_list_look,pair_list_next_c
+!!      pair_list_get,pair_list_set
 !!
 !! SOURCE
 
@@ -308,9 +309,10 @@ end subroutine pair_list_free
 !! OUTPUT
 !!
 !! PARENTS
+!!      m_pair_list
 !!
 !! CHILDREN
-!!      pair_list_look,pair_list_next_c
+!!      pair_list_get,pair_list_set
 !!
 !! SOURCE
 
@@ -356,7 +358,7 @@ end subroutine pair_list_set
 !! PARENTS
 !!
 !! CHILDREN
-!!      pair_list_look,pair_list_next_c
+!!      pair_list_get,pair_list_set
 !!
 !! SOURCE
 
@@ -425,7 +427,7 @@ end subroutine pair_list_set_keys
 !! PARENTS
 !!
 !! CHILDREN
-!!      pair_list_look,pair_list_next_c
+!!      pair_list_get,pair_list_set
 !!
 !! SOURCE
 
@@ -464,7 +466,7 @@ end subroutine pair_list_set_keys_to_null
 !! PARENTS
 !!
 !! CHILDREN
-!!      pair_list_look,pair_list_next_c
+!!      pair_list_get,pair_list_set
 !!
 !! SOURCE
 
@@ -496,7 +498,7 @@ end subroutine pair_list_restart
 !! PARENTS
 !!
 !! CHILDREN
-!!      pair_list_look,pair_list_next_c
+!!      pair_list_get,pair_list_set
 !!
 !! SOURCE
 
@@ -530,7 +532,7 @@ end subroutine pair_list_iter
 !! PARENTS
 !!
 !! CHILDREN
-!!      pair_list_look,pair_list_next_c
+!!      pair_list_get,pair_list_set
 !!
 !! SOURCE
 

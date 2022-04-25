@@ -5,7 +5,7 @@
 !! FUNCTION
 !!
 !! COPYRIGHT
-!!  Copyright (C) 1998-2021 ABINIT group (MT)
+!!  Copyright (C) 1998-2022 ABINIT group (MT)
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .
@@ -350,8 +350,7 @@ contains
 !!      m_nonlop
 !!
 !! CHILDREN
-!!      mkkpg,mkkpgcart,opernla_ylm,opernlb_ylm,opernlc_ylm,opernld_ylm,ph1d3d
-!!      strconv,xmpi_sum
+!!      wrtout,xmpi_sum
 !!
 !! SOURCE
 
@@ -722,7 +721,7 @@ contains
 
 !  Test on local part
    testnl=(paw_opt/=0)
-   if (paw_opt==0) testnl=any(enl(:,:,:,:)>tol10)
+   if (paw_opt==0) testnl=any(abs(enl(:,:,:,:))>tol10)
 
 !  Some non-local part is to be applied for that type of atom
    if (testnl) then
@@ -1355,9 +1354,10 @@ end subroutine nonlop_ylm
 !! FUNCTION
 !!
 !! PARENTS
-!!      m_nonlop
+!!      m_gstate
 !!
 !! CHILDREN
+!!      wrtout,xmpi_sum
 !!
 !! SOURCE
 
@@ -1380,9 +1380,9 @@ end subroutine nonlop_ylm_init_counters
 !! FUNCTION
 !!
 !! PARENTS
-!!      m_nonlop
 !!
 !! CHILDREN
+!!      wrtout,xmpi_sum
 !!
 !! SOURCE
 
@@ -1405,9 +1405,10 @@ end subroutine nonlop_ylm_stop_counters
 !! FUNCTION
 !!
 !! PARENTS
-!!      m_nonlop
+!!      m_gstate
 !!
 !! CHILDREN
+!!      wrtout,xmpi_sum
 !!
 !! SOURCE
 

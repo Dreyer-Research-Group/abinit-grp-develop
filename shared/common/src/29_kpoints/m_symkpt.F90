@@ -3,7 +3,7 @@
 !!  m_symkpt
 !!
 !! COPYRIGHT
-!!  Copyright (C) 1999-2021 ABINIT group (XG,LSI,HM)
+!!  Copyright (C) 1999-2022 ABINIT group (XG,LSI,HM)
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .
@@ -97,7 +97,7 @@ contains
 !!      m_ifc,m_kpts,m_tdep_psij,m_unittests
 !!
 !! CHILDREN
-!!      krank%free,wrtout
+!!      krank%free
 !!
 !! SOURCE
 
@@ -434,7 +434,7 @@ end subroutine symkpt
 !!      m_kpts,m_lgroup,m_unittests
 !!
 !! CHILDREN
-!!      krank%free,wrtout
+!!      krank%free
 !!
 !! SOURCE
 
@@ -683,8 +683,10 @@ end subroutine symkpt_new
 !!   symop and timrev needed to transform them
 !!
 !! PARENTS
+!!      m_wfk
 !!
 !! CHILDREN
+!!      krank%free
 !!
 !! SOURCE
 

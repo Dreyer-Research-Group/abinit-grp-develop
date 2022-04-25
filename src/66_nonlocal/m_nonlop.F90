@@ -5,7 +5,7 @@
 !! FUNCTION
 !!
 !! COPYRIGHT
-!!  Copyright (C) 1998-2021 ABINIT group (MT)
+!!  Copyright (C) 1998-2022 ABINIT group (MT)
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .
@@ -325,8 +325,9 @@ contains
 !!
 !! PARENTS
 !!      m_cgwf,m_d2frnl,m_dfpt_scfcv,m_dfptnl_pert,m_dft_energy,m_fock_getghc
-!!      m_forstr,m_getgh1c,m_getgh2c,m_getghc,m_invovl,m_lobpcgwf,m_nonlop_test
-!!      m_orbmag,m_pead_nl_loop,m_prep_kgb,m_rf2,m_vtowfk
+!!      m_forstr,m_getchc,m_getgh1c,m_getgh2c,m_getghc,m_invovl,m_lobpcgwf
+!!      m_nonlop_test,m_orbmag,m_pead_nl_loop,m_prep_kgb,m_rf2,m_rmm_diis
+!!      m_vtowfk,m_wfd
 !!
 !! CHILDREN
 !!      dotprod_g,gpu_nonlop
@@ -832,7 +833,7 @@ end subroutine nonlop
 !!  This routine is an interface to Cuda Kernel gpu_nonlop.cu
 !!
 !! COPYRIGHT
-!! Copyright (C) 2011-2021 ABINIT group (FDahm, MT)
+!! Copyright (C) 2011-2022 ABINIT group (FDahm, MT)
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .

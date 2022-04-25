@@ -5,7 +5,7 @@
 !! FUNCTION
 !!
 !! COPYRIGHT
-!!  Copyright (C) 1998-2021 ABINIT group (DCA, XG, GMR, MM)
+!!  Copyright (C) 1998-2022 ABINIT group (DCA, XG, GMR, MM)
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .
@@ -1164,8 +1164,9 @@ subroutine outvar_a_h (choice,dmatpuflag,dtsets,iout,&
        if(dtsets(idtset)%iscf>=0 .or. idtset==0)then
          do iimage=1,dtsets(idtset)%nimage
            if (narrm(idtset)>0) then
+!            Note the minus sign, because chrgat is the ziontypat minus the electronic charge
              dprarr_images(1:narrm(idtset),iimage,idtset)=&
-&             results_out(idtset)%intgres(1,1:size2,iimage)
+&             -results_out(idtset)%intgres(1,1:size2,iimage)
            end if
            if(.not.(dtsets(idtset)%dynimage(iimage)==1.or.compute_static_images))then
              prtimg(iimage,idtset)=0

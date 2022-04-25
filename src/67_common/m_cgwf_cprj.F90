@@ -6,7 +6,7 @@
 !!  Conjugate-gradient eigensolver.
 !!
 !! COPYRIGHT
-!!  Copyright (C) 2008-2020 ABINIT group (DCA, XG, GMR, MT, MVeithen, ISouza, JIniguez)
+!!  Copyright (C) 2008-2022 ABINIT group (DCA, XG, GMR, MT, MVeithen, ISouza, JIniguez)
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .
@@ -99,14 +99,10 @@ contains
 !! NOTES
 !!
 !! PARENTS
-!!      vtowfk
+!!      m_vtowfk
 !!
 !! CHILDREN
-!!      cg_precon,cg_zaxpy,cg_zcopy,cg_zscal,dotprod_g,etheta,fock_set_ieigen
-!!      getcprj,getghc,linemin,make_grad_berry,mksubham,pawcprj_alloc
-!!      pawcprj_copy,pawcprj_free,pawcprj_get,pawcprj_mpi_allgather,pawcprj_put
-!!      pawcprj_symkn,projbd,smatrix,smatrix_k_paw,sqnorm_g,timab,wrtout
-!!      xmpi_allgather
+!!      fourwf
 !!
 !! SOURCE
 
@@ -189,7 +185,7 @@ integer,parameter :: useoverlap=0,tim_getcsc=3
  ABI_MALLOC(scprod,(2,nband))
  ABI_MALLOC(scprod_csc,(2*nband))
  ABI_MALLOC(direc_tmp,(2,npw*nspinor))
- ABI_MALLOC(gvnlxc,(2,npw*nspinor))
+ ABI_MALLOC(gvnlxc,(0,0))
 
  ABI_MALLOC(cprj_direc ,(natom,nspinor))
  ABI_MALLOC(cprj_conjgr ,(natom,nspinor))
@@ -789,8 +785,10 @@ end subroutine cgwf_cprj
 !! NOTES
 !!
 !! PARENTS
+!!      m_vtowfk
 !!
 !! CHILDREN
+!!      fourwf
 !!
 !! SOURCE
 !!
@@ -857,8 +855,10 @@ end subroutine mksubovl
 !! NOTES
 !!
 !! PARENTS
+!!      m_cgwf_cprj,m_vtowfk
 !!
 !! CHILDREN
+!!      fourwf
 !!
 !! SOURCE
 !!
@@ -923,8 +923,10 @@ end subroutine cprj_update
 !! NOTES
 !!
 !! PARENTS
+!!      m_cgwf_cprj,m_vtowfk
 !!
 !! CHILDREN
+!!      fourwf
 !!
 !! SOURCE
 !!
@@ -985,6 +987,7 @@ end subroutine cprj_update_oneband
 !! PARENTS
 !!
 !! CHILDREN
+!!      fourwf
 !!
 !! SOURCE
 !!
@@ -1088,6 +1091,7 @@ end subroutine cprj_check
 !! PARENTS
 !!
 !! CHILDREN
+!!      fourwf
 !!
 !! SOURCE
 !!
@@ -1221,8 +1225,10 @@ end function get_cprj_id
 !! NOTES
 !!
 !! PARENTS
+!!      m_cgwf_cprj
 !!
 !! CHILDREN
+!!      fourwf
 !!
 !! SOURCE
 !!

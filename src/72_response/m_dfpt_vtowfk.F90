@@ -5,7 +5,7 @@
 !! FUNCTION
 !!
 !! COPYRIGHT
-!!  Copyright (C) 1999-2021 ABINIT group (XG, AR, DRH, MB, MVer,XW, MT, GKA)
+!!  Copyright (C) 1999-2022 ABINIT group (XG, AR, DRH, MB, MVer,XW, MT, GKA)
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .
@@ -169,7 +169,8 @@ contains
 !!      m_dfpt_vtorho
 !!
 !! CHILDREN
-!!      cg_zcopy,dotprod_g,pawcprj_copy,pawcprj_zaxpby,timab
+!!      cg_zaxpy,dotprod_g,pawcprj_alloc,pawcprj_copy,pawcprj_free
+!!      pawcprj_mpi_sum,pawcprj_set_zero,pawcprj_zaxpby,timab,xmpi_sum
 !!
 !! SOURCE
 
@@ -363,7 +364,7 @@ subroutine dfpt_vtowfk(cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,cprj1,&
 !  Skip bands not treated by current proc
    if( (mpi_enreg%proc_distrb(ikpt, iband,isppol)/=me)) cycle
    iband_me = iband_me + 1
- 
+
 !unit_me = 300+iband
 unit_me = 6
 !  Get ground-state wavefunctions
@@ -536,7 +537,7 @@ unit_me = 6
            & DOT_PRODUCT(cwavef(2,1:npw_k),ghc_vectornd(2,1:npw_k)))
          ABI_FREE(ghc_vectornd)
        end if
- 
+
 !      Compute the 1-order kinetic operator contribution (with cwave1 and cwave0), if needed.
 !      only relevant for DDK
        if( (ipert .EQ. natom+1) .AND. (ASSOCIATED(rf_hamkq%vectornd)) ) then
@@ -550,7 +551,7 @@ unit_me = 6
            & DOT_PRODUCT(cwave0(2,1:npw_k),ghc_vectornd(2,1:npw_k)))
          ABI_FREE(ghc_vectornd)
        end if
-! 
+!
 !      Compute eigenvalue part of total energy (with cwavef)
        if (gs_hamkq%usepaw==1) then
          call dotprod_g(scprod,ai,gs_hamkq%istwf_k,npw1_k*nspinor,1,cwavef,gsc,mpi_enreg%me_g0,&
@@ -641,7 +642,7 @@ unit_me = 6
 
 ! call xmpi_sum(eig1_k,mpi_enreg%comm_band,ierr)
 
-! NB: no need to sum eXX_k over band communicator here, as it is a sub-comm of kpt, 
+! NB: no need to sum eXX_k over band communicator here, as it is a sub-comm of kpt,
 !   and full mpi_sum will be done higher up.
 
 
@@ -723,7 +724,7 @@ end subroutine dfpt_vtowfk
 !! FUNCTION
 !! Response function calculation only:
 !! Restore the full "active space" contribution to the 1st-order wavefunctions.
-!! The 1st-order WF corrected in this way will no longer be othogonal to the other occupied states.
+!! The 1st-order WF corrected in this way will no longer be orthogonal to the other occupied states.
 !! This routine will be only used in a non self-consistent calculation of the
 !! 1st-order WF for post-processing purposes. Therefore, it does not compute
 !! the contribution of the 2DTE coming from the change of occupations.
@@ -762,7 +763,8 @@ end subroutine dfpt_vtowfk
 !!      m_dfpt_vtowfk
 !!
 !! CHILDREN
-!!      cg_zcopy,dotprod_g,pawcprj_copy,pawcprj_zaxpby,timab
+!!      cg_zaxpy,dotprod_g,pawcprj_alloc,pawcprj_copy,pawcprj_free
+!!      pawcprj_mpi_sum,pawcprj_set_zero,pawcprj_zaxpby,timab,xmpi_sum
 !!
 !! SOURCE
 
@@ -804,10 +806,10 @@ subroutine full_active_wf1(cgq,cprjq,cwavef,cwave1,cwaveprj,cwaveprj1,cycle_band
 !At this stage, the 1st order function cwavef is orthogonal to cgq (unlike when it is input to dfpt_cgwf).
 !Here, restore the "active space" content of the 1st-order wavefunction, to give cwave1 .
 
-! New logic 11/11/2019: accumulate correction in cwave1 and cwaveprj1, 
+! New logic 11/11/2019: accumulate correction in cwave1 and cwaveprj1,
 !   then add it to cwavef at the end with a modified blas call
  cwave1 = zero
- 
+
  if (usepaw==1) then
    call pawcprj_set_zero(cwaveprj1)
  end if
@@ -931,7 +933,8 @@ end subroutine full_active_wf1
 !!      m_dfpt_vtowfk
 !!
 !! CHILDREN
-!!      cg_zcopy,dotprod_g,pawcprj_copy,pawcprj_zaxpby,timab
+!!      cg_zaxpy,dotprod_g,pawcprj_alloc,pawcprj_copy,pawcprj_free
+!!      pawcprj_mpi_sum,pawcprj_set_zero,pawcprj_zaxpby,timab,xmpi_sum
 !!
 !! SOURCE
 

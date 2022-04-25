@@ -6,7 +6,7 @@
 !!
 !!
 !! COPYRIGHT
-!!  Copyright (C) 1998-2021 ABINIT group (DC)
+!!  Copyright (C) 1998-2022 ABINIT group (DC)
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .
@@ -75,7 +75,6 @@ contains
 !!      m_wvl_wfsinp
 !!
 !! CHILDREN
-!!      etsf_io_basisdata_put,etsf_io_electrons_put,etsf_io_main_put
 !!      writemywaves,writeonewave,wrtout,xred2xcart
 !!
 !! SOURCE
@@ -199,7 +198,6 @@ end subroutine wvl_read
 !!      m_iowf
 !!
 !! CHILDREN
-!!      etsf_io_basisdata_put,etsf_io_electrons_put,etsf_io_main_put
 !!      writemywaves,writeonewave,wrtout,xred2xcart
 !!
 !! SOURCE

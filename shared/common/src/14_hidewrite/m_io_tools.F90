@@ -6,7 +6,7 @@
 !!  This module contains basic tools to deal with Fortran IO
 !!
 !! COPYRIGHT
-!! Copyright (C) 2008-2021 ABINIT group (MG)
+!! Copyright (C) 2008-2022 ABINIT group (MG)
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -227,13 +227,13 @@ end function file_exists
 !!  The specified file is deleted.
 !!
 !! PARENTS
-!!      ioprof,m_dvdb,m_io_redirect,m_mlwfovlp,m_nctk,m_wfk
+!!      abinit,ioprof,m_dvdb,m_io_redirect,m_mlwfovlp,m_nctk,m_wfk
 !!
 !! CHILDREN
 !!
 !! SOURCE
 
-subroutine delete_file(fname,ierr)
+subroutine delete_file(fname, ierr)
 
  integer,intent(out) :: ierr
  character(len=*),intent(in) :: fname
@@ -249,14 +249,14 @@ subroutine delete_file(fname,ierr)
 
  if (.not.exists) then
    ierr = 111
-   write(std_out,*)" Asked to delete non existent file: ",TRIM(fname)
+   !write(std_out,*)" Asked to delete non existent file: ",TRIM(fname)
    return
  end if
 
  if (is_open_fname(fname)) then
    tmp_unt = get_unit_from_fname(fname)
    if (tmp_unt == IO_FILE_NOT_ASSOCIATED) then
-    write(std_out,*) "File is opened but no associated unit found!"
+    !write(std_out,*) "File is opened but no associated unit found!"
     ierr = 112; return
    end if
    close(tmp_unt)
@@ -937,6 +937,9 @@ end function iomode_from_fname
 !!  Set the value of the enforce_fortran__ global variable.
 !!
 !! PARENTS
+!!      abitk,m_argparse
+!!
+!! CHILDREN
 !!
 !! SOURCE
 

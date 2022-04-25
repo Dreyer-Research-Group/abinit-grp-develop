@@ -8,7 +8,7 @@
 !!  which leads to excellent CPU efficiency and OpenMP scalability.
 !!
 !! COPYRIGHT
-!! Copyright (C) 2014-2021 ABINIT group (AL)
+!! Copyright (C) 2014-2022 ABINIT group (AL)
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -105,7 +105,7 @@ contains
 !!      m_gstate
 !!
 !! CHILDREN
-!!      dgemm,opernlc_ylm,xmpi_sum,zgemm
+!!      abi_zgemm_2r,dgemm,opernlc_ylm,xmpi_sum
 !!
 !! SOURCE
  subroutine init_gemm_nonlop(nkpt)
@@ -138,7 +138,7 @@ contains
 !!      m_gstate
 !!
 !! CHILDREN
-!!      dgemm,opernlc_ylm,xmpi_sum,zgemm
+!!      abi_zgemm_2r,dgemm,opernlc_ylm,xmpi_sum
 !!
 !! SOURCE
  subroutine destroy_gemm_nonlop(nkpt)
@@ -177,7 +177,7 @@ contains
 !!      m_dft_energy,m_vtorho
 !!
 !! CHILDREN
-!!      dgemm,opernlc_ylm,xmpi_sum,zgemm
+!!      abi_zgemm_2r,dgemm,opernlc_ylm,xmpi_sum
 !!
 !! SOURCE
 
@@ -308,7 +308,7 @@ contains
 !!      m_nonlop
 !!
 !! CHILDREN
-!!      dgemm,opernlc_ylm,xmpi_sum,zgemm
+!!      abi_zgemm_2r,dgemm,opernlc_ylm,xmpi_sum
 !!
 !! SOURCE
  subroutine gemm_nonlop(atindx1,choice,cpopt,cprjin,dimenl1,dimenl2,dimekbq,dimffnlin,dimffnlout,&

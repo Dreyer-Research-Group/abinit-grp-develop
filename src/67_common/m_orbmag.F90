@@ -7,7 +7,7 @@
 !!  used to handle orbital magnetization
 !!
 !! COPYRIGHT
-!! Copyright (C) 2011-2021 ABINIT group (JWZ)
+!! Copyright (C) 2011-2022 ABINIT group (JWZ)
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -273,7 +273,7 @@ end subroutine destroy_orbmag
 !! Initialization of orbital magnetization calculation; similar to initberry
 !!
 !! COPYRIGHT
-!! Copyright (C) 2004-2020 ABINIT group.
+!! Copyright (C) 2004-2022 ABINIT group.
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -300,10 +300,10 @@ end subroutine destroy_orbmag
 !!  mpi_enreg = information about MPI parallelization
 !!
 !! PARENTS
-!!      gstate
+!!      m_gstate
 !!
 !! CHILDREN
-!!      kpgsph,listkk,setsym_ylm,smpbz,symatm,timab,wrtout,xmpi_max,xmpi_sum
+!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,xmpi_sum
 !!
 !! SOURCE
 
@@ -887,7 +887,7 @@ end subroutine initorbmag
 !! Compute 1/2 <L_R> onsite contribution to orbital magnetization at given k point, band, and idir
 !!
 !! COPYRIGHT
-!! Copyright (C) 2003-2021 ABINIT  group
+!! Copyright (C) 2003-2022 ABINIT  group
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -907,8 +907,7 @@ end subroutine initorbmag
 !!      m_orbmag
 !!
 !! CHILDREN
-!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,pawcprj_mpi_recv
-!!      pawcprj_mpi_send,xmpi_sum
+!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,xmpi_sum
 !!
 !! SOURCE
 
@@ -977,7 +976,7 @@ end subroutine make_onsite_l_k_n
 !! for k pt and 1 band
 !!
 !! COPYRIGHT
-!! Copyright (C) 2003-2021 ABINIT  group
+!! Copyright (C) 2003-2022 ABINIT  group
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -997,8 +996,7 @@ end subroutine make_onsite_l_k_n
 !!      m_orbmag
 !!
 !! CHILDREN
-!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,pawcprj_mpi_recv
-!!      pawcprj_mpi_send,xmpi_sum
+!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,xmpi_sum
 !!
 !! SOURCE
 
@@ -1133,7 +1131,7 @@ end subroutine make_onsite_bm_k_n
 !! in orbital magnetism context
 !!
 !! COPYRIGHT
-!! Copyright (C) 2003-2020 ABINIT  group
+!! Copyright (C) 2003-2022 ABINIT  group
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -1153,8 +1151,7 @@ end subroutine make_onsite_bm_k_n
 !!      m_orbmag
 !!
 !! CHILDREN
-!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,pawcprj_mpi_recv
-!!      pawcprj_mpi_send,xmpi_sum
+!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,xmpi_sum
 !!
 !! SOURCE
 
@@ -1214,7 +1211,7 @@ end subroutine make_S1trace_k_n
 !! Compute Trace[\rho^0_k \rho_Rij(1)_k ] in orbital magnetism context
 !!
 !! COPYRIGHT
-!! Copyright (C) 2003-2020 ABINIT  group
+!! Copyright (C) 2003-2022 ABINIT  group
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -1234,8 +1231,7 @@ end subroutine make_S1trace_k_n
 !!      m_orbmag
 !!
 !! CHILDREN
-!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,pawcprj_mpi_recv
-!!      pawcprj_mpi_send,xmpi_sum
+!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,xmpi_sum
 !!
 !! SOURCE
 
@@ -1304,7 +1300,7 @@ end subroutine make_rhorij1_k_n
 !! It is assumed that only completely filled bands are present.
 !!
 !! COPYRIGHT
-!! Copyright (C) 2003-2021 ABINIT  group
+!! Copyright (C) 2003-2022 ABINIT  group
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -1324,9 +1320,10 @@ end subroutine make_rhorij1_k_n
 !! DDK wavefunctions are used for the derivatives.
 !!
 !! PARENTS
-!!      m_orbmag
+!!      m_dfpt_looppert
 !!
 !! CHILDREN
+!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,xmpi_sum
 !!
 !! SOURCE
 
@@ -1832,7 +1829,7 @@ end subroutine orbmag_ddk
 !! This routine outputs orbmag terms tailored for ddk routine
 !!
 !! COPYRIGHT
-!! Copyright (C) 2003-2021 ABINIT  group
+!! Copyright (C) 2003-2022 ABINIT  group
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -1987,7 +1984,7 @@ end subroutine orbmag_output
 !! It is assumed that only completely filled bands are present.
 !!
 !! COPYRIGHT
-!! Copyright (C) 2003-2020 ABINIT  group
+!! Copyright (C) 2003-2022 ABINIT  group
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -2038,8 +2035,10 @@ end subroutine orbmag_output
 !! derivatives as in [[cite:Ceresoli2006]].
 !!
 !! PARENTS
+!!      m_afterscfloop
 !!
 !! CHILDREN
+!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,xmpi_sum
 !!
 !! SOURCE
 
@@ -2256,7 +2255,7 @@ end subroutine orbmag_wf
 !! Compute the energy eigenvalues at each k point
 !!
 !! COPYRIGHT
-!! Copyright (C) 2003-2020 ABINIT  group
+!! Copyright (C) 2003-2022 ABINIT  group
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -2284,8 +2283,10 @@ end subroutine orbmag_wf
 !! Direct questions and comments to J Zwanziger
 !!
 !! PARENTS
+!!      m_orbmag
 !!
 !! CHILDREN
+!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,xmpi_sum
 !!
 !! SOURCE
 
@@ -2545,7 +2546,7 @@ end subroutine make_eeig
 !! Q projects onto the conduction space, and operator is S_k or E_nk or H_k
 !!
 !! COPYRIGHT
-!! Copyright (C) 2003-2020 ABINIT  group (JWZ)
+!! Copyright (C) 2003-2022 ABINIT  group (JWZ)
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -2565,6 +2566,7 @@ end subroutine make_eeig
 !! PARENTS
 !!
 !! CHILDREN
+!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,xmpi_sum
 !!
 !! SOURCE
 
@@ -3015,7 +3017,7 @@ end subroutine duq_she_qdu
 !! Q projects onto the conduction space.
 !!
 !! COPYRIGHT
-!! Copyright (C) 2003-2020 ABINIT  group (JWZ)
+!! Copyright (C) 2003-2022 ABINIT  group (JWZ)
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -3329,7 +3331,7 @@ end subroutine duqdu
 !! get wavefunction and cprj in mpi communication loop
 !!
 !! COPYRIGHT
-!! Copyright (C) 2003-2020 ABINIT  group (JWZ)
+!! Copyright (C) 2003-2022 ABINIT  group (JWZ)
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -3347,8 +3349,10 @@ end subroutine duqdu
 !! NOTES
 !!
 !! PARENTS
+!!      m_orbmag
 !!
 !! CHILDREN
+!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,xmpi_sum
 !!
 !! SOURCE
 
@@ -3468,7 +3472,7 @@ end subroutine mpicomm_helper
 !! the Chern number (integral over Berry curvature).
 !!
 !! COPYRIGHT
-!! Copyright (C) 2003-2020 ABINIT  group (JWZ)
+!! Copyright (C) 2003-2022 ABINIT  group (JWZ)
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -3486,8 +3490,10 @@ end subroutine mpicomm_helper
 !! NOTES
 !!
 !! PARENTS
+!!      m_orbmag
 !!
 !! CHILDREN
+!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,xmpi_sum
 !!
 !! SOURCE
 
@@ -3841,7 +3847,7 @@ end subroutine udsqdu
 !! Generate cprj multiplied by S^{-1}, similarly to the wavefunctions in smatrix
 !!
 !! COPYRIGHT
-!! Copyright (C) 2003-2020 ABINIT  group (JWZ)
+!! Copyright (C) 2003-2022 ABINIT  group (JWZ)
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -3859,8 +3865,10 @@ end subroutine udsqdu
 !! NOTES
 !!
 !! PARENTS
+!!      m_orbmag
 !!
 !! CHILDREN
+!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,xmpi_sum
 !!
 !! SOURCE
 
@@ -3917,7 +3925,7 @@ end subroutine covar_cprj
 !! Q projects onto the conduction space.
 !!
 !! COPYRIGHT
-!! Copyright (C) 2003-2020 ABINIT  group (JWZ)
+!! Copyright (C) 2003-2022 ABINIT  group (JWZ)
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -3937,6 +3945,7 @@ end subroutine covar_cprj
 !! PARENTS
 !!
 !! CHILDREN
+!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,xmpi_sum
 !!
 !! SOURCE
 
@@ -4425,7 +4434,7 @@ end subroutine duqhqdu
 !! Return (-i/2)*epsabg\sum_{n,n}<u_kn|\partial_b S|u_kn'><u_kn|\partial_g S|u_kn>E_nk
 !!
 !! COPYRIGHT
-!! Copyright (C) 2003-2020 ABINIT  group (JWZ)
+!! Copyright (C) 2003-2022 ABINIT  group (JWZ)
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -4442,8 +4451,10 @@ end subroutine duqhqdu
 !! NOTES
 !!
 !! PARENTS
+!!      m_orbmag
 !!
 !! CHILDREN
+!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,xmpi_sum
 !!
 !! SOURCE
 
@@ -4714,7 +4725,7 @@ end subroutine udsdsu
 !! Compute <u_kg|p_i>dij<p_j|u_kb> energy contribution
 !!
 !! COPYRIGHT
-!! Copyright (C) 2003-2020 ABINIT  group
+!! Copyright (C) 2003-2022 ABINIT  group
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -4732,8 +4743,10 @@ end subroutine udsdsu
 !! NOTES
 !!
 !! PARENTS
+!!      m_orbmag
 !!
 !! CHILDREN
+!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,xmpi_sum
 !!
 !! SOURCE
 
@@ -4792,7 +4805,7 @@ end subroutine cpg_dij_cpb
 !! Compute Trace[\rho_0 S^{(1)} \rho_0] in orbital magnetism context
 !!
 !! COPYRIGHT
-!! Copyright (C) 2003-2020 ABINIT  group
+!! Copyright (C) 2003-2022 ABINIT  group
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -4809,8 +4822,10 @@ end subroutine cpg_dij_cpb
 !! NOTES
 !!
 !! PARENTS
+!!      m_orbmag
 !!
 !! CHILDREN
+!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,xmpi_sum
 !!
 !! SOURCE
 
@@ -4916,7 +4931,7 @@ end subroutine make_S1trace
 !! Compute 1/2 <L_R> onsite contribution to orbital magnetization at given k point and idir
 !!
 !! COPYRIGHT
-!! Copyright (C) 2003-2020 ABINIT  group
+!! Copyright (C) 2003-2022 ABINIT  group
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -4933,8 +4948,10 @@ end subroutine make_S1trace
 !! NOTES
 !!
 !! PARENTS
+!!      m_orbmag
 !!
 !! CHILDREN
+!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,xmpi_sum
 !!
 !! SOURCE
 
@@ -5004,7 +5021,7 @@ end subroutine make_onsite_l_k
 !! Compute 1/2 <L_R> onsite contribution to orbital magnetization in direction idir
 !!
 !! COPYRIGHT
-!! Copyright (C) 2003-2020 ABINIT  group
+!! Copyright (C) 2003-2022 ABINIT  group
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -5021,8 +5038,10 @@ end subroutine make_onsite_l_k
 !! NOTES
 !!
 !! PARENTS
+!!      m_orbmag
 !!
 !! CHILDREN
+!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,xmpi_sum
 !!
 !! SOURCE
 
@@ -5111,7 +5130,7 @@ end subroutine make_onsite_l
 !! Compute A_0.A_N onsite term for magnetic field + nuclear magnetic dipole moment
 !!
 !! COPYRIGHT
-!! Copyright (C) 2003-2020 ABINIT  group
+!! Copyright (C) 2003-2022 ABINIT  group
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -5128,8 +5147,10 @@ end subroutine make_onsite_l
 !! NOTES
 !!
 !! PARENTS
+!!      m_orbmag
 !!
 !! CHILDREN
+!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,xmpi_sum
 !!
 !! SOURCE
 
@@ -5311,7 +5332,7 @@ end subroutine make_onsite_bm
 !! Compute Trace[\rho_0 \rho_Rij(1) ] in orbital magnetism context
 !!
 !! COPYRIGHT
-!! Copyright (C) 2003-2020 ABINIT  group
+!! Copyright (C) 2003-2022 ABINIT  group
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -5328,8 +5349,10 @@ end subroutine make_onsite_bm
 !! NOTES
 !!
 !! PARENTS
+!!      m_orbmag
 !!
 !! CHILDREN
+!!      pawcprj_alloc,pawcprj_free,pawcprj_get,pawcprj_getdim,xmpi_sum
 !!
 !! SOURCE
 

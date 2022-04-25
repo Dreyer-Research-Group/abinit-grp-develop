@@ -7,7 +7,7 @@
 !!  Unlike the procedures in m_cgtools, the routines declared in this module can use mpi_type.
 !!
 !! COPYRIGHT
-!!  Copyright (C) 2008-2021 ABINIT group (XG, BA, MT, DRH, DCA, GMR, MJV, JWZ)
+!!  Copyright (C) 2008-2022 ABINIT group (XG, BA, MT, DRH, DCA, GMR, MJV, JWZ)
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .
@@ -82,7 +82,6 @@ contains
 !!  vectornd(3,nfft)=Vector potential in real space, along Cartesian directions
 !!
 !! PARENTS
-!!      m_scfcv_core
 !!
 !! CHILDREN
 !!      fourdp,ptabs_fourdp
@@ -263,7 +262,7 @@ end subroutine make_vectornd2
 !!  vectornd(3,nfft)=Vector potential in real space, along Cartesian directions
 !!
 !! PARENTS
-!!      m_scfcv_core
+!!      m_dfpt_scfcv,m_orbmag,m_scfcv_core
 !!
 !! CHILDREN
 !!      fourdp,ptabs_fourdp
@@ -508,7 +507,7 @@ end subroutine make_vectornd
 !! PARENTS
 !!      m_dfpt_rhotov,m_dft_energy,m_fock_getghc,m_forstr,m_kxc,m_nonlinear
 !!      m_odamix,m_pead_nl_loop,m_positron,m_prcref,m_respfn_driver,m_rhotov
-!!      m_setvtr,m_tddft
+!!      m_setvtr,m_sigma_driver,m_tddft
 !!
 !! CHILDREN
 !!      fourdp,ptabs_fourdp
@@ -2665,7 +2664,7 @@ end subroutine setsym
 !!  The calculation is performed in reduced reciprocal space coordinates.
 !!
 !! COPYRIGHT
-!!  Copyright (C) 2021 ABINIT group (FIXME: add author)
+!!  Copyright (C) 2021-2022 ABINIT group (FIXME: add author)
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .

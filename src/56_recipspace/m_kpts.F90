@@ -5,7 +5,7 @@
 !! FUNCTION
 !!
 !! COPYRIGHT
-!! Copyright (C) 2008-2021 ABINIT group (XG, MG, MJV, DRH, DCA, JCC, MM)
+!! Copyright (C) 2008-2022 ABINIT group (XG, MG, MJV, DRH, DCA, JCC, MM)
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -511,9 +511,8 @@ end function symkchk
 !!  the comparison of the squared lengths of the separate vectors.
 !!
 !! PARENTS
-!!      m_berryphase_new,m_dvdb,m_ebands,m_eph_double_grid,m_ephwg,m_eprenorms
-!!      m_exc_diago,m_fock,m_fstab,m_haydock,m_inwffil,m_lgroup,m_mlwfovlp_qp
-!!      m_orbmag,m_phgamma,m_rta,m_sigmaph,m_sigtk,m_unittests
+!!      m_berryphase_new,m_dvdb,m_ebands,m_eprenorms,m_exc_diago,m_fock
+!!      m_haydock,m_inwffil,m_lgroup,m_mlwfovlp_qp,m_orbmag,m_unittests,m_wfk
 !!
 !! CHILDREN
 !!      wrtout
@@ -2967,7 +2966,7 @@ end subroutine testkgrid
 !!  The second call calculates the reduced coordinates of the circuit.
 !!
 !! COPYRIGHT
-!!  Copyright (C) 2007-2021 ABINIT group (MG)
+!!  Copyright (C) 2007-2022 ABINIT group (MG)
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .

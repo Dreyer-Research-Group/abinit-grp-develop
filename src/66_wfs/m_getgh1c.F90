@@ -6,7 +6,7 @@
 !!
 !!
 !! COPYRIGHT
-!!  Copyright (C) 1998-2021 ABINIT group (XG, DRH, MT, SPr)
+!!  Copyright (C) 1998-2022 ABINIT group (XG, DRH, MT, SPr)
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .
@@ -122,8 +122,7 @@ contains
 !!      m_phpi,m_rf2,m_sigmaph
 !!
 !! CHILDREN
-!!      gs_hamkq%load_k,gs_hamkq%load_kprime,mkffnl,mkkin,mkkin_metdqdq,mkkpg
-!!      rf_hamkq%load_k
+!!      fourwf
 !!
 !! SOURCE
 
@@ -678,6 +677,9 @@ else if (ipert==natom+6) then
      call nonlop(choice,cpopt,cwaveprj,enlout,gs_hamkq,idir,(/lambda/),mpi_enreg,1,nnlout,&
 &     paw_opt,signs,svectout_dum,tim_nonlop,cwave,gvnlx1_)
    end if
+!DEBUG
+!  gvnlx1_(:,:)=zero
+!ENDDEBUG
 
 !  Electric field perturbation without Berry phase
 !  -------------------------------------------
@@ -889,7 +891,10 @@ else if (ipert==natom+6) then
    ABI_BUG('need dkinpw allocated!')
  end if
 
- if (has_kin) then
+ if (has_kin) then    ! This is the correct line
+!DEBUG
+!if (.false.)then
+!ENDDEBUG
 !  Remember that npw=npw1 for ddk perturbation
    do ispinor=1,my_nspinor
 !$OMP PARALLEL DO PRIVATE(ipw,ipws) SHARED(cwave,ispinor,gvnlx1_,dkinpw,kinpw1,npw,my_nspinor)
@@ -1012,8 +1017,7 @@ end subroutine getgh1c
 !!      m_sigmaph
 !!
 !! CHILDREN
-!!      gs_hamkq%load_k,gs_hamkq%load_kprime,mkffnl,mkkin,mkkin_metdqdq,mkkpg
-!!      rf_hamkq%load_k
+!!      fourwf
 !!
 !! SOURCE
 
@@ -1115,8 +1119,7 @@ end subroutine rf_transgrid_and_pack
 !!      m_ddk,m_dfpt_lwwf,m_dfpt_vtorho,m_gkk,m_phgamma,m_phpi,m_sigmaph
 !!
 !! CHILDREN
-!!      gs_hamkq%load_k,gs_hamkq%load_kprime,mkffnl,mkkin,mkkin_metdqdq,mkkpg
-!!      rf_hamkq%load_k
+!!      fourwf
 !!
 !! SOURCE
 
@@ -1443,8 +1446,7 @@ end subroutine getgh1c_setup
 !!      m_dfpt_cgwf,m_dfpt_nstwf
 !!
 !! CHILDREN
-!!      gs_hamkq%load_k,gs_hamkq%load_kprime,mkffnl,mkkin,mkkin_metdqdq,mkkpg
-!!      rf_hamkq%load_k
+!!      fourwf
 !!
 !! SOURCE
 
@@ -1614,8 +1616,7 @@ end subroutine getdc1
 !!      m_dfpt_lwwf
 !!
 !! CHILDREN
-!!      gs_hamkq%load_k,gs_hamkq%load_kprime,mkffnl,mkkin,mkkin_metdqdq,mkkpg
-!!      rf_hamkq%load_k
+!!      fourwf
 !!
 !! SOURCE
 
@@ -1846,8 +1847,7 @@ end subroutine getgh1dqc
 !!      m_dfpt_lwwf
 !!
 !! CHILDREN
-!!      gs_hamkq%load_k,gs_hamkq%load_kprime,mkffnl,mkkin,mkkin_metdqdq,mkkpg
-!!      rf_hamkq%load_k
+!!      fourwf
 !!
 !! SOURCE
 
@@ -2050,8 +2050,10 @@ end subroutine getgh1dqc_setup
 !! direction of the DDK perturbation, or 2\pi A_idir when k is given in reduced coords as is usual
 !!
 !! PARENTS
+!!      m_dfpt_vtowfk,m_getgh1c
 !!
 !! CHILDREN
+!!      fourwf
 !!
 !! SOURCE
 

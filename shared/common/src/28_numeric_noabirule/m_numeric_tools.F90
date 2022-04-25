@@ -6,7 +6,7 @@
 !!  This module contains basic tools for numeric computations.
 !!
 !! COPYRIGHT
-!! Copyright (C) 2008-2021 ABINIT group (MG, GMR, MJV, XG, MVeithen, NH, FJ, MT, DCS, FrD, Olevano, Reining, Sottile, AL)
+!! Copyright (C) 2008-2022 ABINIT group (MG, GMR, MJV, XG, MVeithen, NH, FJ, MT, DCS, FrD, Olevano, Reining, Sottile, AL)
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -3745,7 +3745,7 @@ end subroutine symmetrize_dpc
 !! mat_out(cplx*N*N+1/2)= packed matrix (upper triangle)
 !!
 !! PARENTS
-!!      m_rayleigh_ritz
+!!      m_rayleigh_ritz,m_rmm_diis
 !!
 !! CHILDREN
 !!
@@ -5269,7 +5269,7 @@ end subroutine interpolate_denpot
 !! PARENTS
 !!      m_a2ftr,m_ebands,m_eliashberg_1d,m_elphon,m_evdw_wannier,m_exc_spectra
 !!      m_integrals,m_mlwfovlp,m_numeric_tools,m_outscfcv,m_phgamma,m_phonons
-!!      m_rta,m_tdep_psij,m_xc_vdw
+!!      m_rta,m_tdep_psij,m_unittests,m_xc_vdw
 !!
 !! CHILDREN
 !!

@@ -6,7 +6,7 @@
 !!  Low-level tools related to symmetries
 !!
 !! COPYRIGHT
-!!  Copyright (C) 1998-2021 ABINIT group (RC, XG, GMR, MG, JWZ)
+!!  Copyright (C) 1998-2022 ABINIT group (RC, XG, GMR, MG, JWZ)
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .
@@ -451,7 +451,7 @@ end subroutine chkgrp
 !!  This improved version should replace chkgrp.
 !!
 !! PARENTS
-!!      m_crystal
+!!      m_crystal,m_phonons,m_symfind
 !!
 !! CHILDREN
 !!      wrtout
@@ -1529,8 +1529,10 @@ end subroutine symmetrize_rprimd
 !! tnons(3,1:nsym)= non-symmorphic translation vectors
 !!
 !! PARENTS
+!!      m_ingeo
 !!
 !! CHILDREN
+!!      wrtout
 !!
 !! SOURCE
 
@@ -1652,7 +1654,8 @@ end subroutine symmetrize_tnons
 !!    of real space translations
 !!
 !! PARENTS
-!!      m_ingeo,m_longwave,m_mover,m_nonlinear,m_respfn_driver,m_scfcv_core
+!!      m_chkinp,m_ingeo,m_longwave,m_mover,m_nonlinear,m_respfn_driver
+!!      m_scfcv_core
 !!
 !! CHILDREN
 !!      wrtout
@@ -2031,7 +2034,7 @@ end subroutine symchk
 !! Equivalent to $S*t(b)+tnons-x(a)=another$ $integer$ for $x(b)=x(inv(S))$.
 !!
 !! COPYRIGHT
-!! Copyright (C) 1998-2021 ABINIT group (DCA, XG, GMR)
+!! Copyright (C) 1998-2022 ABINIT group (DCA, XG, GMR)
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -3283,7 +3286,7 @@ end subroutine smallprim
 !! OUTPUT
 !!
 !! PARENTS
-!!      m_crystal,m_hdr,m_spgbuilder
+!!      m_crystal,m_hdr,m_spgbuilder,m_symfind
 !!
 !! CHILDREN
 !!      wrtout

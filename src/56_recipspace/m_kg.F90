@@ -6,7 +6,7 @@
 !!  Low-level functions to operate of G-vectors.
 !!
 !! COPYRIGHT
-!!  Copyright (C) 2008-2021 ABINIT group (DCA, XG, GMR, MT, DRH, AR)
+!!  Copyright (C) 2008-2022 ABINIT group (DCA, XG, GMR, MT, DRH, AR)
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .
@@ -99,7 +99,7 @@ contains
 !!
 !! PARENTS
 !!      m_common,m_dfpt_looppert,m_dfpt_lw,m_dfpt_scfcv,m_nonlinear,m_pawfgr
-!!      m_positron,m_respfn_driver,m_scfcv_core
+!!      m_positron,m_respfn_driver,m_scfcv_core,m_sigma_driver
 !!
 !! CHILDREN
 !!
@@ -950,8 +950,8 @@ end subroutine kpgstr
 !!
 !! PARENTS
 !!      m_bandfft_kpt,m_cgprj,m_d2frnl,m_dfpt_lwwf,m_dfpt_nstwf,m_dfpt_scfcv
-!!      m_dfptnl_pert,m_fock_getghc,m_forstr,m_getgh1c,m_io_kss,m_ksdiago
-!!      m_nonlop_test,m_nonlop_ylm,m_orbmag,m_pead_nl_loop,m_vtorho,m_wfd
+!!      m_dfptnl_pert,m_fock_getghc,m_forstr,m_getgh1c,m_ksdiago,m_nonlop_test
+!!      m_nonlop_ylm,m_orbmag,m_pead_nl_loop,m_phgamma,m_sigmaph,m_vtorho,m_wfd
 !!
 !! CHILDREN
 !!
@@ -1044,7 +1044,6 @@ end subroutine mkkpg
 !! NOTES
 !!
 !! PARENTS
-!!      m_orbmag
 !!
 !! CHILDREN
 !!

@@ -6,7 +6,7 @@
 !!  .
 !!
 !! COPYRIGHT
-!! Copyright (C) 2009-2021 ABINIT group (JLJ, BR, MC)
+!! Copyright (C) 2009-2022 ABINIT group (JLJ, BR, MC)
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -453,7 +453,7 @@ end subroutine cdgqf
 !! OUTPUT
 !!
 !! PARENTS
-!!      m_efmas,m_frohlichmodel,m_gaussian_quadrature
+!!      m_efmas,m_frohlichmodel,m_gaussian_quadrature,m_gwrdm
 !!
 !! CHILDREN
 !!      imtqlx

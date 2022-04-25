@@ -6,7 +6,7 @@
 !!  Response calculations in finite electric field.
 !!
 !! COPYRIGHT
-!!  Copyright (C) 2004-2021 ABINIT group (XW).
+!!  Copyright (C) 2004-2022 ABINIT group (XW).
 !!  This file is distributed under the terms of the
 !!  GNU General Public License, see ~abinit/COPYING
 !!  or http://www.gnu.org/copyleft/gpl.txt .
@@ -98,7 +98,7 @@ contains
 !!      m_dfpt_scfcv
 !!
 !! CHILDREN
-!!      dzgedi,dzgefa,overlap_g
+!!      dzgedi,dzgefa,overlap_g,proc_distrb_band,xmpi_bcast,xmpi_sum
 !!
 !! SOURCE
 
@@ -703,7 +703,7 @@ end subroutine dfptff_initberry
 !! Calculation of the gradient of Berry-phase term in finite electric field.
 !!
 !! COPYRIGHT
-!! Copyright (C) 2004-2021 ABINIT group (XW).
+!! Copyright (C) 2004-2022 ABINIT group (XW).
 !! This file is distributed under the terms of the
 !! GNU General Public License, see ~abinit/COPYING
 !! or http://www.gnu.org/copyleft/gpl.txt .
@@ -744,7 +744,7 @@ end subroutine dfptff_initberry
 !!      m_dfpt_vtorho
 !!
 !! CHILDREN
-!!      dzgedi,dzgefa,overlap_g
+!!      dzgedi,dzgefa,overlap_g,proc_distrb_band,xmpi_bcast,xmpi_sum
 !!
 !! SOURCE
 
@@ -1233,7 +1233,7 @@ end subroutine dfptff_gradberry
 !!      m_dfpt_vtorho
 !!
 !! CHILDREN
-!!      dzgedi,dzgefa,overlap_g
+!!      dzgedi,dzgefa,overlap_g,proc_distrb_band,xmpi_bcast,xmpi_sum
 !!
 !! SOURCE
 
@@ -1734,7 +1734,7 @@ end subroutine dfptff_gbefd
 !!      m_dfpt_scfcv
 !!
 !! CHILDREN
-!!      dzgedi,dzgefa,overlap_g
+!!      dzgedi,dzgefa,overlap_g,proc_distrb_band,xmpi_bcast,xmpi_sum
 !!
 !! SOURCE
 
@@ -2131,7 +2131,7 @@ end subroutine dfptff_edie
 !!      m_dfpt_scfcv
 !!
 !! CHILDREN
-!!      dzgedi,dzgefa,overlap_g
+!!      dzgedi,dzgefa,overlap_g,proc_distrb_band,xmpi_bcast,xmpi_sum
 !!
 !! SOURCE
 
@@ -2459,7 +2459,7 @@ end subroutine dfptff_ebp
 !!      m_dfpt_scfcv
 !!
 !! CHILDREN
-!!      dzgedi,dzgefa,overlap_g
+!!      dzgedi,dzgefa,overlap_g,proc_distrb_band,xmpi_bcast,xmpi_sum
 !!
 !! SOURCE
 
@@ -2663,7 +2663,7 @@ end subroutine dfptff_die
 !!      m_dfpt_scfcv
 !!
 !! CHILDREN
-!!      dzgedi,dzgefa,overlap_g
+!!      dzgedi,dzgefa,overlap_g,proc_distrb_band,xmpi_bcast,xmpi_sum
 !!
 !! SOURCE
 
@@ -2864,7 +2864,7 @@ end subroutine dfptff_bec
 !!      m_dfpt_scfcv
 !!
 !! CHILDREN
-!!      dzgedi,dzgefa,overlap_g
+!!      dzgedi,dzgefa,overlap_g,proc_distrb_band,xmpi_bcast,xmpi_sum
 !!
 !! SOURCE
 

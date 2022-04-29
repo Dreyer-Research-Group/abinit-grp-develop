@@ -53,7 +53,7 @@ MODULE m_kg
  public :: mkpwind_k    ! Make plane wave index at k point for basis at second k point
  public :: mkkpgcart    ! Compute all (k+G) vectors (dp, in cartesian coordinates) for given k point
  public :: mkkin_metdqdq ! Compute the second q-gradient of the derivative of the kinetic energy operator w.r.t a metric
-
+ public :: kpgmet       ! CEDrev: Metric KE, from AMS
 contains
 !!***
 
@@ -1347,6 +1347,148 @@ subroutine mkkin_metdqdq(dqdqkinpw,effmass,gprimd,idir,kg,kpt,npw,qdir)
 
 end subroutine mkkin_metdqdq
 !!***
+
+!!****f* ABINIT/kpgmet
+!! NAME
+!! kpgmet
+!!
+!! FUNCTION
+!! Compute elements of the derivative the kinetic energy operator in reciprocal
+!! space at given k point wrt a single cartesian strain component
+!!
+!! COPYRIGHT
+!! Copyright (C) 1999-2014 ABINIT group (DRH, XG)
+!! This file is distributed under the terms of the
+!! GNU General Public License, see ~abinit/COPYING
+!! or http://www.gnu.org/copyleft/gpl.txt .
+!!
+!! INPUTS
+!!  ecut=cut-off energy for plane wave basis sphere (Ha)
+!!  ecutsm=smearing energy for plane wave kinetic energy (Ha)
+!!  effmass=effective mass for electrons (1. in common case)
+!!  gmet(3,3) = reciprocal lattice metric tensor (Bohr**-2)
+!!  idir=1,2,3
+!!  kg(3,npw) = integer coordinates of planewaves in basis sphere.
+!!  kpt(3)    = reduced coordinates of k point
+!!  npw       = number of plane waves at kpt.
+!!
+!! OUTPUT
+!!  dkinpw(npw)=d/deps(istr) ( (1/2)*(2 pi)**2 * (k+G)**2 )
+!!
+!! NOTES
+!!  Src_6response/kpg3.f
+!!
+!! PARENTS
+!!      nstwf4,rhofermi3,vtorho3
+!!
+!! CHILDREN
+!!
+!! SOURCE
+
+
+subroutine kpgmet(dkinpw,ecut,ecutsm,effmass,gmet,idir,kg,kpt,npw,qpt)
+
+ implicit none
+
+!Arguments -------------------------------
+!scalars
+ integer,intent(in) :: idir,npw
+ real(dp),intent(in) :: ecut,ecutsm,effmass
+!arrays
+ integer,intent(in) :: kg(3,npw)
+ real(dp),intent(in) :: gmet(3,3),kpt(3)
+ real(dp),intent(in) :: qpt(3)
+ real(dp),intent(out) :: dkinpw(npw)
+
+!Local variables -------------------------
+!scalars
+ integer :: ig,ii
+ real(dp) :: dfsm,dkinetic,dkpg2,ecutsm_inv,fsm,gpk(3),htpisq
+ real(dp) :: kpg2
+ real(dp) :: q2, qgpk
+ character(len=500) :: message
+!arrays
+ real(dp) :: qpk(3)
+  
+
+! *********************************************************************
+
+!htpisq is (1/2) (2 Pi) **2:
+ htpisq=0.5_dp*(two_pi)**2
+
+ ecutsm_inv=0.0_dp
+ if(ecutsm>1.0d-20)ecutsm_inv=1/ecutsm
+
+!Compute derivative of metric tensor wrt strain component istr
+ if(idir<1 .or. idir>3)then
+   write(message, '(a,i10,a,a,a)' )&
+&   'Input idir=',idir,' not allowed.',ch10,&
+&   'Possible values are 1,2,3 only.'
+   ABI_BUG(message)
+ end if
+
+ write(*,*) 'ams: kpgmet: I am in'
+
+ q2= qpt(1)**2*gmet(1,1) + qpt(2)**2*gmet(2,2) + qpt(3)**2*gmet(3,3) &
+&    + 2.0_dp*(qpt(1)*qpt(2)*gmet(1,2) + qpt(2)*qpt(3)*gmet(2,3) + qpt(1)*qpt(3)*gmet(1,3)) 
+
+!AMSrev
+!   write(112,*) 'aa'   
+
+ do ig=1,npw
+   gpk(1)=dble(kg(1,ig))+kpt(1)
+   gpk(2)=dble(kg(2,ig))+kpt(2)
+   gpk(3)=dble(kg(3,ig))+kpt(3)
+   qgpk= qpt(1)*gpk(1)*gmet(1,1) + qpt(2)*gpk(2)*gmet(2,2) + qpt(3)*gpk(3)*gmet(3,3) &
+&    + qpt(1)*gpk(2)*gmet(1,2) + qpt(2)*gpk(3)*gmet(2,3) + qpt(1)*gpk(3)*gmet(1,3)&
+&    + qpt(2)*gpk(1)*gmet(2,1) + qpt(3)*gpk(2)*gmet(3,2) + qpt(3)*gpk(1)*gmet(3,1)
+
+!AMSrev
+!   write(112,*) kg(1,ig),kg(2,ig),kg(3,ig)   
+
+   kpg2=htpisq*&
+&   ( gmet(1,1)*gpk(1)**2+         &
+&   gmet(2,2)*gpk(2)**2+         &
+&   gmet(3,3)*gpk(3)**2          &
+&   +2.0_dp*(gpk(1)*gmet(1,2)*gpk(2)+  &
+&   gpk(1)*gmet(1,3)*gpk(3)+  &
+&   gpk(2)*gmet(2,3)*gpk(3) )  )
+!!   dkpg2=htpisq*2.0_dp*&
+!!&   (gpk1*(dgmetds(1,1)*gpk1+dgmetds(1,2)*gpk2+dgmetds(1,3)*gpk3)+  &
+!!&   gpk2*(dgmetds(2,1)*gpk1+dgmetds(2,2)*gpk2+dgmetds(2,3)*gpk3)+  &
+!!&   gpk3*(dgmetds(3,1)*gpk1+dgmetds(3,2)*gpk2+dgmetds(3,3)*gpk3) )
+!!   dkinetic=dkpg2
+! the factor i will be taken into account when summing dkinpw to the nonloc pot in gethg1c
+   dkinetic=-two_pi**3/two*((two*gpk(idir)+qpt(idir))*qgpk+gpk(idir)*q2)
+   if(kpg2>ecut-tol12)then
+!      The wavefunction has been filtered : no derivative
+     dkinetic=0.0_dp
+   end if
+
+!! AMSrev remove G=0
+!   if(kg(3,ig)==0.and.kg(2,ig)==0.and.kg(1,ig)==0) dkinetic=0.d0
+
+   dkinpw(ig)=dkinetic/effmass
+ end do
+
+!AMSrev[ 
+! add here the geom potential in case of a metric perturbation
+  do ig=1,npw
+    dkinpw(ig)=dkinpw(ig)-(2.0_dp*pi)**3/4.0_dp*qpt(idir)*q2
+! CEDrev: Here we include the 2\pi's, and q2 should be cartesians, but qpt is not!!!!!
+
+
+!! AMSrev remove G=0
+!    if(useria==1) then
+!      if(kg(3,ig)==0.and.kg(2,ig)==0.and.kg(1,ig)==0) dkinpw(ig)=0.d0
+!    endif
+  end do
+!AMSrev ]
+
+
+end subroutine kpgmet
+!!***
+
 
 end module m_kg
 !!***

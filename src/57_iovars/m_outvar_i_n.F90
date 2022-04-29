@@ -831,6 +831,11 @@ subroutine outvar_i_n (dtsets,iout,&
  intarr(1,:)=dtsets(:)%mqgriddg
  call prttagm(dprarr,intarr,iout,jdtset_,2,marr,1,narrm,ncid,ndtset_alloc,'mqgriddg','INT',0)
 
+ !CEDrev:
+ intarr(1,:)=dtsets(:)%metcalc
+ call prttagm(dprarr,intarr,iout,jdtset_,2,marr,1,narrm,ncid,ndtset_alloc,'metcalc','INT',0)
+
+
 !###########################################################
 !### 03. Print all the input variables (N)
 !##

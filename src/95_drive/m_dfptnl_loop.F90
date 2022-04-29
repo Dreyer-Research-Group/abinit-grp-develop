@@ -623,9 +623,9 @@ subroutine dfptnl_loop(atindx,blkflg,cg,dtfil,dtset,d3etot,eigen0,gmet,gprimd,gs
                    end if ! usepaw
 
                    option=1;optene=0
-                   ! CEDrev: nog0=0
+                   ! CEDrev: nog0=0, gmet, gprimd
                    call dfpt_rhotov(cplex,dummy_real,dummy_real,dummy_real,dummy_real,dummy_real,&
-&                   gsqcut,i2dir,i2pert,dtset%ixc,kxc,mpi_enreg,dtset%natom,nfftf,ngfftf,nhat,&
+&                   gmet,gprimd,gsqcut,i2dir,i2pert,dtset%ixc,kxc,mpi_enreg,dtset%natom,nfftf,ngfftf,nhat,&
 &                   nhat1_i2pert,nhat1gr,nhat1grdim,nkxc,nspden,n3xccc,0,non_magnetic_xc,optene,option,&
 &                   dtset%qptn,rhog,rho2g1,rhor,rho2r1,rprimd,ucvol,psps%usepaw,usexcnhat,vhartr1_i2pert,&
 &                   vpsp1,vresid_dum,dummy_real,vtrial1_i2pert,vxc,vxc1_i2pert,xccc3d2,dtset%ixcrot)

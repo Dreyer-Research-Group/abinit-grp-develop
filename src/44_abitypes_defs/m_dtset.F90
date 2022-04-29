@@ -345,6 +345,7 @@ type, public :: dataset_type
  integer :: mband_mem
  integer :: mep_solver
  integer :: mem_test = 1
+ integer :: metcalc = 0 ! CEDrev: previous run was metric 
  integer :: mffmem
  integer :: mgfft
  integer :: mgfftdg
@@ -1968,6 +1969,7 @@ type(dataset_type) function dtset_copy(dtin) result(dtout)
  dtout%pmpath             = dtin%pmpath
  dtout%vlfrceta           = dtin%vlfrceta
  dtout%joperloc           = dtout%joperloc
+ dtout%metcalc            = dtin%metcalc
 
 !Copy allocated integer arrays from dtin to dtout
  dtout%bdberry(:)         = dtin%bdberry(:)
@@ -3473,7 +3475,7 @@ subroutine chkvars(string)
  list_vars=trim(list_vars)//' zcut zeemanfield znucl'
 
 ! CED: My new ones here for now
-list_vars=trim(list_vars)//' adcalc vfstep drudewt joperloc vlfrceta pmpath nogzero'
+list_vars=trim(list_vars)//' adcalc vfstep drudewt joperloc vlfrceta pmpath nogzero metcalc'
 
 
 

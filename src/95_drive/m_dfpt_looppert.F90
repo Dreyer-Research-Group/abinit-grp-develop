@@ -90,7 +90,7 @@ module m_dfpt_loopert
  use m_common,     only : prteigrs
  use m_fourier_interpol, only : transgrid
  use m_mkcore,     only : dfpt_mkcore
- use m_mklocl,     only : dfpt_vlocal, vlocalstr
+ use m_mklocl,     only : dfpt_vlocal, vlocalstr, dfpt_vlocal_ams
  use m_cgprj,      only : ctocprj
  use m_symkpt,     only : symkpt
 
@@ -354,7 +354,7 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
 
  
  ! CEDrev:
- integer :: adcalc,symon,calcden,nlfft,prt_eigen1_dk
+ integer :: adcalc,symon,calcden,nlfft,prt_eigen1_dk,metpertcase
  integer :: bantot0,bantot1,dig_gkk
  real(dp),allocatable :: cgp(:,:),eigenp(:),rhonlrout(:),rhorout(:),eigen_dcovab(:)
  real(dp),allocatable :: cg1_tilde_dk(:,:),eigen1_dk(:)
@@ -371,7 +371,9 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
  
 !CEDrev: Test if this is an adiabatic caclulation
 adcalc=dtset%adcalc
-symon=1 ! 
+
+symon=0
+if (adcalc==1.or.adcalc==2.and.dtset%vfstep==0) symon=1 ! Do not use symmetry
 ! 1: print densities, 0: no
 calcden=0
 
@@ -1476,7 +1478,15 @@ if (mpi_enreg%me_kpt==0)  write(*,*) "1. Symmetry reduction is",symon
 !  Initialisation of first-order wavefunctions
    write(msg,'(3a,i4)')' Initialisation of the first-order wave-functions :',ch10,'  ireadwf=',dtfil%ireadwf
    call wrtout([std_out, ab_out], msg)
-   call appdig(pertcase,dtfil%fnamewff1,fiwf1i)
+
+   !CEDrev: In the case we are using the Metric perturbation, generate input FO file name 
+   if (dtset%metcalc==1) then
+      metpertcase=idir+(dtset%natom+6-1)*3
+      call appdig(metpertcase,dtfil%fnamewff1,fiwf1i)
+   else
+      call appdig(pertcase,dtfil%fnamewff1,fiwf1i)
+   end if
+
    call appdig(pertcase,dtfil%fnameabo_1wf,fiwf1o)
 
 !  Allocate 1st-order PAW occupancies (rhoij1)
@@ -1732,6 +1742,20 @@ end if
        call vlocalstr(gmet,gprimd,gsqcut,istr,mgfftf,mpi_enreg,&
 &       psps%mqgrid_vl,dtset%natom,nattyp,nfftf,ngfftf,ntypat,ph1df,psps%qgrid_vl,&
 &       ucvol,psps%vlspl,vpsp1,g0term=g0term)
+
+       !AMSrev: new version of vloca3
+    else if(ipert==dtset%natom+6) then
+       if (dtset%useria==1) then
+          call dfpt_vlocal_ams(atindx,cplex+10,gmet,gsqcut,idir,ipert,mpi_enreg,psps%mqgrid_vl,dtset%natom,&
+                &       nattyp,nfftf,ngfftf,ntypat,ngfftf(1),ngfftf(2),ngfftf(3),ph1df,psps%qgrid_vl,&
+                &       dtset%qptn,ucvol,psps%vlspl,vpsp1,xred,psps%ziontypat)
+        else
+           call dfpt_vlocal_ams(atindx,cplex,gmet,gsqcut,idir,ipert,mpi_enreg,psps%mqgrid_vl,dtset%natom,&
+                &       nattyp,nfftf,ngfftf,ntypat,ngfftf(1),ngfftf(2),ngfftf(3),ph1df,psps%qgrid_vl,&
+                &       dtset%qptn,ucvol,psps%vlspl,vpsp1,xred,psps%ziontypat)
+        end if
+
+
      else
 
         !CEDrev: MS implementation of G0 removal
@@ -2418,10 +2442,15 @@ end if
    end if
 
 !  Print the energies
-   if (dtset%nline/=0 .or. dtset%nstep/=0)then
-     call dfpt_prtene(dtset%berryopt,eberry,edocc,eeig0,eew,efrhar,efrkin,efrloc,efrnl,efrx1,efrx2,&
-&     ehart01,ehart1,eii,ek0,ek1,eloc0,elpsp1,end0,end1,enl0,enl1,eovl1,epaw1,evdw,exc1,ab_out,&
-&     ipert,dtset%natom,psps%usepaw,usevdw)
+   if (dtset%nline/=0 .or. dtset%nstep/=0) then
+      !AMSrev [ not yet present the enrgy, then added this if 
+      if(ipert/=dtset%natom+6) then
+         call dfpt_prtene(dtset%berryopt,eberry,edocc,eeig0,eew,efrhar,efrkin,efrloc,efrnl,efrx1,efrx2,&
+              &     ehart01,ehart1,eii,ek0,ek1,eloc0,elpsp1,end0,end1,enl0,enl1,eovl1,epaw1,evdw,exc1,ab_out,&
+              &     ipert,dtset%natom,psps%usepaw,usevdw)
+      else
+         if (mpi_enreg%me_kpt==0) write(*,*) 'AMS: looppert: Here there should be the energy but not yet implemented'
+      end if
    end if
 
    ! call orbmag if needed

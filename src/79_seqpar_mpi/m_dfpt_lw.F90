@@ -418,9 +418,9 @@ subroutine dfpt_qdrpole(atindx,blkflg,codvsn,d3etot,doccde,dtfil,dtset,&
    rhor1_efield(iq2grad,:,:)=rhor1_tmp(:,:)
 
    !Calculate first order Hartree and xc potentials
-   ! CEDrev: nog0 set to zero
+   ! CEDrev: nog0 set to zero, also passed gmet and gprimd
    call dfpt_rhotov(cplex,dum_scl,dum_scl,dum_scl,dum_scl,dum_scl, &
-    & gsqcut,q2grad(2,iq2grad),dtset%natom+2,&
+    & gmet,gprimd,gsqcut,q2grad(2,iq2grad),dtset%natom+2,&
     & dtset%ixc,kxc,mpi_enreg,dtset%natom,nfft,ngfft,nhat,nhat1,nhat1gr,nhat1grdim,nkxc,&
     & nspden,n3xccc,0,non_magnetic_xc,optene,optres,dtset%qptn,rhog,rhog1_tmp,rhor,rhor1_tmp,&
     & rprimd,ucvol,psps%usepaw,usexcnhat,vhartr1,vpsp1,vresid1,vres2,vtrial1,dum_vxc,vxc1,&
@@ -465,9 +465,9 @@ subroutine dfpt_qdrpole(atindx,blkflg,codvsn,d3etot,doccde,dtfil,dtset,&
    rhog1_atdis(iatpert,:,:)=rhog1_tmp(:,:)
 
    !Calculate first order Hartree and xc potentials
-   ! CEDrev: nog0 set to zero
+   ! CEDrev: nog0 set to zero, pass gmet and gprimd
    call dfpt_rhotov(cplex,dum_scl,dum_scl,dum_scl,dum_scl,dum_scl, &
-    & gsqcut,iatdir,iatpol,&
+    & gmet,gprimd,gsqcut,iatdir,iatpol,&
     & dtset%ixc,kxc,mpi_enreg,dtset%natom,nfft,ngfft,nhat,nhat1,nhat1gr,nhat1grdim,nkxc,&
     & nspden,n3xccc,0,non_magnetic_xc,optene,optres,dtset%qptn,rhog,rhog1_tmp,rhor,rhor1_tmp,&
     & rprimd,ucvol,psps%usepaw,usexcnhat,vhartr1,vpsp1,vresid1,vres2,vtrial1,dum_vxc,vxc1,&
@@ -2001,7 +2001,7 @@ end if
      !Calculate first order Hartree and xc potentials
    ! CEDrev: nog0 set to zero
      call dfpt_rhotov(cplex,dum_scl,dum_scl,dum_scl,dum_scl,dum_scl, &
-      & gsqcut,iatdir,iatpol,&
+      & gmet,gprimd,gsqcut,iatdir,iatpol,&
       & dtset%ixc,kxc,mpi_enreg,dtset%natom,nfft,ngfft,nhat,nhat1,nhat1gr,nhat1grdim,nkxc,&
       & nspden,0,n3xccc,non_magnetic_xc,optene,optres,dtset%qptn,rhog,rhog1_tmp,rhor,rhor1_tmp,&
       & rprimd,ucvol,psps%usepaw,usexcnhat,vhartr1,vpsp1,vresid1,vres2,vtrial1,dum_vxc,vxc1,&
@@ -2045,9 +2045,9 @@ end if
      rhor1_efield(iefipert,:,:)=rhor1_tmp(:,:)
 
      !Calculate first order Hartree and xc potentials
-   ! CEDrev: nog0 set to zero
+   ! CEDrev: nog0 set to zero pass gmet and gprimd
      call dfpt_rhotov(cplex,dum_scl,dum_scl,dum_scl,dum_scl,dum_scl, &
-      & gsqcut,pert_efield(2,iefipert),dtset%natom+2,&
+      & gmet,gprimd,gsqcut,pert_efield(2,iefipert),dtset%natom+2,&
       & dtset%ixc,kxc,mpi_enreg,dtset%natom,nfft,ngfft,nhat,nhat1,nhat1gr,nhat1grdim,nkxc,&
       & nspden,0,n3xccc,non_magnetic_xc,optene,optres,dtset%qptn,rhog,rhog1_tmp,rhor,rhor1_tmp,&
       & rprimd,ucvol,psps%usepaw,usexcnhat,vhartr1,vpsp1,vresid1,vres2,vtrial1,dum_vxc,vxc1,&
@@ -2091,9 +2091,9 @@ endif
      rhor1_strain(istrpert,:,:)=rhor1_tmp(:,:)
 
      !Calculate first order Hartree and xc potentials
-     ! CEDrev: nog0 set to zero
+     ! CEDrev: nog0 set to zero, pass gmet and gprimd
      call dfpt_rhotov(cplex,dum_scl,dum_scl,dum_scl,dum_scl,dum_scl, &
-      & gsqcut,istrdir,istrtype,&
+      & gmet,gprimd,gsqcut,istrdir,istrtype,&
       & dtset%ixc,kxc,mpi_enreg,dtset%natom,nfft,ngfft,nhat,nhat1,nhat1gr,nhat1grdim,nkxc,&
       & nspden,0,n3xccc,non_magnetic_xc,optene,optres,dtset%qptn,rhog,rhog1_tmp,rhor,rhor1_tmp,&
       & rprimd,ucvol,psps%usepaw,usexcnhat,vhartr1,vpsp1,vresid1,vres2,vtrial1,dum_vxc,vxc1,&

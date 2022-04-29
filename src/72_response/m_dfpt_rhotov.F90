@@ -32,9 +32,9 @@ module m_dfpt_rhotov
 
  use defs_abitypes, only : MPI_type
  use m_time,        only : timab
- use m_spacepar,    only : hartrestr, hartre
+ use m_spacepar,    only : hartrestr, hartre, hartremet
  use m_dfpt_mkvxc,    only : dfpt_mkvxc, dfpt_mkvxc_noncoll
- use m_dfpt_mkvxcstr, only : dfpt_mkvxcstr
+ use m_dfpt_mkvxcstr, only : dfpt_mkvxcstr,dfpt_mkvxc3_met 
 
  implicit none
 
@@ -114,8 +114,8 @@ contains
 !!
 !! SOURCE
 
-! CEDrev: Add variable for removing G=0 part, nog0
- subroutine dfpt_rhotov(cplex,ehart01,ehart1,elpsp1,exc1,elmag1,gsqcut,idir,ipert,&
+! CEDrev: Add variable for removing G=0 part, nog0, also gmet and gprimd
+ subroutine dfpt_rhotov(cplex,ehart01,ehart1,elpsp1,exc1,elmag1,gmet,gprimd,gsqcut,idir,ipert,&
 &           ixc,kxc,mpi_enreg,natom,nfft,ngfft,nhat,nhat1,nhat1gr,nhat1grdim,nkxc,nspden,n3xccc,&
 &           nog0,non_magnetic_xc,optene,optres,qphon,rhog,rhog1,rhor,rhor1,rprimd,ucvol,&
 &           usepaw,usexcnhat,vhartr1,vpsp1,vresid1,vres2,vtrial1,vxc,vxc1,xccc3d1,ixcrot)
@@ -145,6 +145,7 @@ contains
  real(dp),target,intent(out) :: vhartr1(:),vxc1(:,:)
 
  ! CEDrev:
+real(dp), intent(in) :: gmet(3,3),gprimd(3,3)
 integer :: nog0
 
 !Local variables-------------------------------
@@ -217,39 +218,38 @@ integer :: nog0
 
  if (optene>0) ehart01=zero
  if(ipert==natom+3 .or. ipert==natom+4) then
-   ABI_MALLOC(vhartr01,(cplex*nfft))
-   call hartrestr(gsqcut,idir,ipert,mpi_enreg,natom,nfft,ngfft,rhog,rprimd,vhartr01)
-   if (optene>0) then
-     call dotprod_vn(cplex,rhor1,ehart01,doti,nfft,nfftot,1,1,vhartr01,ucvol)
-     ehart01=two*ehart01
-     ehart1=ehart1+ehart01
-   end if
-!  Note that there is a factor 2.0_dp difference with the similar GS formula
-   vhartr1_(:)=vhartr1_(:)+vhartr01(:)
+    ABI_MALLOC(vhartr01,(cplex*nfft))
+    call hartrestr(gsqcut,idir,ipert,mpi_enreg,natom,nfft,ngfft,rhog,rprimd,vhartr01)
+    if (optene>0) then
+       call dotprod_vn(cplex,rhor1,ehart01,doti,nfft,nfftot,1,1,vhartr01,ucvol)
+       ehart01=two*ehart01
+       ehart1=ehart1+ehart01
+    end if
+    !  Note that there is a factor 2.0_dp difference with the similar GS formula
+    vhartr1_(:)=vhartr1_(:)+vhartr01(:)
+    ABI_FREE(vhartr01)
 
-   ABI_FREE(vhartr01)
+    !AMS: Hartree contribution
+ else if(ipert==natom+6) then
+    ABI_MALLOC(vhartr01,(cplex*nfft))
+    !CEDrev: G0
+    if (nog0==1) then
+       call hartremet(cplex+10,gmet,gprimd,qphon,gsqcut,idir,ipert,mpi_enreg,natom,nfft,ngfft,rhog,vhartr01)
+    else
+       call hartremet(cplex,gmet,gprimd,qphon,gsqcut,idir,ipert,mpi_enreg,natom,nfft,ngfft,rhog,vhartr01)
+    end if
+    if (optene>0) then  !AMScom:  completely not sure about this if!!!!! just copied
+       ! I think this just computes the energy (integral of density multipied by hartree potential)
+       call dotprod_vn(cplex,rhor1,ehart01,doti,nfft,nfftot,1,1,vhartr01,ucvol)
+       ehart01=two*ehart01
+       ehart1=ehart1+ehart01
+    end if
 
-   !AMS: Hartree contribution
-!else if(ipert==natom+6) then
-!   ABI_MALLOC(vhartr01,(cplex*nfft))
-   !CEDrev: G0
-!   if (nog0==1) then
-!      call hartremet(cplex+10,gmet,gprimd,qphon,gsqcut,idir,ipert,mpi_enreg,natom,nfft,ngfft,paral_kgb,rhog,vhartr01)
-!   else
-!      call hartremet(cplex,gmet,gprimd,qphon,gsqcut,idir,ipert,mpi_enreg,natom,nfft,ngfft,paral_kgb,rhog,vhartr01)
-!   end if
-!   if (optene>0) then  !AMScom:  completely not sure about this if!!!!! just copied
-      ! I think this just computes the energy (integral of density multipied by hartree potential)
-!     call dotprod_vn(cplex,rhor1,ehart01,doti,nfft,nfftot,1,1,vhartr01,ucvol)
-!     ehart01=two*ehart01
-!     ehart1=ehart1+ehart01
-!end if
-   !  Note that there is a factor 2.0_dp difference with the similar GS formula
-   vhartr1_(:)=vhartr1_(:)+vhartr01(:)
-   ABI_FREE(vhartr01)
+    !  Note that there is a factor 2.0_dp difference with the similar GS formula
+    vhartr1_(:)=vhartr1_(:)+vhartr01(:)
+    ABI_FREE(vhartr01)
 
-
-end if
+ end if
 
 !------ Compute 1st-order XC potential (and energy) ----------------------
 !(including the XC core correction)
@@ -262,9 +262,9 @@ end if
 &   usepaw,usexcnhat,vxc1_,xccc3d1)
 
 ! AMSrev[
-! else if(ipert==natom+6) then
-!   call mkvxc3_met(cplex,ixc,kxc,mpi_enreg,nfft,ngfft,nhat1,usepaw,nhat1gr,nhat1grdim,nkxc,&
-!&   nspden,n3xccc,option,paral_kgb,qphon,rhor1,rprimd,usexcnhat,vxc1_,xccc3d1,rhor,idir,usepaw)
+ else if(ipert==natom+6) then
+   call dfpt_mkvxc3_met(cplex,ixc,kxc,mpi_enreg,nfft,ngfft,nhat1,usepaw,nhat1gr,nhat1grdim,nkxc,&
+&   nspden,n3xccc,option,qphon,rhor1,rprimd,usexcnhat,vxc1_,xccc3d1,rhor,idir,usepaw)
 ! AMSrev] 
 
  else

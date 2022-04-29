@@ -961,6 +961,9 @@ subroutine invars2(bravais,dtset,iout,jdtset,lenstr,mband,msym,npsp,string,usepa
    call intagm(dprarr,intarr,jdtset,marr,1,string(1:lenstr),'adcalc',tread,'INT')
    if(tread==1) dtset%adcalc=intarr(1)
 
+   call intagm(dprarr,intarr,jdtset,marr,1,string(1:lenstr),'metcalc',tread,'INT')
+   if(tread==1) dtset%metcalc=intarr(1)
+
    call intagm(dprarr,intarr,jdtset,marr,1,string(1:lenstr),'joperloc',tread,'INT')
    if(tread==1) dtset%joperloc=intarr(1)
 

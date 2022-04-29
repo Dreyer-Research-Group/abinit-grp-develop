@@ -42,6 +42,10 @@ module m_nonlop_ylm
  use m_kg,               only : mkkpgcart
  use m_time,             only : timab
 
+ ! AMSrev
+ use m_opernla_ylm_met
+ use m_opernlb_ylm_met
+
  implicit none
 
  private
@@ -113,6 +117,8 @@ contains
 !!                full derivative with respect to k1, right derivative with respect to k2,
 !!                (derivative with respect to k of choice 51), typically
 !!                sum_ij [ |dp_i/dk1> D_ij <dp_j/dk2| + |p_i> D_ij < d2p_j/dk1dk2| ]
+!!          =99=> AMSrev: <G|dV_nonlocal/d(metric)|vect_in>
+!!
 !!    Only choices 1,2,3,23,4,5,6 are compatible with useylm=0.
 !!    Only choices 1,2,22,25,3,5,33,51,52,53,7,8,81 are compatible with signs=2
 !!  cpopt=flag defining the status of cprjin%cp(:)=<Proj_i|Cnk> scalars (see below, side effects)
@@ -360,7 +366,8 @@ contains
 &                      mpi_enreg,natom,nattyp,ngfft,nkpgin,nkpgout,nloalg,nnlout,&
 &                      npwin,npwout,nspinor,nspinortot,ntypat,paw_opt,phkxredin,phkxredout,ph1d,&
 &                      ph3din,ph3dout,signs,sij,svectout,ucvol,vectin,vectout,cprjin_left,&
-&                      enlout_im,ndat_left,qdir)
+&                      enlout_im,ndat_left,qdir,&
+&                      vectink,vectoutk,qpt) ! AMSrev: Optional for choice 99
 
 !Arguments ------------------------------------
 !scalars
@@ -391,6 +398,11 @@ contains
  type(pawcprj_type),intent(inout) :: cprjin(:,:)
  type(pawcprj_type),optional,intent(in) :: cprjin_left(:,:)
 
+ ! AMSrev:
+ real(dp),intent(inout),optional :: vectink(:,:)
+ real(dp),intent(inout),optional :: vectoutk(:,:)
+ real(dp),intent(in),optional :: qpt(3)
+
 !Local variables-------------------------------
 !scalars
  integer :: choice_a,choice_b,cplex,cplex_enl,cplex_fac,ia,ia1,ia2,ia3,ia4,ia5
@@ -412,6 +424,11 @@ contains
  real(dp),allocatable :: sij_typ(:),strnlk(:)
  real(dp),allocatable :: work1(:),work2(:),work3(:,:),work4(:,:),work5(:,:,:),work6(:,:,:),work7(:,:,:)
  real(dp),ABI_CONTIGUOUS pointer :: ffnlin_typ(:,:,:),ffnlout_typ(:,:,:),kpgin_(:,:),kpgout_(:,:)
+
+ ! AMSrev
+ real(dp),allocatable :: gxq(:,:,:,:),dgxdtq(:,:,:,:,:),gxqfac(:,:,:,:),dgxdtqfac(:,:,:,:,:)
+ real(dp) :: ph3doutmet(2,npwout,matblk)
+
 
 ! **********************************************************************
 
@@ -440,8 +457,9 @@ contains
  end if
 
 !signs=2, less choices
+! AMSrev: Add choice 99 for metric pert
  if (signs==2) then
-   check=(choice==0.or.choice==1.or.choice==2.or.choice==22.or.choice==25.or.choice==3 .or.&
+   check=(choice==99.or.choice==0.or.choice==1.or.choice==2.or.choice==22.or.choice==25.or.choice==3 .or.&
 &   choice==5.or.choice==33.or.choice==51.or.choice==52.or.choice==53.or.choice==54.or.&
 &   choice==7.or.choice==8.or.choice==81)
    ABI_CHECK(check,'BUG: choice not compatible (for signs=2)')
@@ -548,6 +566,13 @@ contains
    if (signs==2) ndgxdt=1
    if (signs==2) ndgxdtfac=1
  end if
+!AMSrev[
+ if (choice==99) then
+   if (signs==1) ndgxdt=3
+   if (signs==2) ndgxdt=1
+   if (signs==2) ndgxdtfac=1
+ end if
+!AMSrev]
  if (choice==23) then
    if (signs==1) ndgxdt=9
  end if
@@ -659,6 +684,7 @@ contains
  end if
  if (signs==2) then
    if (paw_opt==0.or.paw_opt==1.or.paw_opt==4) vectout(:,:)=zero
+   if (paw_opt==0.or.paw_opt==1.or.paw_opt==4) vectoutk(:,:)=zero ! AMSrev
    if (paw_opt==2.and.choice==1) vectout(:,:)=-lambda*vectin(:,:)
    if (paw_opt==2.and.choice> 1) vectout(:,:)=zero
    if (paw_opt==3.or.paw_opt==4) then
@@ -669,7 +695,7 @@ contains
 
 !Eventually re-compute (k+G) vectors (and related data)
  nkpgin_=0
- if (choice==2.or.choice==22.or.choice==25.or.choice==33.or.choice==54) nkpgin_=3
+ if (choice==2.or.choice==22.or.choice==25.or.choice==33.or.choice==54.or.choice==99) nkpgin_=3 ! AMSrev: add 99
  if (signs==1) then
    if (choice==4.or.choice==24) nkpgin_=9
    if (choice==3.or.choice==23.or.choice==6) nkpgin_=3
@@ -691,7 +717,7 @@ contains
  end if
 
  nkpgout_=0
- if ((choice==2.or.choice==22.or.choice==25.or.choice==3.or.choice==33.or.choice==54).and.signs==2) nkpgout_=3
+ if ((choice==2.or.choice==22.or.choice==25.or.choice==3.or.choice==33.or.choice==54.or.choice==99).and.signs==2) nkpgout_=3 ! AMSrev: add 99
  if (nkpgout<nkpgout_) then
    ABI_MALLOC(kpgout_,(npwout,nkpgout_))
 
@@ -771,6 +797,17 @@ contains
        ABI_MALLOC(d2gxdt,(cplex,nd2gxdt,nlmn,nincat,nspinor))
        ABI_MALLOC(d2gxdtfac,(cplex_fac,nd2gxdtfac,nlmn,nincat,nspinor))
        ABI_MALLOC(dgxdtfac,(cplex_fac,ndgxdtfac,nlmn,nincat,nspinor))
+
+! AMSrev [
+       ABI_MALLOC(gxq,(cplex,nlmn,nincat,nspinor))
+       ABI_MALLOC(dgxdtq,(cplex,ndgxdt,nlmn,nincat,nspinor))
+       ABI_MALLOC(dgxdtqfac,(cplex_fac,ndgxdtfac,nlmn,nincat,nspinor))
+       ABI_MALLOC(gxqfac,(cplex_fac,nlmn,nincat,nspinor))
+       gxq(:,:,:,:)=zero;gxqfac(:,:,:,:)=zero
+       if (ndgxdt>0) dgxdtq(:,:,:,:,:)=zero
+       if (ndgxdtfac>0) dgxdtqfac(:,:,:,:,:)=zero
+! AMSrev ]
+
        gx(:,:,:,:)=zero;gxfac(:,:,:,:)=zero
        if (ndgxdt>0) dgxdt(:,:,:,:,:)=zero
        if (ndgxdtfac>0) dgxdtfac(:,:,:,:,:)=zero
@@ -883,7 +920,7 @@ contains
        !    <p_lmn|c> are not in memory : cpopt<=1
        ! OR <p_lmn|c> are in memory, but we need derivatives : cpopt<=3 and abs(choice_a)>1
        ! OR <p_lmn|c> and first derivatives are in memory, but we need second derivatives : choice=8 or 81
-       if (cpopt<=1.or.(cpopt<=3.and.abs(choice_a)>1).or.choice==8.or.choice==81) then
+       if (cpopt<=1.or.(cpopt<=3.and.abs(choice_a)>1).or.choice==8.or.choice==81.and.choice/=99) then ! AMSrev skip for 99
 !       if ((cpopt<4.and.choice_a/=-1).or.choice==8.or.choice==81) then
          if (abs(choice_a)>1.or.no_opernla_mv) then
            call timab(1101,1,tsec)
@@ -891,14 +928,31 @@ contains
 &           ia3,idir,indlmn_typ,istwf_k,kpgin_,matblk,mpi_enreg,nd2gxdt,ndgxdt,nincat,nkpgin_,nlmn,&
 &           nloalg,npwin,nspinor,ph3din,signs,ucvol,vectin,qdir=qdir)
            call timab(1101,2,tsec)
-         else
+        else
            call timab(1102,1,tsec)
            call opernla_ylm_mv(choice_a,cplex,dimffnlin,ffnlin_typ,gx,&
 &           ia3,indlmn_typ,istwf_k,matblk,mpi_enreg,nincat,nlmn,&
 &           nloalg,npwin,nspinor,ph3din,ucvol,vectin)
            call timab(1102,2,tsec)
-         end if
+        end if
+     end if
+
+! separate case for the new perturbation with a new function
+     if (cpopt<4.and.choice==99) then
+
+!AMSrev Important; ph3dout is equal to: 
+!             if metric perturbation than e^(i k*xred) otherwise e^(i (k+q)*xred)     
+         call ph1d3d(ia3,ia4,kgout,matblk,natom,npwout,n1,n2,n3,phkxredin,ph1d,ph3doutmet)
+
+         ! CEDrev: TODO: Do I need a separate routine for this?
+         call opernla_ylm_met(choice_a,cplex,cplex_dgxdt,cplex_d2gxdt,dimffnlin,d2gxdt,dgxdt,ffnlin_typ,gx,&
+&         ia3,idir,indlmn_typ,istwf_k,kpgin_,matblk,mpi_enreg,nd2gxdt,ndgxdt,nincat,nkpgin_,nlmn,&
+&         nloalg,npwin,nspinor,ph3din,signs,ucvol,vectin,&
+&         gxq,dgxdtq,kpgout_,npwout,nkpgout_,ffnlout_typ,dimffnlout,vectink,ph3doutmet)
        end if
+! AMSrev ]
+
+
 
 !      Transfer result to output variable cprj (if requested)
 !      cprj(:)%cp receive the <p_i|Psi> factors (p_i: non-local projector)
@@ -956,6 +1010,23 @@ contains
            gxfac_sij=gx
          end if
 
+!AMSrev [ multiply by enl also the new gxq,dgxdtq 
+         if(choice==99) then
+           call opernlc_ylm(atindx1,cplex,cplex_dgxdt,cplex_d2gxdt,cplex_enl,cplex_fac,dgxdtq,dgxdtqfac,dgxdtfac_sij,&
+&           d2gxdt,d2gxdtfac,d2gxdtfac_sij,dimenl1,dimenl2,dimekbq,enl,gxq,gxqfac,gxfac_sij,&
+&           iatm,indlmn_typ,itypat,lambda,mpi_enreg,natom,ndgxdt,ndgxdtfac,nd2gxdt,nd2gxdtfac,&
+&           nincat,nlmn,nspinor,nspinortot,optder,paw_opt,sij_typ)
+
+!!$           call opernlc_ylm(atindx1,cplex,cplex_dgxdt,cplex_enl,cplex_fac,dgxdtq,dgxdtqfac,dgxdtfac_sij,&
+!!$&           dimenl1,dimenl2,enl,gxq,gxqfac,gxfac_sij,&
+!!$&           iatm,indlmn_typ,itypat,lambda,mpi_enreg,natom,ndgxdt,ndgxdtfac,&
+!!$&           nincat,nlmn,nspinor,nspinortot,optder,paw_opt,sij_typ)
+         end if
+! AMSrev ]
+
+
+
+
 !        Operate with the non-local potential on the projected scalars,
 !        in order to get contributions to energy/forces/stress/dyn.mat
 !        ==============================================================
@@ -1005,23 +1076,49 @@ contains
          if (signs==2) then
 !          Prepare the phase factors if they were not already computed
            if(nloalg(2)<=0) then
-             call ph1d3d(ia3,ia4,kgout,matblk,natom,npwout,n1,n2,n3,phkxredout,ph1d,ph3dout)
-           end if
-           if (abs(choice_b)>1.or.no_opernlb_mv) then
-             call timab(1103,1,tsec)
-             call opernlb_ylm(choice_b,cplex,cplex_dgxdt,cplex_d2gxdt,cplex_fac,&
-&             d2gxdtfac,d2gxdtfac_sij,dgxdtfac,dgxdtfac_sij,dimffnlout,ffnlout_typ,gxfac,gxfac_sij,ia3,&
-&             idir,indlmn_typ,kpgout_,matblk,ndgxdtfac,nd2gxdtfac,nincat,nkpgout_,nlmn,&
-&             nloalg,npwout,nspinor,paw_opt,ph3dout,svectout,ucvol,vectout,qdir=qdir)
-             call timab(1103,2,tsec)
-           else
-             call timab(1104,1,tsec)
-             call opernlb_ylm_mv(choice_b,cplex,cplex_fac,&
-&             dimffnlout,ffnlout_typ,gxfac,gxfac_sij,ia3,indlmn_typ,matblk,nincat,nlmn,&
-&             nloalg,npwout,nspinor,paw_opt,ph3dout,svectout,ucvol,vectout)
-             call timab(1104,2,tsec)
-           end if
-         end if
+!AMSrev[ Important; ph3dout is equal to: 
+!             if metric perturbation than e^(i k*xred) otherwise e^(i (k+q)*xred)     
+!    OSS in case of metric pert., ph3dout have been already calculated before opernla_ylm_met
+             if(choice/=99) then
+                call ph1d3d(ia3,ia4,kgout,matblk,natom,npwout,n1,n2,n3,phkxredout,ph1d,ph3dout)
+             end if
+          end if
+
+          if (choice /= 99) then ! AMSrev
+             if (abs(choice_b)>1.or.no_opernlb_mv) then
+                call timab(1103,1,tsec)
+                call opernlb_ylm(choice_b,cplex,cplex_dgxdt,cplex_d2gxdt,cplex_fac,&
+                     &             d2gxdtfac,d2gxdtfac_sij,dgxdtfac,dgxdtfac_sij,dimffnlout,ffnlout_typ,gxfac,gxfac_sij,ia3,&
+                     &             idir,indlmn_typ,kpgout_,matblk,ndgxdtfac,nd2gxdtfac,nincat,nkpgout_,nlmn,&
+                     &             nloalg,npwout,nspinor,paw_opt,ph3dout,svectout,ucvol,vectout,qdir=qdir)
+                call timab(1103,2,tsec)
+             else
+                call timab(1104,1,tsec)
+                call opernlb_ylm_mv(choice_b,cplex,cplex_fac,&
+                     &             dimffnlout,ffnlout_typ,gxfac,gxfac_sij,ia3,indlmn_typ,matblk,nincat,nlmn,&
+                     &             nloalg,npwout,nspinor,paw_opt,ph3dout,svectout,ucvol,vectout)
+                call timab(1104,2,tsec)
+             end if
+
+             else
+                
+                !AMScom note the new variable vectout and vectoutk
+                !AMScom note that vectoutk is on the k+G points while vectout is on the k+q+G points
+                !       BUT in side opernlb_ylm_met it is the opposite; vect and vectk have the opposite meaning
+                !       then here!
+
+                ! CEDrev TODO: Do I need this separate routine?
+                call opernlb_ylm_met(choice_b,cplex,cplex_dgxdt,cplex_fac,&
+                     &             dgxdtfac,dgxdtfac_sij,dimffnlin,ffnlin_typ,gxfac,gxfac_sij,ia3,&
+                     &             idir,indlmn_typ,kpgin_,matblk,ndgxdtfac,nincat,nkpgin_,nlmn,&
+                     &             nloalg,npwin,nspinor,paw_opt,ph3din,svectout,ucvol,vectoutk,&
+                     &             dgxdtqfac,gxqfac,qpt,ffnlout_typ,dimffnlout,npwout,kpgout_,nkpgout_,&
+                     &             ph3doutmet,vectout)
+             !AMSrev ]
+
+             end if
+             
+          end if
 
        end if ! choice==0
 
@@ -1037,6 +1134,14 @@ contains
        ABI_FREE(gxfac_sij)
        ABI_FREE(cplex_dgxdt)
        ABI_FREE(cplex_d2gxdt)
+
+!AMSrev[
+       ABI_FREE(gxq)
+       ABI_FREE(gxqfac)
+       ABI_FREE(dgxdtq)
+       ABI_FREE(dgxdtqfac)
+!AMSrev]
+
 
 !      End sum on atom subset loop
        iatm=iatm+nincat;ia5=ia5+nincat

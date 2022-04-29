@@ -815,8 +815,8 @@ subroutine dfpt_scfcv(atindx,blkflg,cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,c
 !    ----------------------------------------------------------------------
      option=1;optene=0;if (iscf_mod==-2) optene=1
 
-     !CEDrev: G=0 removed, passed dtset%useria
-     call dfpt_rhotov(cplex,ehart01,ehart1,elpsp1,exc1,elmag1,gsqcut,idir,ipert,&
+     !CEDrev: G=0 removed, passed gprimd and gmet
+     call dfpt_rhotov(cplex,ehart01,ehart1,elpsp1,exc1,elmag1,gmet,gprimd,gsqcut,idir,ipert,&
 &     dtset%ixc,kxc,mpi_enreg,dtset%natom,nfftf,ngfftf,nhat,nhat1,nhat1gr,nhat1grdim,&
 &     nkxc,nspden,n3xccc,dtset%nogzero,nmxc,optene,option,dtset%qptn,&
 &     rhog,rhog1,rhor,rhor1,rprimd,ucvol,psps%usepaw,usexcnhat,vhartr1,vpsp1,&
@@ -1094,8 +1094,8 @@ subroutine dfpt_scfcv(atindx,blkflg,cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,c
    if (ipert<dtset%natom+10) then
      optene=1
 
-! CEDrev: Removed G=0 term (MS implementation)
-     call dfpt_rhotov(cplex,ehart01,ehart1,elpsp1,exc1,elmag1,gsqcut,idir,ipert,&
+! CEDrev: Removed G=0 term (MS implementation),pass gmet and gprimd
+     call dfpt_rhotov(cplex,ehart01,ehart1,elpsp1,exc1,elmag1,gmet,gprimd,gsqcut,idir,ipert,&
 &     dtset%ixc,kxc,mpi_enreg,dtset%natom,nfftf,ngfftf,nhat,nhat1,nhat1gr,nhat1grdim,nkxc,&
 &     nspden,n3xccc,dtset%nogzero,nmxc,optene,optres,dtset%qptn,rhog,rhog1,rhor,rhor1,&
 &     rprimd,ucvol,psps%usepaw,usexcnhat,vhartr1,vpsp1,nvresid1,res2,vtrial1,vxc,vxc1,xccc3d1,dtset%ixcrot)

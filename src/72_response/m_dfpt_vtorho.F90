@@ -545,7 +545,11 @@ subroutine dfpt_vtorho(cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,cprj1,dbl_nnsc
      end if
 
      kpoint(:)=kpt_rbz(:,ikpt)
-     kpq(:)=kpoint(:);if (ipert<natom+3.or.ipert==natom+5) kpq(:)=kpq(:)+qphon(1:3)
+
+     !AMSrev: Add q for metric pert
+     !kpq(:)=kpoint(:);if (ipert<natom+3.or.ipert==natom+5) kpq(:)=kpq(:)+qphon(1:3)
+     kpq(:)=kpoint(:);if (ipert<natom+3.or.ipert==natom+5.or.ipert==natom+6) kpq(:)=kpq(:)+dtset%qptn(1:3)
+
      ABI_MALLOC(kg_k,(3,npw_k))
      ABI_MALLOC(kg1_k,(3,npw1_k))
      ABI_MALLOC(ylm_k,(npw_k,psps%mpsang*psps%mpsang*psps%useylm))

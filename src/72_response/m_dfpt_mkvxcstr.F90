@@ -40,6 +40,7 @@ module m_dfpt_mkvxcstr
 !!***
 
  public :: dfpt_mkvxcstr
+ public :: dfpt_mkvxc3_met ! AMS: for metric perturbation
 !!***
 
 contains
@@ -517,6 +518,250 @@ subroutine dfpt_mkvxcstrgga(cplex,gprimd,istr,kxc,mpi_enreg,nfft,ngfft,&
 
 end subroutine dfpt_mkvxcstrgga
 !!***
+
+!!****f* ABINIT/dfpt_mkvxc3_met
+!! NAME
+!! dfpt_mkvxc3_met
+!!
+!! FUNCTION
+!! Compute the first-order change of exchange-correlation potential
+!! due to atomic displacement : assemble the first-order
+!! density change with the frozen-core density change, then use
+!! the exchange-correlation kernel.
+!!
+!! COPYRIGHT
+!! Copyright (C) 2001-2014 ABINIT group (XG, DRH)
+!! This file is distributed under the terms of the
+!! GNU General Public License, see ~abinit/COPYING
+!! or http://www.gnu.org/copyleft/gpl.txt .
+!!
+!! INPUTS
+!!  cplex= if 1, real space 1-order functions on FFT grid are REAL,
+!!         if 2, COMPLEX
+!!  ixc= choice of exchange-correlation scheme
+!!  kxc(nfft,nkxc)=exchange and correlation kernel (see rhohxc.f)
+!!  mpi_enreg=information about MPI parallelization
+!!  nfft=(effective) number of FFT grid points (for this processor)
+!!  ngfft(18)=contain all needed information about 3D FFT,
+!!     see ~abinit/doc/input_variables/vargs.htm#ngfft
+!!  nhat1(cplex*nfft,2nspden*nhat1dim)= -PAW only- 1st-order compensation density
+!!  nhat1dim= -PAW only- 1 if nhat1 array is used ; 0 otherwise
+!!  nhat1gr(cplex*nfft,nspden,3*nhat1grdim)= -PAW only- gradients of 1st-order compensation density
+!!  nhat1grdim= -PAW only- 1 if nhat1gr array is used ; 0 otherwise
+!!  nkxc=second dimension of the kxc array
+!!  nspden=number of spin-density components
+!!  n3xccc=dimension of xccc3d1 ; 0 if no XC core correction is used, otherwise, nfft
+!!  option=if 0, work only with the XC core-correction,
+!!         if 1, treat both density change and XC core correction
+!!         if 2, treat only density change
+!!  qphon(3)=reduced coordinates for the phonon wavelength (needed if cplex==2).
+!!  rhor1(cplex*nfft,nspden)=array for electron density in electrons/bohr**3.
+!!  rprimd(3,3)=dimensional primitive translations in real space (bohr)
+!!  usexcnhat= -PAW only- 1 if nhat density has to be taken into account in Vxc
+!!  xccc3d1(cplex*n3xccc)=3D change in core charge density, see n3xccc
+!!
+!! OUTPUT
+!!  vxc1(cplex*nfft,nspden)=change in exchange-correlation potential (including
+!!   core-correction, if applicable)
+!!
+!! SIDE EFFECTS
+!!
+!! NOTES
+!!
+!! PARENTS
+!!      dyxc13,loop3dte,m_kxc,nres2vres,nstdy3,nstpaw3,rhotov3
+!!
+!! CHILDREN
+!!      matr3inv,mkvxcgga3,timab
+!!
+!! SOURCE
+
+subroutine dfpt_mkvxc3_met(cplex,ixc,kxc,mpi_enreg,nfft,ngfft,nhat1,nhat1dim,nhat1gr,nhat1grdim,&
+&          nkxc,nspden,n3xccc,option,qphon,rhor1,rprimd,usexcnhat,vxc1,xccc3d1,&
+&          rhor,idir,usepaw)
+
+ implicit none
+
+!Arguments ------------------------------------
+!scalars
+ integer,intent(in) :: cplex,ixc,n3xccc,nfft,nhat1dim,nhat1grdim
+ integer,intent(in) :: nkxc,nspden,option,usexcnhat
+ type(MPI_type),intent(in) :: mpi_enreg
+!AMSrev
+ integer,intent(in) :: idir,usepaw
+!arrays
+ integer,intent(in) :: ngfft(18)
+ real(dp),intent(in) :: nhat1(cplex*nfft,nspden*nhat1dim)
+ real(dp),intent(in) :: nhat1gr(cplex*nfft,nspden,3*nhat1grdim)
+ real(dp),intent(in) :: kxc(nfft,nkxc),qphon(3)
+ real(dp),intent(in),target :: rhor1(cplex*nfft,nspden)
+ real(dp),intent(in) :: rprimd(3,3),xccc3d1(cplex*n3xccc)
+ real(dp),intent(out) :: vxc1(cplex*nfft,nspden)
+!AMSrev
+ real(dp),intent(in),target :: rhor(nfft,nspden)
+!Local variables-------------------------------
+!scalars
+ integer :: ii,ir,nhat1dim_tmp,nhat1grdim_tmp
+ real(dp) :: rho1_dn,rho1_up,rho1im_dn,rho1im_up,rho1re_dn,rho1re_up
+ !character(len=500) :: message
+!arrays
+ real(dp) :: gprimd(3,3),tsec(2)
+ real(dp),allocatable :: nhat1tmp(:,:),nhat1grtmp(:,:,:),rhor1tmp(:,:)
+ real(dp),pointer :: rhor1_(:,:)
+ character(len=500) :: message
+ real(dp),pointer :: rhor_(:,:)
+ real(dp),allocatable :: rhowk1(:,:)
+
+! *************************************************************************
+
+ DBG_ENTER("COLL")
+
+ call timab(181,1,tsec)
+
+!AMSrev
+ write(*,*) 'ams: mkvxc3_met: I am in, cplex, option', cplex, option
+
+ if(nspden/=1 .and. nspden/=2) then
+   ABI_BUG('Only for nspden==1 and 2.')
+ end if
+
+!Special case: no XC applied
+ if (ixc==0.or.nkxc==0) then
+   ABI_WARNING('Note that no xc is applied (ixc=0)')
+   vxc1=zero
+   return
+ end if
+
+
+ if (usepaw==1.and.usexcnhat==0) then
+   write(*,*) 'ams: mkvxc_met: HAAARG I am in a loop but this is only for PAW!'
+   ABI_MALLOC(rhor_,(nfft,nspden))
+   rhor_(:,:)=rhor(:,:)!-nhat(:,:)
+ else
+   rhor_ => rhor
+ end if
+
+ if (usepaw==1.and.usexcnhat==0.and.option==1) then
+   write(*,*) 'ams: mkvxc_met: HAAARG I am in a loop but this is only for PAW!'
+   ABI_MALLOC(rhor1_,(nfft,nspden))
+   rhor1_(:,:)=rhor1(:,:)!-nhat1(:,:)
+ else
+   rhor1_ => rhor1
+ end if
+
+
+ ABI_MALLOC(rhowk1,(cplex*nfft,nspden))
+ if(option==0 .or. option==2) then
+   if(nspden==1)then
+     if(cplex==1)then
+       write(*,*) 'ams: mkvxc_met: HAAARG not implemented! 1'
+       stop
+     else
+       do ir=1,nfft
+         rhowk1(2*ir-1,1)=zero
+         rhowk1(2*ir  ,1)=-rhor_(ir,1)*qphon(idir)*two_pi
+       end do
+     end if !cplex
+   else
+     write(*,*) 'ams: mkvxc_met: HAAARG not implemented! 2'
+     stop
+   end if!nspden
+ else if(option==1) then
+   if(nspden==1)then
+     if(cplex==1)then
+       write(*,*) 'ams: mkvxc_met: HAAARG not implemented! 3'
+       stop
+     else
+       do ir=1,nfft
+         rhowk1(2*ir-1,1)=rhor1_(2*ir-1,1)
+         rhowk1(2*ir  ,1)=rhor1_(2*ir  ,1)-rhor_(ir,1)*qphon(idir)*two_pi
+       end do
+     end if!cplex 
+   else
+      write(*,*) 'ams: mkvxc_met: HAAARG not implemented! 4'
+      stop
+   end if!nspden
+ end if!option
+
+
+! first LDA
+ if(nkxc/=23)then
+
+!  Case without non-linear core correction
+   if(n3xccc==0)then
+
+!    Non-spin-polarized
+       if(nspden==1)then
+         if(cplex==1)then
+           do ir=1,nfft
+!!             vxc1(ir,1)=kxc(ir,1)*rhor1_(ir,1)
+             write(*,*) 'ams: mkvxc_met: HAAARG not implemented! 5'
+             stop
+           end do
+         else
+           do ir=1,nfft
+!AMSrev
+             vxc1(2*ir-1,1)=kxc(ir,1)*rhowk1(2*ir-1,1)
+             vxc1(2*ir  ,1)=kxc(ir,1)*rhowk1(2*ir  ,1)
+           end do
+         end if ! cplex==1
+
+!        Spin-polarized
+       else
+         if(cplex==1)then
+            write(*,*) 'ams: mkvxc_met: HAAARG not implemented! 6'
+            stop
+!!           do ir=1,nfft
+!!             rho1_dn=rhor1_(ir,1)-rhor1_(ir,2)
+!!             vxc1(ir,1)=kxc(ir,1)*rhor1_(ir,2)+kxc(ir,2)*rho1_dn
+!!             vxc1(ir,2)=kxc(ir,2)*rhor1_(ir,2)+kxc(ir,3)*rho1_dn
+!!           end do
+         else
+            write(*,*) 'ams: mkvxc_met: HAAARG not implemented! 7'
+            stop
+!!           do ir=1,nfft
+!!             rho1re_dn=rhor1_(2*ir-1,1)-rhor1_(2*ir-1,2)
+!!             rho1im_dn=rhor1_(2*ir  ,1)-rhor1_(2*ir  ,2)
+!!             vxc1(2*ir-1,1)=kxc(ir,1)*rhor1_(2*ir-1,2)+kxc(ir,2)*rho1re_dn
+!!             vxc1(2*ir  ,1)=kxc(ir,1)*rhor1_(2*ir  ,2)+kxc(ir,2)*rho1im_dn
+!!             vxc1(2*ir-1,2)=kxc(ir,2)*rhor1_(2*ir-1,2)+kxc(ir,3)*rho1re_dn
+!!             vxc1(2*ir  ,2)=kxc(ir,2)*rhor1_(2*ir  ,2)+kxc(ir,3)*rho1im_dn
+!!           end do
+         end if ! cplex==1
+       end if ! nspden==1
+
+
+!    Treat case with non-linear core correction
+   else
+     
+     write(message, '(a,a,a)' )&
+&    'mkvxc3met: Not yet implemented non-linear core correction',ch10
+     ABI_BUG(message)
+
+   end if ! n3xccc==0
+
+   if (option/=0.and.usexcnhat==0.and.nhat1dim==1) then
+     ABI_FREE(rhor1_)
+   end if
+
+!  Treat GGA
+ else
+
+     write(message, '(a,a,a)' )&
+&    'mkvxc3met: Not yet implemented GGA. Only LDA is implemented.',ch10
+     ABI_BUG(message)
+
+ end if
+
+ ABI_FREE(rhowk1)
+
+ call timab(181,2,tsec)
+
+ DBG_EXIT("COLL")
+ 
+end subroutine dfpt_mkvxc3_met
+!!***
+
 
 end module m_dfpt_mkvxcstr
 !!***

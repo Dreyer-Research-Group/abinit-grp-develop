@@ -1745,7 +1745,7 @@ end if
 
        !AMSrev: new version of vloca3
     else if(ipert==dtset%natom+6) then
-       if (dtset%useria==1) then
+       if (dtset%nogzero==1) then
           call dfpt_vlocal_ams(atindx,cplex+10,gmet,gsqcut,idir,ipert,mpi_enreg,psps%mqgrid_vl,dtset%natom,&
                 &       nattyp,nfftf,ngfftf,ntypat,ngfftf(1),ngfftf(2),ngfftf(3),ph1df,psps%qgrid_vl,&
                 &       dtset%qptn,ucvol,psps%vlspl,vpsp1,xred,psps%ziontypat)

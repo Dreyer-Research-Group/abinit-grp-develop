@@ -970,6 +970,9 @@ subroutine invars2(bravais,dtset,iout,jdtset,lenstr,mband,msym,npsp,string,usepa
    call intagm(dprarr,intarr,jdtset,marr,1,string(1:lenstr),'drudewt',tread,'INT')
    if(tread==1) dtset%drudewt=intarr(1)
 
+   call intagm(dprarr,intarr,jdtset,marr,1,string(1:lenstr),'symfxe',tread,'INT')
+   if(tread==1) dtset%symfxe=intarr(1)
+
    call intagm(dprarr,intarr,jdtset,marr,1,string(1:lenstr),'vlfrceta',tread,'DPR')
    if(tread==1) dtset%vlfrceta=dprarr(1) ! Should I make this ENE??
 

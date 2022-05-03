@@ -577,6 +577,7 @@ type, public :: dataset_type
  integer :: symdynmat = 1
  integer :: symsigma = 1
  integer :: symv1scf = 0
+ integer :: symfxe = 0 ! CEDrev: For turning symmetry off in looppert for Flexo calculations
 !T
  integer :: td_mexcit
  integer :: tfkinfunc
@@ -1970,7 +1971,7 @@ type(dataset_type) function dtset_copy(dtin) result(dtout)
  dtout%vlfrceta           = dtin%vlfrceta
  dtout%joperloc           = dtout%joperloc
  dtout%metcalc            = dtin%metcalc
-
+ dtout%symfxe             = dtin%symfxe
 !Copy allocated integer arrays from dtin to dtout
  dtout%bdberry(:)         = dtin%bdberry(:)
  dtout%cd_subset_freq(:)  = dtin%cd_subset_freq(:)
@@ -3475,7 +3476,7 @@ subroutine chkvars(string)
  list_vars=trim(list_vars)//' zcut zeemanfield znucl'
 
 ! CED: My new ones here for now
-list_vars=trim(list_vars)//' adcalc vfstep drudewt joperloc vlfrceta pmpath nogzero metcalc'
+list_vars=trim(list_vars)//' adcalc vfstep drudewt joperloc vlfrceta pmpath nogzero metcalc symfxe'
 
 
 

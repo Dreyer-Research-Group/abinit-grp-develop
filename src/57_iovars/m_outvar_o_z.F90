@@ -1043,6 +1043,12 @@ contains
  intarr(1,:)=dtsets(:)%symv1scf
  call prttagm(dprarr,intarr,iout,jdtset_,1,marr,1,narrm,ncid,ndtset_alloc,'symv1scf','INT',0)
 
+
+ ! CEDrev:
+ intarr(1,:)=dtsets(:)%symv1scf
+ call prttagm(dprarr,intarr,iout,jdtset_,1,marr,1,narrm,ncid,ndtset_alloc,'symfxe','INT',0)
+
+
 !###########################################################
 !### 03. Print all the input variables (T)
 !##

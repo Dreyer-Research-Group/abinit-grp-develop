@@ -5,6 +5,7 @@
 - `nogzero`: Remove G=0 term from electrostatic potential (previously `useria`)
 - `joperloc`: Default (0) means joper uses local+nl; -1 mean joper uses only local  
 - `pmpath`: 0 (default) is ICL path, 1 is PM
+- `symfxe`: 1 to turn off symmetry in m_dfpt_looppert. For some reason needed for Flexo calculations
 
 ## Flexo metric:
 - `metcalc`: Set to one to indicate that previous run was metric perturbation

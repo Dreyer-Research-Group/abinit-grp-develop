@@ -8,7 +8,7 @@
 - `symfxe`: 1 to turn off symmetry in m_dfpt_looppert. For some reason needed for Flexo calculations
 
 ## Flexo metric:
-- `metcalc`: Set to one to indicate that previous run was metric perturbation
+- `metcalc`: Set to one to indicate that previous run was metric perturbation (previously `userid`)
 -
 
 ## Velocity-force and naBEC:

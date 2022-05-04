@@ -2222,6 +2222,12 @@ subroutine initmpi_band(mkmem,mpi_enreg,nband,nkpt,nsppol)
 ! number of bands per proc in the band pool
 !   nb_per_proc=nstates/maxproc_bandpool
 
+   ! CEDrev: This will fail if the number of states is less than the number of processors
+   if( (mband / maxproc_bandpool)==0) then
+      msg='CED: Number of proc too large for number of states. Decrease nproc!'
+      ABI_BUG(msg)
+   end if
+
    do nb_per_proc = mband / maxproc_bandpool, mband
      if (mod(mband,nb_per_proc)==0) exit
    end do

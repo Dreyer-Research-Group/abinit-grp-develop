@@ -560,7 +560,8 @@ if (dtset%userie==-1) prt_eigen1_dk=1
    do idir=1,maxidir
      to_compute_this_pert = 0
      if(ipert<dtset%natom+10 .and. rfpert(ipert)==1 .and. rfdir(idir) == 1 ) then
-        if ((pertsy(idir,ipert)==1).or.&
+! CEDrev: Also disabled this symmetry in ab7, some issues so I'll try to do the same here
+        if (dtset%symfxe==0.or.(pertsy(idir,ipert)==1).or.&
 &       ((dtset%prepanl == 1).and.(ipert == dtset%natom+2)).or.&
 &       ((dtset%prepgkk == 1).and.(ipert <= dtset%natom))  ) then
          to_compute_this_pert = 1
@@ -600,7 +601,7 @@ if (dtset%userie==-1) prt_eigen1_dk=1
        end if
      end if
    end do ! idir
- end do !ipert
+end do !ipert
 ! do ipert=1,mpert
 !   if (ipert<dtset%natom+10) then
 !     maxidir = 3
@@ -928,7 +929,8 @@ if (mpi_enreg%me_kpt==0)  write(*,*) "1. Symmetry reduction is",dtset%symfxe
    ABI_MALLOC(bz2ibz_smap, (6, nkpt))
    indkpt1_tmp(:)=0 ; optthm=0
    timrev_pert=timrev
-   if(dtset%ieig2rf>0) then
+   ! CEDrev: Again, to be safe we remove symmetry reduction here as in ab7. Should be able to relax this
+   if(dtset%ieig2rf>0 .or. dtset%symfxe==0) then
      timrev_pert=0
      call symkpt(0,gmet,indkpt1_tmp,ab_out,dtset%kptns,nkpt,nkpt_rbz,&
 &     1,symrc1,timrev_pert,dtset%wtk,wtk_folded, bz2ibz_smap, xmpi_comm_self)
@@ -1156,6 +1158,15 @@ if (mpi_enreg%me_kpt==0)  write(*,*) "1. Symmetry reduction is",dtset%symfxe
 &          cg, eigen=eigen0, occ=occ_disk)
 
    call timab(144,2,tsec)
+
+   ! CEDrev: TEST check cg and cgq
+!!$   open (unit=19, file='cg_test.dat', status='replace')
+!!$   do ii=1,mcg
+!!$      write(19,'(4e20.10e2)') cg(:,ii)
+!!$   end do
+!!$   close(unit=19)
+!!$   stop
+
 
    ! Update energies GS energies at k
    call put_eneocc_vect(ebands_k, "eig", eigen0)
@@ -1759,6 +1770,10 @@ end if
      else
 
         !CEDrev: MS implementation of G0 removal
+        
+        !TEST:
+        !write(*,*) "NOGZERO",dtset%nogzero
+
         if (dtset%nogzero==1) then
            call dfpt_vlocal(atindx,cplex+10,gmet,gsqcut,idir,ipert,mpi_enreg,psps%mqgrid_vl,dtset%natom,&
                 &       nattyp,nfftf,ngfftf,ntypat,ngfftf(1),ngfftf(2),ngfftf(3),ph1df,psps%qgrid_vl,&
@@ -1865,24 +1880,30 @@ end if
 &       dtset%tnons(:,isym))
        rhor1_save(:,:,icase) = rhor1_save(:,:,icase) * eq_symop(idir,idir_eq)
 
-     end if ! force non scf calculation of other gkk, or not
-   end if ! found an equiv perturbation for the gkk
+    end if ! force non scf calculation of other gkk, or not
+  end if ! found an equiv perturbation for the gkk
 
    if ( (dtfil%ireadwf==0 .and. iscf_mod/=-4 .and. dtset%get1den==0 .and. dtset%ird1den==0) &
    .or. (iscf_mod== -3 .and. ipert/=dtset%natom+11) ) then
 !    NOTE : For ipert==natom+11, we want to read the 1st order density from a previous calculation
      rhor1(:,:)=zero ; rhog1(:,:)=zero
+
 !    PAW: rhoij have been set to zero in call to pawrhoij_alloc above
 
-     init_rhor1 = ((ipert>=1 .and. ipert<=dtset%natom).or.ipert==dtset%natom+5)
+     !CEDrev: HERERE, somthing weird with init rho? Lets try and turn it off
+     init_rhor1 = (((ipert>=1 .and. ipert<=dtset%natom).or.ipert==dtset%natom+5).and.dtset%symfxe==0)
+     ! TEST
+     !write(*,*) 'init_rhor1',init_rhor1
+
      ! This section is needed in order to maintain the old behavior and pass the automatic tests
+     
      if (psps%usepaw == 0) then
        init_rhor1 = init_rhor1 .and. all(psps%nctab(:ntypat)%has_tvale)
      else
        init_rhor1 = .False.
-     end if
+    end if
 
-     if (init_rhor1) then
+    if (init_rhor1) then
 
        if(ipert/=dtset%natom+5) then
 
@@ -1934,7 +1955,7 @@ end if
        end if
      end if
 
-   else
+  else
      ! rhor1 not being forced to 0.0
      if(iscf_mod>0) then
 !      cplex=2 gets the complex density, =1 only real part
@@ -1957,7 +1978,8 @@ end if
            occ_rbz,phnons1,rhog1,rhor1,rprimd,symaf1,symrl1,tnons1,ucvol,wtk_rbz)
        end if
 
-     else if (.not. found_eq_gkk) then
+
+else if (.not. found_eq_gkk) then
        ! negative iscf_mod and no symmetric rotation of rhor1
        ! Read rho1(r) from a disk file and broadcast data.
        rdwr=1;rdwrpaw=psps%usepaw;if(dtfil%ireadwf/=0) rdwrpaw=0
@@ -1979,7 +2001,7 @@ end if
        ABI_FREE(work)
      end if ! rhor1 generated or read in from file
 
-   end if ! rhor1 set to 0 or read in from file
+  end if ! rhor1 set to 0 or read in from file
 
 !  Check whether exiting was required by the user.
 !  If found then do not start minimization steps
@@ -1991,6 +2013,19 @@ end if
 
    if (iexit==0) then
      _IBM6("before dfpt_scfcv")
+
+
+ ! CEDrev: TEST check cg and cgq
+!!$     open (unit=19, file='cg1_before_test.dat', status='replace')
+!!$   do ii=1,mcg
+!!$      write(19,'(4e20.10e2)') cg1(:,ii)
+!!$   end do
+!!$   close(unit=19)
+!!$   open (unit=19, file='rhog1_test.dat', status='replace')
+!!$   write(19,*) rhog1
+!!$   close(unit=19)
+
+!   stop
 
 !    Main calculation: get 1st-order wavefunctions from Sternheimer equation (SCF cycle)
 !    if ipert==natom+10 or natom+11 : get 2nd-order wavefunctions
@@ -2049,6 +2084,20 @@ end if
         end if
 #endif
      end if
+
+! CEDrev: TEST check cg and cgq
+!!$   open (unit=19, file='cg1_after_test.dat', status='replace')
+!!$   do ii=1,mcg1
+!!$      write(19,'(4e20.10e2)') cg1(:,ii)
+!!$   end do
+!!$   close(unit=19)
+!!$   open (unit=19, file='cg1_act_test.dat', status='replace')
+!!$   do ii=1,mcg1
+!!$      write(19,'(4e25.10)') cg1_active(:,ii)
+!!$   end do
+!!$   close(unit=19)
+!!$
+!!$   stop
 
 
      !*******************************************************
@@ -2399,7 +2448,7 @@ end if
       ABI_MALLOC(rhorout,(nlfft))
             
       !TEST
-      write(*,*) "NKPT_RBZ",nkpt_rbz
+      !write(*,*) "NKPT_RBZ",nkpt_rbz
 
       call indpol(calcden,1,cg,cg1,cgp,cgq,dtfil,dtset,gmet,gprimd,idir,ipert,istwfk_rbz,kg,kg1,kpt_rbz, &
            & mcg,mcgq,mcg1,mk1mem_rbz,mkmem_rbz,mpi_enreg,mpw,mpw1,nband_rbz,nlfft,npwarr,npwar1, &

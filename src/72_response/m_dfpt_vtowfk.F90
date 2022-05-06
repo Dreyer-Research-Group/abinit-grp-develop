@@ -461,6 +461,14 @@ unit_me = 6
        bands_treated_now(iband) = 1
        call xmpi_sum(bands_treated_now,mpi_enreg%comm_band,ierr)
 
+! CEDrev: TEST check cg and cgq
+!!$   open (unit=19, file='cg1_before_cgwf.dat', status='replace')
+!!$   do ii=1,mpw1*nspinor*mband*mk1mem*nsppol
+!!$      write(19,'(4e20.10e2)') cwavef(:,ii)
+!!$   end do
+!!$   close(unit=19)
+
+
        !CEDrev: I am passing cwave1in in addition to be safe. Also gprimd,rprimd, dtset, dtfil,ffnl,sign_dyad
        call dfpt_cgwf(dtset%adcalc,iband,iband_me,band_procs,bands_treated_now,dtset%berryopt,&
 &       cgq,cwavef,cwave0,cwave1in,cwaveprj,cwaveprj0,rf2,dcwavef,dtset,dtfil,&
@@ -472,6 +480,16 @@ unit_me = 6
      else
        resid_k(iband)=zero
      end if
+
+! CEDrev: TEST check cg and cgq
+!!$   open (unit=19, file='cg1_after_cgwf.dat', status='replace')
+!!$   do ii=1,mpw1*nspinor*mband*mk1mem*nsppol
+!!$      write(19,'(4e20.10e2)') cwavef(:,ii)
+!!$   end do
+!!$   close(unit=19)
+!!$stop
+
+
 
      if (ipert/=natom+10 .and. ipert/= natom+11) then
 !    At this stage, the 1st order function cwavef is orthogonal to cgq (unlike

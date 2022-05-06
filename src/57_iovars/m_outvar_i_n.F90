@@ -1000,6 +1000,11 @@ subroutine outvar_i_n (dtsets,iout,&
  intarr(1,:)=dtsets(:)%nnsclohf
  call prttagm(dprarr,intarr,iout,jdtset_,2,marr,1,narrm,ncid,ndtset_alloc,'nnsclohf','INT',0)
 
+! CEDrev
+ intarr(1,:)=dtsets(:)%nogzero
+ call prttagm(dprarr,intarr,iout,jdtset_,2,marr,1,narrm,ncid,ndtset_alloc,'nogzero','INT',0)
+
+
  intarr(1,:)=dtsets(:)%nomegasf
  call prttagm(dprarr,intarr,iout,jdtset_,2,marr,1,narrm,ncid,ndtset_alloc,'nomegasf','INT',0)
 

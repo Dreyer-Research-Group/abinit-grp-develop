@@ -450,7 +450,7 @@ subroutine dfpt_scfcv(atindx,blkflg,cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,c
 
 ! CEDrev:
  character(13) :: file_name
-
+ integer :: ii
 
 ! *********************************************************************
 
@@ -814,6 +814,19 @@ subroutine dfpt_scfcv(atindx,blkflg,cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,c
 !    Set initial guess for 1st-order potential
 !    ----------------------------------------------------------------------
      option=1;optene=0;if (iscf_mod==-2) optene=1
+
+! CEDrev: TEST
+!!$ open (unit=19, file='rhog.dat', status='replace')
+!!$ write(19,*) rhog
+!!$ close(unit=19)
+!!$ open (unit=19, file='rhog1.dat', status='replace')
+!!$ write(19,*) rhog1
+!!$ close(unit=19)
+!!$ open (unit=19, file='vpsp1.dat', status='replace')
+!!$ write(19,*) vpsp1
+!!$ close(unit=19)
+!!$stop
+
 
      !CEDrev: G=0 removed, passed gprimd and gmet
      call dfpt_rhotov(cplex,ehart01,ehart1,elpsp1,exc1,elmag1,gmet,gprimd,gsqcut,idir,ipert,&

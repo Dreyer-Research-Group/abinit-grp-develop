@@ -232,7 +232,7 @@ subroutine dfpt_cgwf(adcalc,band,band_me,band_procs,bands_treated_now,berryopt,c
  type(pawcprj_type) :: cprj_dummy(0,0)
 
  !CEDrev: for diamagnetic suceptability
- integer :: ikg!,irfdir
+ integer :: ikg,ii!,irfdir
  real(dp) :: kplusg(3),qpc(3)
  !real(dp), allocatable :: cwave0_npw1(:,:,:),dumr(:,:,:,:),denconst(:,:,:)
  character(len=10) :: filbnd !CEDrev: for file name
@@ -576,6 +576,14 @@ subroutine dfpt_cgwf(adcalc,band,band_me,band_procs,bands_treated_now,berryopt,c
      mpi_enreg,optlocal,optnl,opt_gvnlx1,rf_hamkq,sij_opt,tim_getgh1c,usevnl)
 end if
 
+    ! TEST
+!!$    open (unit=19, file='gh1c_test.dat', status='replace')
+!!$    do ipw=1,npw1*nspinor
+!!$       write(19,'(4e20.10e2)') gh1c(:,ipw)
+!!$    end do
+!!$    close(unit=19)
+!!$    stop
+
 
    if (gen_eigenpb) then
      if (ipert/=natom+2) then  ! S^(1) is zero for ipert=natom+2
@@ -782,6 +790,14 @@ end if
    end if
  end do
 
+ ! CEDrev:TEST
+!!$ open (unit=19, file='cwavef_1.dat', status='replace')
+!!$ do ipw=1,npw1*nspinor
+!!$    write(19,'(4e20.10e2)') cwavef(:,ipw)
+!!$ end do
+!!$ close(unit=19)
+
+
 
  if(ipert/=natom+10.and.ipert/=natom+11) then
    ! If PAW, the orthogonality condition is <C1 k,q|S0|C0 k+q>+1/2<C0 k|S1|C0 k+q>=0
@@ -842,6 +858,15 @@ end if
  cpopt=-1+usepaw
  call getghc(cpopt,cwavef,cwaveprj,ghc,gsc,gs_hamkq,gvnlxc,eshift,mpi_enreg,1,&
    prtvol,sij_opt,tim_getghc,0,select_k=KPRIME_H_KPRIME)
+
+ ! CEDrev:TEST
+!!$ open (unit=19, file='cwavef_2.dat', status='replace')
+!!$ do ipw=1,npw1*nspinor
+!!$    write(19,'(4e20.10e2)') cwavef(:,ipw)
+!!$ end do
+!!$ close(unit=19)
+!!$stop
+
 
  ! ghc also includes the eigenvalue shift
  if (gen_eigenpb) then

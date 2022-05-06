@@ -655,6 +655,14 @@ subroutine dfpt_vtorho(cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,cprj1,dbl_nnsc
      nband_kq = nband_k  !Note that the calculation only works for same number of bands on all K points.
 !    Note that dfpt_vtowfk is called with kpoint, while kpt is used inside vtowfk3
 
+! CEDrev: TEST check cg and cgq
+!!$   open (unit=19, file='cg1_before_vtowfk.dat', status='replace')
+!!$   do ii=1,mpw1*dtset%nspinor*mband_mem*mk1mem*nsppol
+!!$      write(19,'(4e20.10e2)') cg1(:,ii)
+!!$   end do
+!!$   close(unit=19)
+
+
 ! CEDrev: passed cgp and gprimd
      call dfpt_vtowfk(cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,cprj1,dim_eig2rf,dtfil,&
 &     dtset,edocc_k,eeig0_k,eig0_k,eig0_kq,eig1_k,ek0_k,ek1_k,eloc0_k,end0_k,end1_k,enl0_k,enl1_k,fermie1,&
@@ -662,6 +670,16 @@ subroutine dfpt_vtorho(cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,cprj1,dbl_nnsc
 &     mband,mband_mem,mcgq,mcprjq,mkmem,mk1mem,mpi_enreg,mpw,mpw1,natom,nband_k,ncpgr,nnsclo_now,&
 &     npw_k,npw1_k,dtset%nspinor,nsppol,n4,n5,n6,occ_k,pawrhoij1_unsym,prtvol,psps,resid_k,&
 &     rf_hamkq,rf_hamk_dir2,rhoaug1,rocceig,rprimd,ddk_f,wtk_k,nlines_done,cg1_out)
+
+! CEDrev: TEST check cg and cgq
+!!$   open (unit=19, file='cg1_after_vtorho.dat', status='replace')
+!!$   do ii=1,mpw1*dtset%nspinor*mband_mem*mk1mem*nsppol
+!!$      write(19,'(4e20.10e2)') cg1(:,ii)
+!!$   end do
+!!$   close(unit=19)
+!!$
+!!$stop
+
 
 !    Free temporary storage
      ABI_FREE(kinpw1)

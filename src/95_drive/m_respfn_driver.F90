@@ -294,6 +294,9 @@ subroutine respfn(codvsn,cpui,dtfil,dtset,etotal,iexit,&
  type(pawfgrtab_type),allocatable,save :: pawfgrtab(:)
  type(pawrhoij_type),allocatable :: pawrhoij(:),pawrhoij_read(:)
 
+ !CEDrev:
+ integer :: sumg0_save
+
 ! ***********************************************************************
 
  DBG_ENTER("COLL")
@@ -1248,6 +1251,13 @@ subroutine respfn(codvsn,cpui,dtfil,dtset,etotal,iexit,&
 
 !Contribution to the dynamical matrix from ion-ion energy
  if(rfphon==1)then
+
+    !CEDrev: MS g0 implementation
+    sumg0_save = sumg0
+    if (dtset%nogzero==1) then
+       sumg0 = 0
+    end if
+
    call dfpt_ewald(dyew,gmet,my_natom,natom,qphon,rmet,sumg0,dtset%typat,ucvol,xred,psps%ziontypat, &
 &   mpi_atmtab=mpi_enreg%my_atmtab,comm_atom=mpi_enreg%comm_atom)
    call q0dy3_apply(natom,dyewq0,dyew)
@@ -1271,6 +1281,16 @@ subroutine respfn(codvsn,cpui,dtfil,dtset,etotal,iexit,&
 &     rfdir,rfpert,rprimd,timrev,dtset%typat,ucvol,psps%usepaw,psps%xcccrc,psps%xccc1d,xred)
    end if
  end if
+
+   ! CEDrev: TEST check cg and cgq
+!!$   open (unit=19, file='cg_test.dat', status='replace')
+!!$   do ii=1,mcg
+!!$      write(19,'(4e20.10e2)') cg(:,ii)
+!!$   end do
+!!$   close(unit=19)
+!!$   stop
+
+
 
 !Deallocate the arrays that were needed only for the frozen wavefunction part
  ABI_FREE(ph1d)

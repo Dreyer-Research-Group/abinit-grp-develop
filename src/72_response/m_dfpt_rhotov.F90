@@ -146,7 +146,7 @@ contains
 
  ! CEDrev:
 real(dp), intent(in) :: gmet(3,3),gprimd(3,3)
-integer :: nog0
+integer,intent(in) :: nog0
 
 !Local variables-------------------------------
 !scalars
@@ -399,6 +399,18 @@ integer :: nog0
    end if
 
  end if
+
+! CEDrev: TEST
+!!$ open (unit=19, file='vhartr1.dat', status='replace')
+!!$ write(19,*) vhartr1_
+!!$ close(unit=19)
+!!$ open (unit=19, file='vxc1.dat', status='replace')
+!!$ write(19,*) vxc1_
+!!$ close(unit=19)
+!!$ open (unit=19, file='vpsp1.dat', status='replace')
+!!$ write(19,*) vpsp1
+!!$ close(unit=19)
+!!$stop
 
 !Release temporary memory space
  if (.not.vhartr1_allocated) then

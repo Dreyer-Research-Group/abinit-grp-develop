@@ -800,6 +800,9 @@ subroutine dfpt_vlocal(atindx,cplexin,gmet,gsqcut,idir,ipert,&
  excludeg0 = cplexin / 10
  cplex = MOD(cplexin,10)
 
+! CEDrev: TEST
+write(*,*) 'EXCLUDEG0',excludeg0 
+
 
 
  if(iatom==natom+1 .or. iatom==natom+2 .or. iatom==natom+10  .or. iatom==natom+11 .or. iatom==natom+5)then
@@ -867,8 +870,8 @@ subroutine dfpt_vlocal(atindx,cplexin,gmet,gsqcut,idir,ipert,&
          ! CEDrev: Removing G=0 (MS implementation)
          if(i3==1 .and. i2==1 .and. (.not.qeq0) .and. (excludeg0==1) .and. ig2==0 .and. ig3==0)then
             facg0 = 4.0_dp * pi * zion(itypat) / (2.0_dp * pi)**2
-            write(std_out,*) 'NEW: Correct the G=0 term in vpsp1!'
-            write(std_out,*) 'vpsp1: zion(itypat) = ', zion(itypat)
+            write(*,*) 'NEW: Correct the G=0 term in vpsp1!'
+            write(*,*) 'vpsp1: zion(itypat) = ', zion(itypat)
          end if
 
 
@@ -904,9 +907,9 @@ subroutine dfpt_vlocal(atindx,cplexin,gmet,gsqcut,idir,ipert,&
 !&             cc*vlspl(jj,2,itypat)+dd*vlspl(jj+1,2,itypat) ) &
 !&             / gsquar
              if (ABS(facg0).gt.0.001d0) then
-               write(std_out,*) 'vpsp1: vion1 = ', aa*vlspl(jj,1,itypat)+bb*vlspl(jj+1,1,itypat) + &
+               write(*,*) 'vpsp1: vion1 = ', aa*vlspl(jj,1,itypat)+bb*vlspl(jj+1,1,itypat) + &
 &               cc*vlspl(jj,2,itypat)+dd*vlspl(jj+1,2,itypat)
-               write(std_out,*) 'vpsp1: vion1(corr) = ', aa*vlspl(jj,1,itypat)+bb*vlspl(jj+1,1,itypat) + &
+               write(*,*) 'vpsp1: vion1(corr) = ', aa*vlspl(jj,1,itypat)+bb*vlspl(jj+1,1,itypat) + &
 &               cc*vlspl(jj,2,itypat)+dd*vlspl(jj+1,2,itypat) + facg0
              end if
 

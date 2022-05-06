@@ -276,6 +276,14 @@ subroutine getgh1c(berryopt,cwave,cwaveprj,gh1c,grad_berry,gs1c,gs_hamkq,&
  compute_conjugate = .false.
  if(present(conj)) compute_conjugate = conj
 
+
+!CEDrerv: TEST
+!!$ open (unit=19, file='vlocal1.dat', status='replace')
+!!$! do ipw=1,cplex*gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6*optlocal
+!!$    write(19,*) rf_hamkq%vlocal1
+!!$! end do
+!!$ close(unit=19)
+
 !======================================================================
 !== Apply the 1st-order local potential to the wavefunction
 !======================================================================
@@ -431,6 +439,16 @@ subroutine getgh1c(berryopt,cwave,cwaveprj,gh1c,grad_berry,gs1c,gs_hamkq,&
    end do
 
  end if
+
+
+    ! CEDrev: TEST
+!!$    open (unit=19, file='gh1c_loc.dat', status='replace')
+!!$    do ipw=1,gs_hamkq%npw_kp*gs_hamkq%nspinor
+!!$       write(19,'(4e20.10e2)') gh1c(:,ipw)
+!!$    end do
+!!$    close(unit=19)
+    !stop
+
 
 !======================================================================
 !== Apply the 1st-order non-local potential to the wavefunction
@@ -735,6 +753,15 @@ else if (ipert==natom+6) then
 
  end if
 
+    ! CEDrev: TEST
+!!$    open (unit=19, file='gh1c_nonloc.dat', status='replace')
+!!$    do ipw=1,gs_hamkq%npw_kp*gs_hamkq%nspinor
+!!$       write(19,'(4e20.10e2)')  gvnlx1_(:,ipw)
+!!$    end do
+!!$    close(unit=19)
+    !stop
+
+
 !======================================================================
 !== Apply the 1st-order kinetic operator to the wavefunction
 !== (add it to nl contribution)
@@ -779,6 +806,14 @@ else if (ipert==natom+6) then
      end do
    end do
  end if
+
+    ! CEDrev: TEST
+!!$    open (unit=19, file='gh1c_ke.dat', status='replace')
+!!$    do ipw=1,gs_hamkq%npw_kp*gs_hamkq%nspinor
+!!$       write(19,'(4e20.10e2)')  gvnlx1_(:,ipw)
+!!$    end do
+!!$    close(unit=19)
+    !stop
 
 !======================================================================
 !== Apply the 1st-order nuclear dipole operator to the wavefunction

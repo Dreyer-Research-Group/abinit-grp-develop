@@ -561,7 +561,7 @@ if (dtset%userie==-1) prt_eigen1_dk=1
      to_compute_this_pert = 0
      if(ipert<dtset%natom+10 .and. rfpert(ipert)==1 .and. rfdir(idir) == 1 ) then
 ! CEDrev: Also disabled this symmetry in ab7, some issues so I'll try to do the same here
-        if (dtset%symfxe==0.or.(pertsy(idir,ipert)==1).or.&
+        if (dtset%symfxe==1.or.(pertsy(idir,ipert)==1).or.&
 &       ((dtset%prepanl == 1).and.(ipert == dtset%natom+2)).or.&
 &       ((dtset%prepgkk == 1).and.(ipert <= dtset%natom))  ) then
          to_compute_this_pert = 1

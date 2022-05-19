@@ -379,8 +379,11 @@ calcden=0
 
 ! CEDrev: Note: Whether we calculate force-velocity given by dtset%vfstep
 !TEST
-write(*,*) 'VFSTEP',dtset%vfstep
-write(*,*) 'ADCALC',dtset%adcalc,adcalc
+if (mpi_enreg%me_kpt==0) then
+   write(*,*) 'VFSTEP',dtset%vfstep
+   write(*,*) 'ADCALC',dtset%adcalc,adcalc
+   write(*,*) 'NOGZERO',dtset%nogzero
+end if
 
 ! CEDrev:
 prt_eigen1_dk=0 ! 0 = do not print 1st order eigenfunctions
@@ -1551,6 +1554,10 @@ if (mpi_enreg%me_kpt==0)  write(*,*) "1. Symmetry reduction is",dtset%symfxe
    end if
 
    ABI_MALLOC(cg1_active,(2,mpw1*dtset%nspinor*mband_mem_rbz*mk1mem_rbz*dtset%nsppol*dim_eig2rf))
+
+   ! CEDrev:
+   cg1_active=zero
+
    ABI_MALLOC(gh1c_set,(2,mpw1*dtset%nspinor*mband_mem_rbz*mk1mem_rbz*dtset%nsppol*dim_eig2rf))
    ABI_MALLOC(gh0c1_set,(2,mpw1*dtset%nspinor*mband_mem_rbz*mk1mem_rbz*dtset%nsppol*dim_eig2rf))
    if (.not.kramers_deg) then
@@ -2016,13 +2023,15 @@ else if (.not. found_eq_gkk) then
 
 
  ! CEDrev: TEST check cg and cgq
-!!$     open (unit=19, file='cg1_before_test.dat', status='replace')
+!!$     open (unit=19, file='cg_before_test.dat', status='replace')
 !!$   do ii=1,mcg
-!!$      write(19,'(4e20.10e2)') cg1(:,ii)
+!!$      write(19,'(4e20.10e2)') cg(:,ii)
 !!$   end do
 !!$   close(unit=19)
-!!$   open (unit=19, file='rhog1_test.dat', status='replace')
-!!$   write(19,*) rhog1
+!!$   open (unit=19, file='cgq_before_test.dat', status='replace')
+!!$   do ii=1,mcgq
+!!$      write(19,'(4e20.10e2)') cgq(:,ii)
+!!$   end do
 !!$   close(unit=19)
 
 !   stop

@@ -17,3 +17,8 @@
 - `vlfrceta`: size of the imaginary part for causality (previously `userra`)
 
 ## Misc:
+
+
+# Other notes:
+- Command to push: `git push abinit-grp-develop flexo_cur_met_2:main`
+- Command to fetch changes from gitlab: `git pull trunk develop`

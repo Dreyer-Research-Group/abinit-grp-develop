@@ -1260,6 +1260,11 @@ subroutine respfn(codvsn,cpui,dtfil,dtset,etotal,iexit,&
 
    call dfpt_ewald(dyew,gmet,my_natom,natom,qphon,rmet,sumg0,dtset%typat,ucvol,xred,psps%ziontypat, &
 &   mpi_atmtab=mpi_enreg%my_atmtab,comm_atom=mpi_enreg%comm_atom)
+
+
+   !CEDrev:
+   sumg0 = sumg0_save
+
    call q0dy3_apply(natom,dyewq0,dyew)
  end if
 

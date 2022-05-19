@@ -1746,6 +1746,9 @@ subroutine dfpt_etot(berryopt,deltae,eberry,edocc,eeig0,eew,efrhar,efrkin,efrloc
      if ( ipert>=1 .and. ipert<=natom  ) then
        evar=ek0+edocc+eeig0+eloc0+enl0+ehart1+exc1+enl1+epaw1+elpsp1
 
+       ! CEDrev: TEST
+       !write(*,'(a8,10e20.10)') 'ETOT1', ek0,edocc,eeig0,eloc0,enl0,ehart1,exc1,enl1,epaw1,elpsp1
+
      else if (ipert==natom+1) then
        evar=ek0+edocc+eeig0+eloc0+ek1+ehart1+exc1+enl0+enl1+end0+end1
 
@@ -1763,8 +1766,8 @@ subroutine dfpt_etot(berryopt,deltae,eberry,edocc,eeig0,eew,efrhar,efrkin,efrloc
 !    terms for Zeeman perturbation, SPr 2deb
      else if ( ipert==natom+5 ) then
        evar=ek0+edocc+eeig0+eloc0+enl0+ehart1+exc1+epaw1
-     end if
-   end if
+    end if
+ end if
 
 !  Compute energy residual
    deltae=evar-elast
@@ -1781,13 +1784,17 @@ subroutine dfpt_etot(berryopt,deltae,eberry,edocc,eeig0,eew,efrhar,efrkin,efrloc
      else
        if (ipert/=natom+10 .and. ipert/=natom+11) then
          etotal=evar+eew+evdw+eii+efrhar+efrkin+efrloc+efrnl+efrx1+efrx2
+         
+         ! CEDrev: TEST
+         !write(*,'(a8,9e20.10)') 'ETOT2', evar,eew,eii,efrhar,efrkin,efrloc,efrnl,efrx1,efrx2
+
        else
          etotal=evar ! For 2nd order sternheimer equations, the total (4th order) energy is not used (yet)
        end if
      end if
    end if
 
- end if
+end if
 
 end subroutine dfpt_etot
 !!***

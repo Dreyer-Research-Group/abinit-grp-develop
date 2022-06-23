@@ -1477,13 +1477,18 @@ subroutine kpgmet(dkinpw,ecut,ecutsm,effmass,gmet,idir,kg,kpt,npw,qpt)
     dkinpw(ig)=dkinpw(ig)-(2.0_dp*pi)**3/4.0_dp*qpt(idir)*q2
 ! CEDrev: Here we include the 2\pi's, and q2 should be cartesians, but qpt is not!!!!!
 
-
 !! AMSrev remove G=0
 !    if(useria==1) then
 !      if(kg(3,ig)==0.and.kg(2,ig)==0.and.kg(1,ig)==0) dkinpw(ig)=0.d0
 !    endif
   end do
 !AMSrev ]
+
+!CEDrerv: TEST
+!!$ open (unit=19, file='dkinpw_kpgmet.dat', status='replace')
+!!$ write(19,*) dkinpw
+!!$ close(unit=19)
+
 
 
 end subroutine kpgmet

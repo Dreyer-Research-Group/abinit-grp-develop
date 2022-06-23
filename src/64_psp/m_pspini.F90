@@ -1184,7 +1184,8 @@ real(dp),intent(inout) :: ffspl1(psps%mqgrid_ff,2,psps%lnmax)
    else if (pspcod==9)then
 
 #if defined HAVE_LIBPSML
-     call psp9in(psps%filpsp(ipsp),ekb,epsatm,ffspl,indlmn,lloc,lmax,psps%lmnmax,psps%lnmax,mmax,&
+      ! CEDrev: pass ffspl1
+     call psp9in(psps%filpsp(ipsp),ekb,epsatm,ffspl,ffspl1,indlmn,lloc,lmax,psps%lmnmax,psps%lnmax,mmax,&
 &     psps%mpsang,psps%mpssoang,psps%mqgrid_ff,psps%mqgrid_vl,nproj,psps%n1xccc, &
 &     psps%pspso(ipsp),qchrg,psps%qgrid_ff,psps%qgrid_vl,psps%useylm,vlspl,&
 &     xcccrc,xccc1d,zion,psps%znuclpsp(ipsp),nctab,maxrad)

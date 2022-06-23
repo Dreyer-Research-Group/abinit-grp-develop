@@ -424,7 +424,7 @@ subroutine getgh1c(berryopt,cwave,cwaveprj,gh1c,grad_berry,gs1c,gs_hamkq,&
      else
        ABI_BUG('nspinor/=1 for Non-collinear calculations!')
      end if
-   end if ! nvloc
+  end if ! nvloc
 
    ABI_FREE(work)
 
@@ -441,13 +441,13 @@ subroutine getgh1c(berryopt,cwave,cwaveprj,gh1c,grad_berry,gs1c,gs_hamkq,&
  end if
 
 
-    ! CEDrev: TEST
+    ! CEDrev: TEST is zero here
 !!$    open (unit=19, file='gh1c_loc.dat', status='replace')
 !!$    do ipw=1,gs_hamkq%npw_kp*gs_hamkq%nspinor
 !!$       write(19,'(4e20.10e2)') gh1c(:,ipw)
 !!$    end do
 !!$    close(unit=19)
-    !stop
+!!$    !stop
 
 
 !======================================================================
@@ -531,6 +531,172 @@ subroutine getgh1c(berryopt,cwave,cwaveprj,gh1c,grad_berry,gs1c,gs_hamkq,&
    !-------------------------------------------
 else if (ipert==natom+6) then
 
+   !Assume usevnl=1
+   !write(*,*) 'ams: getghc1: usevnl', usevnl
+   ABI_MALLOC(gvnl2,(2,npw1*gs_hamkq%nspinor*usevnl))
+   ABI_MALLOC(gvnl2kq,(2,npw1*gs_hamkq%nspinor*usevnl))
+   ABI_MALLOC(gvnl2k,(2,npw*gs_hamkq%nspinor*usevnl))
+   gvnl2(:,:)=zero 
+   gvnlx1_=zero
+
+   !sum over atoms:
+   do iatom=1,natom
+      signs=2 ; nnlout=1 !; natom_der=1 ; nattyp_der(1)=1 ; ntypat_der=1
+      !dimekb2_der=gs_hamkq%ntypat
+      !matblk_der=1
+
+      ! CEDrev: I think I can use iatom_only in nonlop to do this??
+
+!!$     xred_der(:)=gs_hamkq%xred(:,iatom)
+!!$     atindx_der(1)=1 ; atindx1_der(1)=1
+!!$     n1=gs_hamkq%ngfft(1) ; n2=gs_hamkq%ngfft(2) ; n3=gs_hamkq%ngfft(3)
+!!$!     iatm=gs_hamkq%atindx(iatom) !is this different from iatom?
+!!$
+!!$!    Store at the right place the 1d phases
+!!$     ! CEDrev: Obtain the phase factor of iatom
+!!$     ABI_MALLOC(ph1d_der,(2,(2*n1+1)+(2*n2+1)+(2*n3+1)))
+!!$     shift1=(iatom-1)*(2*n1+1)
+!!$     ph1d_der(:,1:2*n1+1)=gs_hamkq%ph1d(:,1+shift1:2*n1+1+shift1)
+!!$     shift2=(iatom-1)*(2*n2+1)+natom*(2*n1+1)
+!!$     ph1d_der(:,1+2*n1+1:2*n2+1+2*n1+1)=gs_hamkq%ph1d(:,1+shift2:2*n2+1+shift2)
+!!$     shift3=(iatom-1)*(2*n3+1)+natom*(2*n1+1+2*n2+1)
+!!$     ph1d_der(:,1+2*n1+1+2*n2+1:2*n3+1+2*n2+1+2*n1+1)=&
+!!$&     gs_hamkq%ph1d(:,1+shift3:2*n3+1+shift3)
+!!$
+!!$!    Will compute the 3D phase factors inside nonlop
+!!$     ABI_MALLOC(ph3din,(2,npw,1))
+!!$     ABI_MALLOC(ph3dout,(2,npw1,1))
+!!$     nloalg_der(:)=gs_hamkq%nloalg(:)
+!!$     nloalg_der(1)=-abs(gs_hamkq%nloalg(1))
+!!$     nloalg_der(4)=1
+!!$
+!!$!    Get pahse information, etc. for iatm/iatom
+!!$     phkxredin(:,1)=gs_hamkq%phkxred(:,iatom)
+!!$     phkxredout(:,1)=gs_hamkq%phkxred(:,iatom)
+!!$
+!!$     ABI_MALLOC(ffnlk_der,(npw,dimffnlk,gs_hamkq%lmnmax,1))
+!!$     ffnlk_der(:,:,:,1)=ffnlk(:,:,:,gs_hamkq%typat(iatom))
+!!$     ABI_MALLOC(ffnl1_der,(npw1,dimffnlkq,gs_hamkq%lmnmax,1))
+!!$     ffnl1_der(:,:,:,1)=ffnl1(:,:,:,gs_hamkq%typat(iatom))
+!!$
+!!$     ABI_MALLOC(ekb_typ,(gs_hamkq%dimekb1,1,gs_hamkq%nspinor**2))
+!!$     ekb_typ(:,1,:)=gs_hamkq%ekb(:,gs_hamkq%typat(iatom),:)
+!!$     ABI_MALLOC(indlmn_typ,(6,gs_hamkq%lmnmax,1))
+!!$     indlmn_typ(:,:,1)=gs_hamkq%indlmn(:,:,gs_hamkq%typat(iatom))
+
+
+     ABI_MALLOC(cwavek,(2,npw1*gs_hamkq%nspinor))
+     ABI_MALLOC(denpot,(gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6))
+     denpot=one
+     ABI_MALLOC(dumr,(2,gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6))
+
+    ! put cwave on k+q G mesh
+     cwavek(:,:)=zero
+       call fourwf(1,denpot,cwave,cwavek,dumr,gs_hamkq%gbound_k,gs_hamkq%gbound_kp,&
+         gs_hamkq%istwf_k,gs_hamkq%kg_k,gs_hamkq%kg_kp,gs_hamkq%mgfft,mpi_enreg,1,gs_hamkq%ngfft,&
+         npw,npw1,gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6,2,0,one,one,&
+         use_gpu_cuda=gs_hamkq%use_gpu_cuda)
+
+!!$     call fourwf(1,denpot,cwave,cwavek,dumr,gbound,gs_hamkq%gbound,&
+!!$          &   gs_hamkq%istwf_k,kg_k,kg1_k,gs_hamkq%mgfft,mpi_enreg,1,gs_hamkq%ngfft,npw,&
+!!$          &     npw1,gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6,2,paral_kgb,0,one,one)
+
+
+     !      Compute only derivatives due to projectors |p_i>^(1)
+     !CED: Choice 99 special for metric perturbation
+     cpopt=-1 ; choice=99 ; paw_opt=0
+
+     ! I had to add new variable gvnl2k, so new function nonlopmet
+     ! AMScom OSS the if statement on qpt; otherwise I get segmentation fauls
+     if(present(qpt))then
+        
+!        call nonlop(choice,cpopt,cwaveprj_ptr,enlout,gs_hamkq,idir,(/lambda/),mpi_enreg,1,nnlout,&
+!             &     paw_opt,signs,svectout_dum,tim_nonlop,cwave,gvnl2,iatom_only=iatom,vectink=cwavek,vectoutk=gvnl2k,qpt=qpt)
+
+        ! CEDrev: TEST
+!!$        open (unit=19, file='cwavek.dat', status='replace')
+!!$        do ipw=1,gs_hamkq%npw_kp*gs_hamkq%nspinor
+!!$           write(19,'(4e20.10e2)')  cwavek(:,ipw)
+!!$        end do
+!!$        close(unit=19)
+!!$        open (unit=19, file='cwave.dat', status='replace')
+!!$        do ipw=1,gs_hamkq%npw_k*gs_hamkq%nspinor
+!!$           write(19,'(4e20.10e2)')  cwave(:,ipw)
+!!$        end do
+!!$        close(unit=19)
+!!$        stop
+
+
+
+        call nonlop(choice,cpopt,cwaveprj,enlout,gs_hamkq,idir,(/lambda/),mpi_enreg,1,nnlout,&
+             &     paw_opt,signs,svectout_dum,tim_nonlop,cwave,gvnl2,iatom_only=iatom,vectink=cwavek,vectoutk=gvnl2k,qpt=qpt)
+
+
+
+!!$        call nonlopmet(atindx1_der,choice,cpopt,cwaveprj,gs_hamkq%dimekb1,dimekb2_der,dimffnlk,dimffnlkq,&
+!!$&         ekb_typ,enlout,ffnlk_der,ffnl1_der,gs_hamkq%gmet,gs_hamkq%gprimd,idir,&
+!!$&         indlmn_typ,gs_hamkq%istwf_k,kg_k,kg1_k,kpg_k,kpg1_k,kpt,gs_hamkq%kpoint,&
+!!$&         (/lambda/),gs_hamkq%lmnmax,matblk_der,gs_hamkq%mgfft,mpi_enreg,&
+!!$&         gs_hamkq%mpsang,gs_hamkq%mpssoang,natom_der,nattyp_der,1,&
+!!$&         gs_hamkq%ngfft,nkpg,nkpg1,nloalg_der,nnlout,npw,npw1,nspinor,nspinor,ntypat_der,&
+!!$&         0,paw_opt,phkxredin,phkxredout,ph1d_der,ph3din,ph3dout,signs,&
+!!$&         sij_dum,svectout_dum,tim_nonlop,gs_hamkq%ucvol,gs_hamkq%useylm,cwave,gvnl2,gvnl2k,cwavek,&
+!!$&         qpt,use_gpu_cuda=gs_hamkq%use_gpu_cuda)
+     end if
+
+!!$         ! CEDrev: TEST: gvnl2.dat are the same now between ab9 and ab7. Check  gvnl2k
+!!$    open (unit=19, file='gvnl2k.dat', status='replace')
+!!$    do ipw=1,gs_hamkq%npw_kp*gs_hamkq%nspinor
+!!$       write(19,'(4e20.10e2)')  gvnl2k(:,ipw)
+!!$    end do
+!!$    close(unit=19)
+!!$    stop
+
+
+
+     if (sij_opt==1) gs1c=zero
+
+       gvnl2kq(:,:)=zero
+
+       !CEDrev: So here convert to k+q mesh
+       call fourwf(1,denpot,gvnl2k,gvnl2kq,dumr,gs_hamkq%gbound_k,gs_hamkq%gbound_kp,&
+         gs_hamkq%istwf_k,gs_hamkq%kg_k,gs_hamkq%kg_kp,gs_hamkq%mgfft,mpi_enreg,1,gs_hamkq%ngfft,&
+         npw,npw1,gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6,2,0,one,one,&
+         use_gpu_cuda=gs_hamkq%use_gpu_cuda)
+
+!!$       call fourwf(1,denpot,gvnl2k,gvnl2kq,dumr,gbound,gs_hamkq%gbound,&
+!!$          &   gs_hamkq%istwf_k,kg_k,kg1_k,gs_hamkq%mgfft,mpi_enreg,1,gs_hamkq%ngfft,npw,&
+!!$          &     npw1,gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6,2,paral_kgb,0,one,one)
+       
+       ABI_FREE(cwavek)
+       ABI_FREE(denpot)
+       ABI_FREE(dumr)
+
+!       ABI_FREE(enlout)
+!       ABI_FREE(ph1d_der)
+!       ABI_FREE(ph3din)
+!       ABI_FREE(ph3dout)
+!     if (gs_hamkq%usepaw==1) then     
+!       ABI_FREE(ffnlk_der)
+!       ABI_FREE(ffnl1_der)
+
+!       ABI_FREE(ekb_typ)
+!       ABI_FREE(indlmn_typ)
+
+
+     do ipw=1,npw1*gs_hamkq%nspinor
+       gvnlx1_(:,ipw) = gvnlx1_(:,ipw) + gvnl2(:,ipw) + gvnl2kq(:,ipw)
+     end do
+     
+  end do !iatom
+
+!!$    ! CEDrev: TEST
+!!$    open (unit=19, file='gvnl1_after_nonlop.dat', status='replace')
+!!$    do ipw=1,gs_hamkq%npw_kp*gs_hamkq%nspinor
+!!$       write(19,'(4e20.10e2)')  gvnlx1_(:,ipw)
+!!$    end do
+!!$    close(unit=19)
+    !stop
 
 
 
@@ -753,15 +919,6 @@ else if (ipert==natom+6) then
 
  end if
 
-    ! CEDrev: TEST
-!!$    open (unit=19, file='gh1c_nonloc.dat', status='replace')
-!!$    do ipw=1,gs_hamkq%npw_kp*gs_hamkq%nspinor
-!!$       write(19,'(4e20.10e2)')  gvnlx1_(:,ipw)
-!!$    end do
-!!$    close(unit=19)
-    !stop
-
-
 !======================================================================
 !== Apply the 1st-order kinetic operator to the wavefunction
 !== (add it to nl contribution)
@@ -805,15 +962,70 @@ else if (ipert==natom+6) then
        end if
      end do
    end do
- end if
+end if
 
-    ! CEDrev: TEST
-!!$    open (unit=19, file='gh1c_ke.dat', status='replace')
-!!$    do ipw=1,gs_hamkq%npw_kp*gs_hamkq%nspinor
-!!$       write(19,'(4e20.10e2)')  gvnlx1_(:,ipw)
-!!$    end do
-!!$    close(unit=19)
-    !stop
+!AMSrev[
+!-------------------------------------------
+!!metric wave perturbation: kinetic contribution
+!-------------------------------------------
+!TEST
+ if (ipert==natom+6) then
+    ABI_MALLOC(kinin,(2,npw))
+    ABI_MALLOC(kinout,(2,npw1))
+    ABI_MALLOC(denpot,(gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6))
+    denpot=one
+    ABI_MALLOC(dumr,(2,gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6))
+    !has_kin=(has_kin.or.ipert==natom+6)
+    ! if (ipert==natom+6) then
+    !  Remember that npw/=npw1 for metric perturbation
+    do ispinor=1,gs_hamkq%nspinor
+       do ipw=1,npw
+          kinin(1,ipw)=-dkinpw(ipw)*cwave(2,npw*(ispinor-1)+ipw)
+          kinin(2,ipw)=dkinpw(ipw)*cwave(1,npw*(ispinor-1)+ipw)
+       end do
+       kinout(:,:)=zero
+       call fourwf(1,denpot,kinin,kinout,dumr,gs_hamkq%gbound_k,gs_hamkq%gbound_kp,&
+            & gs_hamkq%istwf_k,gs_hamkq%kg_k,gs_hamkq%kg_kp,gs_hamkq%mgfft,mpi_enreg,1,gs_hamkq%ngfft,npw,&
+            &     npw1,gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6,2,0,one,one)
+       !$OMP PARALLEL DO PRIVATE(ipw,ipws) SHARED(cwave,ispinor,gvnl1_,dkinpw,kinpw1,npw,nspinor)
+       do ipw=1,npw1
+          ipws=ipw+npw1*(ispinor-1)
+          if(kinpw1(ipw)<huge(zero)*1.d-11)then
+             gvnlx1_(1,ipws)=gvnlx1_(1,ipws)+kinout(1,ipw)
+             gvnlx1_(2,ipws)=gvnlx1_(2,ipws)+kinout(2,ipw)
+          else
+             gvnlx1_(1,ipws)=zero
+             gvnlx1_(2,ipws)=zero
+          end if
+       end do
+    end do
+    !TEST
+    !end if
+
+    ABI_FREE(kinin)
+    ABI_FREE(kinout)
+    ABI_FREE(denpot)
+    ABI_FREE(dumr)
+
+end if
+!AMSrev ]
+
+
+
+
+
+   ! CEDrev: TEST
+!open (unit=19, file='dkinpw.dat', status='replace')
+    !do ipw=1,gs_hamkq%npw_kp*gs_hamkq%nspinor
+!       write(19,*) rf_hamkq%dkinpw_k!dkinpw
+    !end do
+!    close(unit=19)
+    open (unit=19, file='gh1c_ke.dat', status='replace')
+    do ipw=1,gs_hamkq%npw_kp*gs_hamkq%nspinor
+       write(19,'(4e20.10e2)')  gvnlx1_(:,ipw)
+    end do
+    close(unit=19)
+    stop
 
 !======================================================================
 !== Apply the 1st-order nuclear dipole operator to the wavefunction
@@ -1126,7 +1338,10 @@ subroutine getgh1c_setup(gs_hamkq, rf_hamkq, dtset, psps, kpoint, kpq, idir, ipe
  endif
 
  ! ===== Preparation of the non-local contributions
- dimffnlk =0; if (ipert<=natom) dimffnlk=1
+
+! CEDrev: Include also metric perturbation:
+dimffnlk =0; if (ipert<=natom.or.ipert==natom+6) dimffnlk=1
+! dimffnlk =0; if (ipert<=natom) dimffnlk=1
 
  ! Compute nonlocal form factors ffnlk at (k+G)
  ! (only for atomic displacement perturbation)
@@ -1135,7 +1350,10 @@ subroutine getgh1c_setup(gs_hamkq, rf_hamkq, dtset, psps, kpoint, kpq, idir, ipe
     ! Just put a test to see if it is allocated.
    if (allocated(ffnlk)) ABI_FREE(ffnlk)
    ABI_MALLOC(ffnlk, (npw_k, dimffnlk, psps%lmnmax, ntypat))
-   if (ipert<=natom) then
+
+! CEDrev: Need this also for metric
+   if (ipert<=natom.or.ipert==natom+6) then
+!   if (ipert<=natom) then
      ider=0;idir0=0
      call mkffnl(psps%dimekb,dimffnlk,psps%ekb,ffnlk,psps%ffspl,&
        gmet,gprimd,ider,idir0,psps%indlmn,kg_k,kpg_k,kpoint,psps%lmnmax,&
@@ -1175,6 +1393,7 @@ subroutine getgh1c_setup(gs_hamkq, rf_hamkq, dtset, psps, kpoint, kpq, idir, ipe
    !CEDrev: No derivatives of ffnl needed?
 else if(ipert==natom+6)then
    ider=0;idir0=0
+   
 end if
 
  ! Compute nonlocal form factors ffnl1 at (k+q+G), for all atoms
@@ -1185,6 +1404,7 @@ end if
  if (reuse_ffnl1_ == 0) then
     ! CEDrev: Not sure why, but this is causing problems. At random times says it is already allocated
     ! Just put a test to see if it is allocated.
+    
    if (allocated(ffnl1)) ABI_FREE(ffnl1)
    ABI_MALLOC(ffnl1, (npw1_k, dimffnl1, psps%lmnmax, ntypat))
 
@@ -1230,7 +1450,19 @@ end if
  ! AMSrev Kinetic term
  !      Compute the derivative of the kinetic operator vs strain in dkinpw
  !CEDrev: use dtset to get useria
- if(ipert==natom+6) call kpgmet(dkinpw,dtset%ecut,dtset%ecutsm,dtset%effmass_free,gmet,idir,kg_k,kpoint,npw_k,dtset%qptn)
+ if(ipert==natom+6) then
+    
+    call kpgmet(dkinpw,dtset%ecut,dtset%ecutsm,dtset%effmass_free,gmet,idir,kg_k,kpoint,npw_k,dtset%qptn)
+
+
+   ! CEDrev: TEST
+!!$    open (unit=19, file='dkinpw_setup.dat', status='replace')
+!!$    !do ipw=1,gs_hamkq%npw_kp*gs_hamkq%nspinor
+!!$       write(19,*) dkinpw
+!!$    !end do
+!!$    close(unit=19)
+!!$ end if
+
 
  ! -- k-point perturbation (1st-derivative)
  if (ipert==natom+1) then

@@ -426,6 +426,7 @@ contains
  real(dp),ABI_CONTIGUOUS pointer :: ffnlin_typ(:,:,:),ffnlout_typ(:,:,:),kpgin_(:,:),kpgout_(:,:)
 
  ! AMSrev
+ integer :: ipw
  real(dp),allocatable :: gxq(:,:,:,:),dgxdtq(:,:,:,:,:),gxqfac(:,:,:,:),dgxdtqfac(:,:,:,:,:)
  real(dp) :: ph3doutmet(2,npwout,matblk)
 
@@ -435,6 +436,10 @@ contains
  DBG_ENTER("COLL")
 
  call timab(1100,1,tsec)
+
+!CEDrev: TEST
+!write(*,*) 'TESTS:',choice,signs,nnlout,cpopt,paw_opt
+
 
 !Check consistency of arguments
 !==============================================================
@@ -684,7 +689,7 @@ contains
  end if
  if (signs==2) then
    if (paw_opt==0.or.paw_opt==1.or.paw_opt==4) vectout(:,:)=zero
-   if (paw_opt==0.or.paw_opt==1.or.paw_opt==4) vectoutk(:,:)=zero ! AMSrev
+   if ((paw_opt==0.or.paw_opt==1.or.paw_opt==4).and.choice==99) vectoutk(:,:)=zero ! AMSrev
    if (paw_opt==2.and.choice==1) vectout(:,:)=-lambda*vectin(:,:)
    if (paw_opt==2.and.choice> 1) vectout(:,:)=zero
    if (paw_opt==3.or.paw_opt==4) then
@@ -920,7 +925,7 @@ contains
        !    <p_lmn|c> are not in memory : cpopt<=1
        ! OR <p_lmn|c> are in memory, but we need derivatives : cpopt<=3 and abs(choice_a)>1
        ! OR <p_lmn|c> and first derivatives are in memory, but we need second derivatives : choice=8 or 81
-       if (cpopt<=1.or.(cpopt<=3.and.abs(choice_a)>1).or.choice==8.or.choice==81.and.choice/=99) then ! AMSrev skip for 99
+       if ((cpopt<=1.or.(cpopt<=3.and.abs(choice_a)>1).or.choice==8.or.choice==81).and.choice/=99) then ! AMSrev skip for 99
 !       if ((cpopt<4.and.choice_a/=-1).or.choice==8.or.choice==81) then
          if (abs(choice_a)>1.or.no_opernla_mv) then
            call timab(1101,1,tsec)
@@ -1021,7 +1026,7 @@ contains
 !!$&           dimenl1,dimenl2,enl,gxq,gxqfac,gxfac_sij,&
 !!$&           iatm,indlmn_typ,itypat,lambda,mpi_enreg,natom,ndgxdt,ndgxdtfac,&
 !!$&           nincat,nlmn,nspinor,nspinortot,optder,paw_opt,sij_typ)
-         end if
+        end if
 ! AMSrev ]
 
 
@@ -1107,6 +1112,19 @@ contains
                 !       BUT in side opernlb_ylm_met it is the opposite; vect and vectk have the opposite meaning
                 !       then here!
 
+!!$                ! CEDrev: TEST
+!!$                open (unit=19, file='gxfac.dat', status='replace')
+!!$                !do ipw=1,npwin
+!!$                   write(19,*)  gxfac
+!!$                !end do
+!!$                close(unit=19)
+!!$                open (unit=19, file='ffnl.dat', status='replace')
+!!$                !do ipw=1,npwin
+!!$                   write(19,*)  ffnlin_typ
+!!$                !end do
+!!$                close(unit=19)
+
+
                 ! CEDrev TODO: Do I need this separate routine?
                 call opernlb_ylm_met(choice_b,cplex,cplex_dgxdt,cplex_fac,&
                      &             dgxdtfac,dgxdtfac_sij,dimffnlin,ffnlin_typ,gxfac,gxfac_sij,ia3,&
@@ -1115,6 +1133,16 @@ contains
                      &             dgxdtqfac,gxqfac,qpt,ffnlout_typ,dimffnlout,npwout,kpgout_,nkpgout_,&
                      &             ph3doutmet,vectout)
              !AMSrev ]
+
+         ! CEDrev: TEST
+!!$                open (unit=19, file='after_opernlb.dat', status='replace')
+!!$                do ipw=1,npwin
+!!$                   write(19,'(4e20.10e2)')  vectout(:,ipw)
+!!$                end do
+!!$                close(unit=19)
+                !stop
+                
+
 
              end if
              

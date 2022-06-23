@@ -248,13 +248,13 @@ subroutine dfpt_cgwf(adcalc,band,band_me,band_procs,bands_treated_now,berryopt,c
  call timab(122,1,tsec)
 
 
- ! TEST
+ ! CEDrev: TEST
 !!$ open (unit=19, file='cwave0_test.dat', status='replace')
 !!$ do ipw=1,npw1*nspinor
-!!$    write(19,'(4e20.10e2)') cwavef(:,ipw)
+!!$    write(19,'(4e20.10e2)') cwave0(:,ipw)
 !!$ end do
 !!$ close(unit=19)
-!!$ stop
+! stop
 
 
 
@@ -573,7 +573,7 @@ subroutine dfpt_cgwf(adcalc,band,band_me,band_procs,bands_treated_now,berryopt,c
 !!$         & rf_hamkq,sij_opt,tim_getgh1c,usecprj,usevnl,vlocal1,wfraug,dtset%qptn)
     
     call getgh1c(berryopt,cwave0,cwaveprj0,gh1c,gberry,gs1c,gs_hamkq,gvnlx1,idir,ipert,eshift,&
-     mpi_enreg,optlocal,optnl,opt_gvnlx1,rf_hamkq,sij_opt,tim_getgh1c,usevnl)
+     mpi_enreg,optlocal,optnl,opt_gvnlx1,rf_hamkq,sij_opt,tim_getgh1c,usevnl,qpt=dtset%qptn(:))
 end if
 
     ! TEST
@@ -582,7 +582,7 @@ end if
 !!$       write(19,'(4e20.10e2)') gh1c(:,ipw)
 !!$    end do
 !!$    close(unit=19)
-!!$    stop
+    !stop
 
 
    if (gen_eigenpb) then

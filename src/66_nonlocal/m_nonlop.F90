@@ -578,7 +578,10 @@ subroutine nonlop(choice,cpopt,cprjin,enlout,hamk,idir,lambda,mpi_enreg,ndat,nnl
 !and if <g|dVnl/dR|c> is required (signs=2), we only need to compute the
 !derivatives of the projectors associated with the displaced atom.
  iatom_only_=-1;if (present(iatom_only)) iatom_only_=iatom_only
- atom_pert=((signs==2).and.(choice==2.or.choice==4.or.choice==22.or.choice==24.or.choice==25.or.choice==54))
+
+!CEDrev: Do I need to specify here also metric pert?
+atom_pert=((signs==2).and.(choice==2.or.choice==4.or.choice==22.or.choice==24.or.choice==25.or.choice==54.or.choice==99)) 
+! atom_pert=((signs==2).and.(choice==2.or.choice==4.or.choice==22.or.choice==24.or.choice==25.or.choice==54))
 
  if (iatom_only_>0.and.atom_pert) then
 !   We consider only atom with index iatom_only
@@ -761,6 +764,20 @@ subroutine nonlop(choice,cpopt,cprjin,enlout,hamk,idir,lambda,mpi_enreg,ndat,nnl
                &       vectin(:,b0:e0),vectout(:,b1:e1))
           !    Spherical Harmonics version
        else if (hamk%use_gpu_cuda==0) then
+
+!!$                ! CEDrev: TEST
+!!$                open (unit=19, file='nonlop_ffnlin.dat', status='replace')
+!!$                !do ipw=1,npwin
+!!$                   write(19,*)  ffnlin_
+!!$                !end do
+!!$                close(unit=19)
+!!$                ! CEDrev: TEST
+!!$                open (unit=19, file='nonlop_ffnl_k.dat', status='replace')
+!!$                !do ipw=1,npwin
+!!$                   write(19,*)  hamk%ffnl_k
+!!$                !end do
+!!$                close(unit=19)
+!!$                stop
 
           ! AMS rev:
           if (choice==99) then

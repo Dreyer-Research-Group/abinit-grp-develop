@@ -2419,7 +2419,7 @@ subroutine dfpt_ewald(dyew,gmet,my_natom,natom,qphon,rmet,sumg0,typat,ucvol,xred
  integer,pointer :: my_atmtab(:)
  real(dp) :: gpq(3),rq(3)
 
-!CEDrev: NEED TO MAKE THIS TURN OFF WHEN nogzero=0!!
+!CEDrev: 
  real(dp) :: facg0
  logical :: computeit
 

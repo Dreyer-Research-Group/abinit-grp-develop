@@ -453,7 +453,7 @@ subroutine opernlb_ylm_met(choice,cplex,cplex_dgxdt,cplex_fac,dgxdtfac,dgxdtfac_
 !- the factor 2*pi is already present only in dgxdtqfac_ and dgxdtfac_ 
 !- a factor '+i' is already present in dgxdtqfac_ and dgxdtfac_ (as for the phonons, eq. 55 Gonze) 
 !        ------
-         if (choice==22) then ! derivative w.r.t. metric wave
+         if (choice==99) then ! derivative w.r.t. metric wave
            !write(*,*) 'ams: ... : npw, idir', npw, npwout, idir
 
 

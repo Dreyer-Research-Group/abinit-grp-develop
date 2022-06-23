@@ -647,7 +647,7 @@ subroutine dfpt_mkvxc3_met(cplex,ixc,kxc,mpi_enreg,nfft,ngfft,nhat1,nhat1dim,nha
    rhor1_(:,:)=rhor1(:,:)!-nhat1(:,:)
  else
    rhor1_ => rhor1
- end if
+end if
 
 
  ABI_MALLOC(rhowk1,(cplex*nfft,nspden))
@@ -666,7 +666,7 @@ subroutine dfpt_mkvxc3_met(cplex,ixc,kxc,mpi_enreg,nfft,ngfft,nhat1,nhat1dim,nha
      write(*,*) 'ams: mkvxc_met: HAAARG not implemented! 2'
      stop
    end if!nspden
- else if(option==1) then
+else if(option==1) then
    if(nspden==1)then
      if(cplex==1)then
        write(*,*) 'ams: mkvxc_met: HAAARG not implemented! 3'

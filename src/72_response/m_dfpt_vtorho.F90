@@ -627,6 +627,22 @@ subroutine dfpt_vtorho(cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,cprj1,dbl_nnsc
      ddkinpw=ddkinpw,dkinpw2=dkinpw2,rf_hamk_dir2=rf_hamk_dir2,&                    ! Optional
      ffnl1_test=ffnl1_test)                                                         ! Optional
 
+       ! CEDrev: TEST
+!!$       open (unit=19, file='vtorho_dkinpw.dat', status='replace')
+!!$       !do ipw=1,npw1*nspinor
+!!$       write(19,'(4e20.10e2)') dkinpw
+!!$       !end do
+!!$       close(unit=19)
+!!$       open (unit=19, file='vtorho_rfhamq_dkinpw.dat', status='replace')
+!!$       !do ipw=1,npw1*nspinor
+!!$       write(19,'(4e20.10e2)') rf_hamkq%dkinpw_k
+!!$       !end do
+!!$       close(unit=19)
+       
+       !stop
+
+
+
 !    Compute the gradient of the Berry-phase term
      if (dtset%berryopt== 4.or.dtset%berryopt== 6.or.dtset%berryopt== 7.or.&
 &     dtset%berryopt==14.or.dtset%berryopt==16.or.dtset%berryopt==17) then

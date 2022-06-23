@@ -128,7 +128,7 @@ contains
 !!     gradients of projected scalars wrt coords  (choice=2, 23, 4, 54 or 6)
 !!                                    wrt strains (choice=3 or 23)
 !!                                    wrt k wave vect. (choice=5, 51, 52, 53, 54, 8)
-!!                AMSrev -->          wrt metric perturbation (choice=22):
+!!                AMSrev -->          wrt metric perturbation (choice=99):
 !!                                        In this case I have also as output
 !!                                        gxq(cplex,nlmn,nincat,nspinor)=\sum_G f(k+q+G) c(G) exp(..)
 !!                                        dgxdtq(cplex,nlmn,nincat,nspinor)=\sum_G f(k+q+G) (k+G+q) c(G) exp(..)
@@ -233,7 +233,7 @@ subroutine opernla_ylm_met(choice,cplex,cplex_dgxdt,cplex_d2gxdt,dimffnl,d2gxdt,
 !signs=2, only "single derivative" choices
 !AMSrev
  if (signs==2) then
-   check=(choice_==22.or.choice_==0.or.choice_==1.or.choice_==2.or.choice_==3.or.&
+   check=(choice_==99.or.choice_==0.or.choice_==1.or.choice_==2.or.choice_==3.or.&
 &   choice_==5.or.choice_==51.or.choice_==52.or.choice_==53)
    ABI_CHECK(check,'BUG: signs=2 not compatible with this choice')
  end if
@@ -480,7 +480,7 @@ subroutine opernla_ylm_met(choice,cplex,cplex_dgxdt,cplex_d2gxdt,dimffnl,d2gxdt,
 !      Accumulate dGxdt --- derivative wrt atm pos. --- for direction IDIR
 !      --------------------------------------------------------------------
 ! AMSrev
-       if ((signs==2).and.((choice_==2).or.(choice_==22))) then
+       if ((signs==2).and.((choice_==2).or.(choice_==99))) then
          i1=1
 !$OMP DO
          do ilmn=1,nlmn
@@ -523,10 +523,10 @@ subroutine opernla_ylm_met(choice,cplex,cplex_dgxdt,cplex_d2gxdt,dimffnl,d2gxdt,
 
 !AMSrev [ here there is factor i
 !      --------------------------------------------------------------------
-!      CHOICE= 22  --  SIGNS= 2
+!      CHOICE= 99  --  SIGNS= 2
 !      Accumulate dGxdtp --- derivative wrt atm pos. --- for direction IDIR
 !      --------------------------------------------------------------------
-       if ((signs==2).and.(choice_==22)) then
+       if ((signs==2).and.(choice_==99)) then
          i1=1
 !$OMP DO
          do ilmn=1,nlmn

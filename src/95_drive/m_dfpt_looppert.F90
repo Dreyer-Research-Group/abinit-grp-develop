@@ -360,7 +360,7 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
  real(dp),allocatable :: cg1_tilde_dk(:,:),eigen1_dk(:)
  character(len=fnlen) :: fiwf1o_tild
  character(len=fnlen) :: gkkfilnam_vlfrc
-
+ character(18) :: file_name
 ! ***********************************************************************
 
  DBG_ENTER("COLL")
@@ -379,11 +379,11 @@ calcden=0
 
 ! CEDrev: Note: Whether we calculate force-velocity given by dtset%vfstep
 !TEST
-if (mpi_enreg%me_kpt==0) then
-   write(*,*) 'VFSTEP',dtset%vfstep
-   write(*,*) 'ADCALC',dtset%adcalc,adcalc
-   write(*,*) 'NOGZERO',dtset%nogzero
-end if
+!!$if (mpi_enreg%me_kpt==0) then
+!!$   write(*,*) 'VFSTEP',dtset%vfstep
+!!$   write(*,*) 'ADCALC',dtset%adcalc,adcalc
+!!$   write(*,*) 'NOGZERO',dtset%nogzero
+!!$end if
 
 ! CEDrev:
 prt_eigen1_dk=0 ! 0 = do not print 1st order eigenfunctions
@@ -437,7 +437,7 @@ if (dtset%userie==-1) prt_eigen1_dk=1
  paral_atom=(dtset%natom/=my_natom)
 
 !CEDrev: This seems to mess up plotting of FO den for reg calculations...only set to 2 for metric
- if (dtset%rfuser==2) then
+ if (dtset%rfuser==1) then
     cplex=2
  else
     cplex=2-timrev
@@ -1777,10 +1777,6 @@ end if
      else
 
         !CEDrev: MS implementation of G0 removal
-        
-        !TEST:
-        !write(*,*) "NOGZERO",dtset%nogzero
-
         if (dtset%nogzero==1) then
            call dfpt_vlocal(atindx,cplex+10,gmet,gsqcut,idir,ipert,mpi_enreg,psps%mqgrid_vl,dtset%natom,&
                 &       nattyp,nfftf,ngfftf,ntypat,ngfftf(1),ngfftf(2),ngfftf(3),ph1df,psps%qgrid_vl,&
@@ -2411,6 +2407,32 @@ else if (.not. found_eq_gkk) then
 !&     nkpt_rbz,npwar1,dtset%nsppol,&
 !&     occ_rbz,resid,response,dtfil%unwff2,wvl%wfs,wvl%descr)
    end if
+
+! CEDrev: Extract diagonal elements of eigen1                                                                                                                                  
+   if (dtset%useria==1.and.me == master) then
+
+      write(file_name,'(a7,i5.5,a1,i1,a4)') 'dHdeps_',ipert,"_",idir,".dat"
+      open(unit=19,file=file_name,status='replace')
+
+      mband = dtset%mband
+      band_index = 0
+      band2tot_index = 0
+      do isppol=1,dtset%nsppol
+         do ikpt =1,nkpt_rbz
+            do iband=1,dtset%mband
+               do jband=1,dtset%mband
+                  eig1_r = eigen1(2*jband-1+(iband-1)*2*mband+band2tot_index)
+                  eig1_i = eigen1(2*jband+(iband-1)*2*mband+band2tot_index)
+                  write(19,'(3i5,3f10.5,2i5,2e20.10e2)') ipert,idir,isppol,kpt_rbz(:,ikpt),iband,jband,eig1_r,eig1_i
+               end do !jband                                                                                                                                                                              
+         end do !iband                                                                                                                                                                                    
+         band2tot_index = band2tot_index + 2*mband**2
+      end do !ikpt                                                                                                                                                                                        
+      band_index = band_index + mband
+   end do !isppol                                                                                                                                                                                         
+
+   close(19)
+
 
 
 #ifdef HAVE_NETCDF

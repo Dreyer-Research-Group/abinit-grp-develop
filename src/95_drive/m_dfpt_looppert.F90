@@ -2433,6 +2433,7 @@ else if (.not. found_eq_gkk) then
 
    close(19)
 
+end if
 
 
 #ifdef HAVE_NETCDF

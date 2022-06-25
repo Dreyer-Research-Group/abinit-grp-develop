@@ -1461,7 +1461,7 @@ end if
 !!$       write(19,*) dkinpw
 !!$    !end do
 !!$    close(unit=19)
-!!$ end if
+ end if
 
 
  ! -- k-point perturbation (1st-derivative)

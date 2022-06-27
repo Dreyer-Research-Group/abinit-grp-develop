@@ -1020,12 +1020,12 @@ end if
 !       write(19,*) rf_hamkq%dkinpw_k!dkinpw
     !end do
 !    close(unit=19)
-    open (unit=19, file='gh1c_ke.dat', status='replace')
-    do ipw=1,gs_hamkq%npw_kp*gs_hamkq%nspinor
-       write(19,'(4e20.10e2)')  gvnlx1_(:,ipw)
-    end do
-    close(unit=19)
-    stop
+!!$    open (unit=19, file='gh1c_ke.dat', status='replace')
+!!$    do ipw=1,gs_hamkq%npw_kp*gs_hamkq%nspinor
+!!$       write(19,'(4e20.10e2)')  gvnlx1_(:,ipw)
+!!$    end do
+!!$    close(unit=19)
+!!$    stop
 
 !======================================================================
 !== Apply the 1st-order nuclear dipole operator to the wavefunction

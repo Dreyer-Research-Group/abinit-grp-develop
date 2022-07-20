@@ -551,6 +551,10 @@ contains
  intarr(1,:)=dtsets(:)%prtfc
  call prttagm(dprarr,intarr,iout,jdtset_,2,marr,1,narrm,ncid,ndtset_alloc,'prtfc','INT',0)
 
+ ! CEDrev:
+ intarr(1,:)=dtsets(:)%prtfomag
+ call prttagm(dprarr,intarr,iout,jdtset_,2,marr,1,narrm,ncid,ndtset_alloc,'prtfomag','INT',0)
+
  intarr(1,:)=dtsets(:)%prtfull1wf
  call prttagm(dprarr,intarr,iout,jdtset_,2,marr,1,narrm,ncid,ndtset_alloc,'prtfull1wf','INT',0)
 

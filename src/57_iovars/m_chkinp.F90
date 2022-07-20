@@ -2076,6 +2076,10 @@ subroutine chkinp(dtsets,iout,mpi_enregs,ndtset,ndtset_alloc,npsp,pspheads,comm)
      call chkint_eq(1,1,cond_string,cond_values,ierr,'nspinor',nspinor,1,(/1/),iout)
    end if
 !  spin-orbit is not implemented for the strain perturbation
+   
+   ! CEDrev: TEST
+   write(*,*) 'RFSTRSCHKINP',dt%rfstrs
+
    if(dt%rfstrs/=0)then
      cond_string(1)='rfstrs' ; cond_values(1)=dt%rfstrs
      call chkint_eq(1,1,cond_string,cond_values,ierr,'nspinor',nspinor,1,(/1/),iout)

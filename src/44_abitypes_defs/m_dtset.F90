@@ -501,6 +501,7 @@ type, public :: dataset_type
  integer :: prteig
  integer :: prtelf = 0
  integer :: prtfc = 0
+ integer :: prtfomag = 0 ! CEDrev: Print out info on FO magnitism
  integer :: prtfull1wf = 0
  integer :: prtfsurf = 0
  integer :: prtgsr = 1
@@ -1972,6 +1973,8 @@ type(dataset_type) function dtset_copy(dtin) result(dtout)
  dtout%joperloc           = dtout%joperloc
  dtout%metcalc            = dtin%metcalc
  dtout%symfxe             = dtin%symfxe
+ dtout%prtfomag           = dtin%prtfomag
+
 !Copy allocated integer arrays from dtin to dtout
  dtout%bdberry(:)         = dtin%bdberry(:)
  dtout%cd_subset_freq(:)  = dtin%cd_subset_freq(:)
@@ -3476,7 +3479,7 @@ subroutine chkvars(string)
  list_vars=trim(list_vars)//' zcut zeemanfield znucl'
 
 ! CED: My new ones here for now
-list_vars=trim(list_vars)//' adcalc vfstep drudewt joperloc vlfrceta pmpath nogzero metcalc symfxe'
+list_vars=trim(list_vars)//' adcalc vfstep drudewt joperloc vlfrceta pmpath nogzero metcalc symfxe prtfomag'
 
 
 

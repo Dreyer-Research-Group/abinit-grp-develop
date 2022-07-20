@@ -1032,10 +1032,29 @@ subroutine dfpt_scfcv(atindx,blkflg,cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,c
    end if
 
 !  SPr: don't remove the following comments for debugging
-!  call calcdenmagsph(mpi_enreg,dtset%natom,nfftf,ngfftf,nspden,&
-!&   dtset%ntypat,dtset%ratsm,dtset%ratsph,rhor1,rprimd,dtset%typat,xred,&
-!&   idir+1,cplex,intgden=intgden,rhomag=rhomag)
-!  call  prtdenmagsph(cplex,intgden,dtset%natom,nspden,dtset%ntypat,ab_out,idir+1,dtset%ratsm,dtset%ratsph,rhomag,dtset%typat)
+! CEDrev: Write this out at every step to check convergence 
+if (dtset%prtfomag .and. me==0) then
+   call calcdenmagsph(mpi_enreg,dtset%natom,nfftf,ngfftf,nspden,&
+        &   dtset%ntypat,dtset%ratsm,dtset%ratsph,rhor1,rprimd,dtset%typat,xred,&
+        &   idir+1,cplex,intgden=intgden,rhomag=rhomag)
+
+   ! CEDrev: Should use this routine, for not do the printing myself
+   !  call  prtdenmagsph(cplex,intgden,dtset%natom,nspden,dtset%ntypat,ab_out,idir+1,dtset%ratsm,dtset%ratsph,rhomag,dtset%typat)
+   write(*,'(5a8)') '   ','pert','dir','atom','FO den'
+   do iatom= 1,dtset%natom
+      write(*,'(a13,3i5,e20.10)') 'N_DEN_AT',ipert,idir,iatom,intgden(1,iatom)
+      write(*,'(a13,3i5,e20.10)') 'MX_DEN_AT',ipert,idir,iatom,intgden(2,iatom)
+      write(*,'(a13,3i5,e20.10)') 'MY_DEN_AT',ipert,idir,iatom,intgden(3,iatom)
+      write(*,'(a13,3i5,e20.10)') 'MZ_DEN_AT',ipert,idir,iatom,intgden(4,iatom)
+   end do
+   write(*,'(a13,2i5,e20.10)') 'N_DEN_TOT',ipert,idir,dentot(1)
+   write(*,'(a13,2i5,e20.10)') 'MX_DEN_TOT',ipert,idir,dentot(2)
+   write(*,'(a13,2i5,e20.10)') 'MY_DEN_TOT',ipert,idir,dentot(3)
+   write(*,'(a13,2i5,e20.10)') 'MZ_DEN_TOT',ipert,idir,dentot(4)
+
+end if
+
+
 
 !     write(*,*) ' n ( 1,2)',intgden(1,1),' ',intgden(1,2)
 !     write(*,*) ' mx( 1,2)',intgden(2,1),' ',intgden(2,2)
@@ -1324,6 +1343,25 @@ subroutine dfpt_scfcv(atindx,blkflg,cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,c
 !  endif
 !
 !endif
+
+! CEDrev: I should get the above to work, but lets do this for now
+ if (dtset%prtfomag>0 .and. me==0) then
+   call calcdenmagsph(mpi_enreg,dtset%natom,nfftf,ngfftf,nspden,&
+        &   dtset%ntypat,dtset%ratsm,dtset%ratsph,rhor1,rprimd,dtset%typat,xred,&
+        &   idir+1,cplex,intgden=intgden,rhomag=rhomag)
+    write(*,'(5a8)') '   ','pert','dir','atom','FO den'
+    do iatom= 1,dtset%natom
+       write(*,'(a23,3i5,e20.10)') 'FINAL_N_DEN_AT',ipert,idir,iatom,intgden(1,iatom)
+       write(*,'(a23,3i5,e20.10)') 'FINAL_MX_DEN_AT',ipert,idir,iatom,intgden(2,iatom)
+       write(*,'(a23,3i5,e20.10)') 'FINAL_MY_DEN_AT',ipert,idir,iatom,intgden(3,iatom)
+       write(*,'(a23,3i5,e20.10)') 'FINAL_MZ_DEN_AT',ipert,idir,iatom,intgden(4,iatom)
+    end do
+    write(*,'(a23,2i5,e20.10)') 'FINAL_N_DEN_TOT',ipert,idir,dentot(1)
+    write(*,'(a23,2i5,e20.10)') 'FINAL_MX_DEN_TOT',ipert,idir,dentot(2)
+    write(*,'(a23,2i5,e20.10)') 'FINAL_MY_DEN_TOT',ipert,idir,dentot(3)
+    write(*,'(a23,2i5,e20.10)') 'FINAL_MZ_DEN_TOT',ipert,idir,dentot(4)
+
+ end if
 
 
 !Eventually close the dot file, before calling dfpt_nstdy

@@ -979,6 +979,9 @@ subroutine invars2(bravais,dtset,iout,jdtset,lenstr,mband,msym,npsp,string,usepa
    call intagm(dprarr,intarr,jdtset,marr,1,string(1:lenstr),'vlfrceta',tread,'DPR')
    if(tread==1) dtset%vlfrceta=dprarr(1) ! Should I make this ENE??
 
+   call intagm(dprarr,intarr,jdtset,marr,1,string(1:lenstr),'prtfomag',tread,'INT')
+   if(tread==1) dtset%prtfomag=intarr(1)
+
 
  ! Recursion input variables
  call intagm(dprarr,intarr,jdtset,marr,1,string(1:lenstr),'tfkinfunc',tread,'INT')

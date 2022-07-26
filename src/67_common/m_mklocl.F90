@@ -801,7 +801,7 @@ subroutine dfpt_vlocal(atindx,cplexin,gmet,gsqcut,idir,ipert,&
  cplex = MOD(cplexin,10)
 
 ! CEDrev: TEST
-write(*,*) 'EXCLUDEG0',excludeg0 
+!write(*,*) 'EXCLUDEG0',excludeg0 
 
 
 

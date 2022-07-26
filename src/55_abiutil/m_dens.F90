@@ -1565,7 +1565,7 @@ end subroutine mag_penalty_e
 !! SOURCE
 
 subroutine calcdenmagsph(mpi_enreg,natom,nfft,ngfft,nspden,ntypat,ratsm,ratsph,rhor,rprimd,typat,xred,&
-&    option,cplex,dentot,gr_intgden,intgden,intgf2,rhomag,strs_intgden)
+&    option,cplex,dentot,gr_intgden,intgden,intgden_cplex,intgf2,rhomag,strs_intgden)
 
 !Arguments ---------------------------------------------
 !scalars
@@ -1580,7 +1580,8 @@ subroutine calcdenmagsph(mpi_enreg,natom,nfft,ngfft,nspden,ntypat,ratsm,ratsph,r
  real(dp),intent(in) :: xred(3,natom)
  real(dp),intent(out),optional  :: dentot(nspden)
  real(dp),intent(out),optional  :: gr_intgden(3,nspden,natom)   
- real(dp),intent(out),optional  :: intgden(nspden,natom)
+ real(dp),intent(out),optional  :: intgden(nspden,natom) 
+ real(dp),intent(out),optional  :: intgden_cplex(cplex,nspden,natom) ! CEDrev
  real(dp),intent(out),optional  :: intgf2(natom,natom)
  real(dp),intent(out),optional  :: rhomag(2,nspden)
  real(dp),intent(out),optional  :: strs_intgden(6,nspden,natom)   
@@ -1598,9 +1599,9 @@ subroutine calcdenmagsph(mpi_enreg,natom,nfft,ngfft,nspden,ntypat,ratsm,ratsph,r
  integer, ABI_CONTIGUOUS pointer :: fftn3_distrib(:),ffti3_local(:)
  integer :: overlap_ij(natom,natom)
  real(dp) :: gmet(3,3),gprimd(3,3),gr_intg(3,4)
- real(dp) :: intg(4),rhomag_(2,nspden)
+ real(dp) :: intg(cplex,4),rhomag_(2,nspden) ! CEDrev: Added index to intg for complext rhor
  real(dp) :: strs(3,3),strs_cartred(3,3),strs_intg(6,4),tsec(2)
- real(dp) :: dist_ij(natom,natom),intgden_(nspden,natom)
+ real(dp) :: dist_ij(natom,natom),intgden_(cplex,nspden,natom) ! CEDrev: Added index to intg for complext rhor
  real(dp) :: my_xred(3, natom), rmet(3,3),xshift(3, natom)
  real(dp), allocatable :: fsm_atom(:,:)
 
@@ -1613,6 +1614,9 @@ subroutine calcdenmagsph(mpi_enreg,natom,nfft,ngfft,nspden,ntypat,ratsm,ratsph,r
  intgden_=zero
  if(present(intgden))then
    intgden=zero
+ endif
+ if(present(intgden_cplex))then
+   intgden_cplex=zero
  endif
  if(present(gr_intgden))then
    gr_intgden=zero
@@ -1694,7 +1698,10 @@ subroutine calcdenmagsph(mpi_enreg,natom,nfft,ngfft,nspden,ntypat,ratsm,ratsph,r
    !This is the "width" of the zone of smearing, in term of the square of radius
    ratsm2 = (2*ratsph(typat(iatom))-ratsm)*ratsm
 
-   intg(:)=zero
+   ! CEDrev:
+   !intg(:)=zero
+   intg(:,:)=zero
+
    gr_intg(:,:)=zero
    strs_intg(:,:)=zero
 
@@ -1746,7 +1753,11 @@ subroutine calcdenmagsph(mpi_enreg,natom,nfft,ngfft,nspden,ntypat,ratsm,ratsph,r
              if(neighbor_overlap==1)fsm_atom(ifft_local,iatom)=fsm_atom(ifft_local,iatom)+fsm
            endif
 !          Integral of density or potential residual
-           intg(1:nspden)=intg(1:nspden)+fsm*rhor(ifft_local,1:nspden)
+           ! CEDrev: Take into account complex rhor
+           !intg(1:nspden)=intg(1:nspden)+fsm*rhor(ifft_local,1:nspden)
+           intg(1:cplex,1:nspden)=intg(1:cplex,1:nspden)+fsm*rhor(ifft_local:ifft_local+cplex-1,1:nspden)
+
+
            if((present(gr_intgden).or.present(strs_intgden)).and. option<10 .and. ratsm2>tol12)then
              do ispden=1,nspden
                fact=dfsm*rhor(ifft_local,ispden)
@@ -1774,7 +1785,9 @@ subroutine calcdenmagsph(mpi_enreg,natom,nfft,ngfft,nspden,ntypat,ratsm,ratsph,r
      intgf2(iatom,iatom)=intgf2(iatom,iatom)*ucvol/dble(nfftot)
    endif
 
-   intg(:)=intg(:)*ucvol/dble(nfftot)
+   ! CEDrev:
+   !intg(:)=intg(:)*ucvol/dble(nfftot)
+   intg(:,:)=intg(:,:)*ucvol/dble(nfftot) 
 
    if(present(gr_intgden).and. option<10 .and. ratsm2>tol12)then
 !    Convert to gradient in reduced coordinates
@@ -1834,8 +1847,13 @@ subroutine calcdenmagsph(mpi_enreg,natom,nfft,ngfft,nspden,ntypat,ratsm,ratsph,r
 !    Specific treatment of collinear density, due to the storage mode.
 !    intgden_(1,iatom)= integral of up density
 !    intgden_(2,iatom)= integral of dn density
-     intgden_(1,iatom)=intg(2)
-     intgden_(2,iatom)=intg(1)-intg(2)
+
+      ! CEDrev: include extra index for complex case
+     !intgden_(1,iatom)=intg(2)
+     !intgden_(2,iatom)=intg(1)-intg(2)
+     intgden_(1,1,iatom)=intg(1,2)
+     intgden_(1,2,iatom)=intg(1,1)-intg(1,2)
+
      if(present(gr_intgden).and. option<10 .and. ratsm2>tol12)then
        gr_intgden(:,1,iatom)=gr_intg(:,2)
        gr_intgden(:,2,iatom)=gr_intg(:,1)-gr_intg(:,2)
@@ -1845,7 +1863,10 @@ subroutine calcdenmagsph(mpi_enreg,natom,nfft,ngfft,nspden,ntypat,ratsm,ratsph,r
        strs_intgden(:,2,iatom)=strs_intg(:,1)-strs_intg(:,2)
      endif
    else
-     intgden_(1:nspden,iatom)=intg(1:nspden)
+      ! CEDrev: For complex rhor
+      ! intgden_(1:nspden,iatom)=intg(1:nspden)
+      intgden_(1:cplex,1:nspden,iatom)=intg(1:cplex,1:nspden)
+
      if(present(gr_intgden).and. option<10 .and. ratsm2>tol12)then
        gr_intgden(:,1:nspden,iatom)=gr_intg(:,1:nspden)
      endif
@@ -1906,8 +1927,20 @@ subroutine calcdenmagsph(mpi_enreg,natom,nfft,ngfft,nspden,ntypat,ratsm,ratsph,r
      call xmpi_sum(intgden_,mpi_enreg%comm_fft,ierr)
      call timab(48,2,tsec)
    end if
-   if(present(intgden))intgden = intgden_
+   if(present(intgden))intgden = intgden_(1,:,:) ! CEDrev: Added first index for cmplex
  end if
+
+
+! CEDrev:
+ if(present(intgden_cplex) .or. option/=0) then
+   if(mpi_enreg%nproc_fft>1)then
+     call timab(48,1,tsec)
+     call xmpi_sum(intgden_,mpi_enreg%comm_fft,ierr)
+     call timab(48,2,tsec)
+   end if
+   if(present(intgden_cplex))intgden_cplex = intgden_
+ end if
+
 
  if(present(gr_intgden) .and. option<10 .and. ratsm2>tol12) then
    if(mpi_enreg%nproc_fft>1)then

@@ -433,6 +433,7 @@ subroutine dfpt_scfcv(atindx,blkflg,cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,c
  real(dp) :: rhomag(2,nspden),rmet(3,3),tollist(12),tsec(2)
  real(dp) :: zeff_red(3),zeff_bar(3,3)
  real(dp) :: intgden(dtset%nspden,dtset%natom),dentot(dtset%nspden)
+ real(dp) :: intgden_cplex(cplex,dtset%nspden,dtset%natom) ! CEDrev: for complex
 !real(dp) :: zdmc_red(3),zdmc_bar(3,3),mean_rhor1(1) !dynamic magnetic charges and mean density
  real(dp),allocatable :: dielinv(:,:,:,:,:)
  real(dp),allocatable :: fcart(:,:),nhat1(:,:),nhat1gr(:,:,:),nhatfermi(:,:),nvresid1(:,:),nvresid2(:,:)
@@ -1036,21 +1037,21 @@ subroutine dfpt_scfcv(atindx,blkflg,cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,c
 if (dtset%prtfomag .and. me==0) then
    call calcdenmagsph(mpi_enreg,dtset%natom,nfftf,ngfftf,nspden,&
         &   dtset%ntypat,dtset%ratsm,dtset%ratsph,rhor1,rprimd,dtset%typat,xred,&
-        &   idir+1,cplex,intgden=intgden,rhomag=rhomag)
+        &   idir+1,cplex,intgden=intgden,intgden_cplex=intgden_cplex,rhomag=rhomag)
 
    ! CEDrev: Should use this routine, for not do the printing myself
    !  call  prtdenmagsph(cplex,intgden,dtset%natom,nspden,dtset%ntypat,ab_out,idir+1,dtset%ratsm,dtset%ratsph,rhomag,dtset%typat)
    write(*,'(5a8)') '   ','pert','dir','atom','FO den'
    do iatom= 1,dtset%natom
-      write(*,'(a13,3i5,e20.10)') 'N_DEN_AT',ipert,idir,iatom,intgden(1,iatom)
-      write(*,'(a13,3i5,e20.10)') 'MX_DEN_AT',ipert,idir,iatom,intgden(2,iatom)
-      write(*,'(a13,3i5,e20.10)') 'MY_DEN_AT',ipert,idir,iatom,intgden(3,iatom)
-      write(*,'(a13,3i5,e20.10)') 'MZ_DEN_AT',ipert,idir,iatom,intgden(4,iatom)
+      write(*,'(a13,3i5,2e20.10e3)') 'N_DEN_AT',ipert,idir,iatom,intgden_cplex(:,1,iatom)
+      write(*,'(a13,3i5,2e20.10e3)') 'MX_DEN_AT',ipert,idir,iatom,intgden_cplex(:,2,iatom)
+      write(*,'(a13,3i5,2e20.10e3)') 'MY_DEN_AT',ipert,idir,iatom,intgden_cplex(:,3,iatom)
+      write(*,'(a13,3i5,2e20.10e3)') 'MZ_DEN_AT',ipert,idir,iatom,intgden_cplex(:,4,iatom)
    end do
-   write(*,'(a13,2i5,e20.10)') 'N_DEN_TOT',ipert,idir,dentot(1)
-   write(*,'(a13,2i5,e20.10)') 'MX_DEN_TOT',ipert,idir,dentot(2)
-   write(*,'(a13,2i5,e20.10)') 'MY_DEN_TOT',ipert,idir,dentot(3)
-   write(*,'(a13,2i5,e20.10)') 'MZ_DEN_TOT',ipert,idir,dentot(4)
+   write(*,'(a13,2i5,2e20.10e3)') 'N_DEN_TOT',ipert,idir,rhomag(:,1)
+   write(*,'(a13,2i5,2e20.10e3)') 'MX_DEN_TOT',ipert,idir,rhomag(:,2)
+   write(*,'(a13,2i5,2e20.10e3)') 'MY_DEN_TOT',ipert,idir,rhomag(:,3)
+   write(*,'(a13,2i5,2e20.10e3)') 'MZ_DEN_TOT',ipert,idir,rhomag(:,4)
 
 end if
 
@@ -1348,21 +1349,22 @@ end if
  if (dtset%prtfomag>0 .and. me==0) then
    call calcdenmagsph(mpi_enreg,dtset%natom,nfftf,ngfftf,nspden,&
         &   dtset%ntypat,dtset%ratsm,dtset%ratsph,rhor1,rprimd,dtset%typat,xred,&
-        &   idir+1,cplex,intgden=intgden,rhomag=rhomag)
+        &   idir+1,cplex,intgden=intgden,intgden_cplex=intgden_cplex,rhomag=rhomag)
     write(*,'(5a8)') '   ','pert','dir','atom','FO den'
     do iatom= 1,dtset%natom
-       write(*,'(a23,3i5,e20.10)') 'FINAL_N_DEN_AT',ipert,idir,iatom,intgden(1,iatom)
-       write(*,'(a23,3i5,e20.10)') 'FINAL_MX_DEN_AT',ipert,idir,iatom,intgden(2,iatom)
-       write(*,'(a23,3i5,e20.10)') 'FINAL_MY_DEN_AT',ipert,idir,iatom,intgden(3,iatom)
-       write(*,'(a23,3i5,e20.10)') 'FINAL_MZ_DEN_AT',ipert,idir,iatom,intgden(4,iatom)
+       write(*,'(a13,3i5,2e20.10e3)') 'N_DEN_AT',ipert,idir,iatom,intgden_cplex(:,1,iatom)
+       write(*,'(a13,3i5,2e20.10e3)') 'MX_DEN_AT',ipert,idir,iatom,intgden_cplex(:,2,iatom)
+       write(*,'(a13,3i5,2e20.10e3)') 'MY_DEN_AT',ipert,idir,iatom,intgden_cplex(:,3,iatom)
+       write(*,'(a13,3i5,2e20.10e3)') 'MZ_DEN_AT',ipert,idir,iatom,intgden_cplex(:,4,iatom)
     end do
-    write(*,'(a23,2i5,e20.10)') 'FINAL_N_DEN_TOT',ipert,idir,dentot(1)
-    write(*,'(a23,2i5,e20.10)') 'FINAL_MX_DEN_TOT',ipert,idir,dentot(2)
-    write(*,'(a23,2i5,e20.10)') 'FINAL_MY_DEN_TOT',ipert,idir,dentot(3)
-    write(*,'(a23,2i5,e20.10)') 'FINAL_MZ_DEN_TOT',ipert,idir,dentot(4)
+    write(*,'(a23,2i5,2e20.10e3)') 'FINAL_N_DEN_TOT',ipert,idir,rhomag(:,1)
+    write(*,'(a23,2i5,2e20.10e3)') 'FINAL_MX_DEN_TOT',ipert,idir,rhomag(:,2)
+    write(*,'(a23,2i5,2e20.10e3)') 'FINAL_MY_DEN_TOT',ipert,idir,rhomag(:,3)
+    write(*,'(a23,2i5,2e20.10e3)') 'FINAL_MZ_DEN_TOT',ipert,idir,rhomag(:,4)
 
+    call  prtdenmagsph(cplex,intgden,dtset%natom,nspden,dtset%ntypat,ab_out,idir+1,dtset%ratsm,dtset%ratsph,rhomag,dtset%typat) 
  end if
-
+ 
 
 !Eventually close the dot file, before calling dfpt_nstdy
  if ((ipert==dtset%natom+2.and.sum((dtset%qptn(1:3))**2)<=1.0d-7.and.&

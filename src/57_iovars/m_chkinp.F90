@@ -2078,7 +2078,7 @@ subroutine chkinp(dtsets,iout,mpi_enregs,ndtset,ndtset_alloc,npsp,pspheads,comm)
 !  spin-orbit is not implemented for the strain perturbation
    
    ! CEDrev: TEST
-   write(*,*) 'RFSTRSCHKINP',dt%rfstrs
+   !write(*,*) 'RFSTRSCHKINP',dt%rfstrs
 
    if(dt%rfstrs/=0)then
      cond_string(1)='rfstrs' ; cond_values(1)=dt%rfstrs

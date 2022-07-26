@@ -351,8 +351,8 @@ program abinit
  call timab(45,3,tsec)
 
  !CEDrev: TEST
- write(*,*) 'RFSTRS',dtsets%rfstrs
- write(*,*) 'RFPHON',dtsets%rfphon
+ !write(*,*) 'RFSTRS',dtsets%rfstrs
+ !write(*,*) 'RFPHON',dtsets%rfphon
 
  call chkinp(dtsets, ab_out, mpi_enregs, ndtset, ndtset_alloc, npsp, pspheads, xmpi_world)
 

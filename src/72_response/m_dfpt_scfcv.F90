@@ -1047,11 +1047,22 @@ if (dtset%prtfomag .and. me==0) then
       write(*,'(a13,3i5,2e20.10e3)') 'MX_DEN_AT',ipert,idir,iatom,intgden_cplex(:,2,iatom)
       write(*,'(a13,3i5,2e20.10e3)') 'MY_DEN_AT',ipert,idir,iatom,intgden_cplex(:,3,iatom)
       write(*,'(a13,3i5,2e20.10e3)') 'MZ_DEN_AT',ipert,idir,iatom,intgden_cplex(:,4,iatom)
+      
+      open (unit=19, file='dmdtau_at.dat', status='old',access='append')
+      write(19,'(3i5,3f10.5,6e20.10e3)') ipert,idir,iatom,dtset%qptn(:), & 
+           & intgden_cplex(:,2,iatom),intgden_cplex(:,3,iatom),intgden_cplex(:,4,iatom)
+      close(19)
+
    end do
    write(*,'(a13,2i5,2e20.10e3)') 'N_DEN_TOT',ipert,idir,rhomag(:,1)
    write(*,'(a13,2i5,2e20.10e3)') 'MX_DEN_TOT',ipert,idir,rhomag(:,2)
    write(*,'(a13,2i5,2e20.10e3)') 'MY_DEN_TOT',ipert,idir,rhomag(:,3)
    write(*,'(a13,2i5,2e20.10e3)') 'MZ_DEN_TOT',ipert,idir,rhomag(:,4)
+
+   open (unit=19, file='dmdtau_tot.dat', status='old',access='append')
+      write(19,'(2i5,3f10.5,6e20.10e3)') ipert,idir,dtset%qptn(:),rhomag(:,2),rhomag(:,3),rhomag(:,4)
+   close(19)
+
 
 end if
 

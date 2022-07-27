@@ -385,6 +385,17 @@ calcden=0
 !!$   write(*,*) 'NOGZERO',dtset%nogzero
 !!$end if
 
+! CEDrev: Printing out FO magnetic charges
+if (dtset%prtfomag==1) then
+   open (unit=19, file='dmdtau_at.dat', status='replace')  
+   open (unit=20, file='dmdtau_tot.dat', status='replace')
+   write(19,*) '# pert   dir   atom   ReMx   ImMx   ReMy   ImMy   ReMz   ImMz'
+   write(20,*) '# pert   dir   ReMx   ImMx   ReMy   ImMy   ReMz   ImMz'
+   close(19)
+   close(20)
+end if
+
+
 ! CEDrev:
 prt_eigen1_dk=0 ! 0 = do not print 1st order eigenfunctions
 if (dtset%userie==-1) prt_eigen1_dk=1

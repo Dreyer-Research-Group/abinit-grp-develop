@@ -987,7 +987,7 @@ end if
        call fourwf(1,denpot,kinin,kinout,dumr,gs_hamkq%gbound_k,gs_hamkq%gbound_kp,&
             & gs_hamkq%istwf_k,gs_hamkq%kg_k,gs_hamkq%kg_kp,gs_hamkq%mgfft,mpi_enreg,1,gs_hamkq%ngfft,npw,&
             &     npw1,gs_hamkq%n4,gs_hamkq%n5,gs_hamkq%n6,2,0,one,one)
-       !$OMP PARALLEL DO PRIVATE(ipw,ipws) SHARED(cwave,ispinor,gvnl1_,dkinpw,kinpw1,npw,nspinor)
+       !$OMP PARALLEL DO PRIVATE(ipw,ipws) SHARED(cwave,ispinor,gvnlx1_,dkinpw,kinpw1,npw,my_nspinor)
        do ipw=1,npw1
           ipws=ipw+npw1*(ispinor-1)
           if(kinpw1(ipw)<huge(zero)*1.d-11)then

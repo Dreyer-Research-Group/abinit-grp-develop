@@ -1034,7 +1034,7 @@ subroutine dfpt_scfcv(atindx,blkflg,cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,c
 
 !  SPr: don't remove the following comments for debugging
 ! CEDrev: Write this out at every step to check convergence 
-if (dtset%prtfomag .and. me==0) then
+if (dtset%prtfomag > 0 .and. me==0) then
    call calcdenmagsph(mpi_enreg,dtset%natom,nfftf,ngfftf,nspden,&
         &   dtset%ntypat,dtset%ratsm,dtset%ratsph,rhor1,rprimd,dtset%typat,xred,&
         &   idir+1,cplex,intgden=intgden,intgden_cplex=intgden_cplex,rhomag=rhomag)

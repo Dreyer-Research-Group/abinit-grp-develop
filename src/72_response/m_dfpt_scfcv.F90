@@ -1035,18 +1035,25 @@ subroutine dfpt_scfcv(atindx,blkflg,cg,cgp,cgq,cg1,cg1_active,cplex,cprj,cprjq,c
 !  SPr: don't remove the following comments for debugging
 ! CEDrev: Write this out at every step to check convergence 
 if (dtset%prtfomag > 0 .and. me==0) then
+!!$   call calcdenmagsph(mpi_enreg,dtset%natom,nfftf,ngfftf,nspden,&
+!!$        &   dtset%ntypat,dtset%ratsm,dtset%ratsph,rhor1,rprimd,dtset%typat,xred,&
+!!$        &   idir+1,cplex,intgden=intgden,intgden_cplex=intgden_cplex,rhomag=rhomag)
    call calcdenmagsph(mpi_enreg,dtset%natom,nfftf,ngfftf,nspden,&
         &   dtset%ntypat,dtset%ratsm,dtset%ratsph,rhor1,rprimd,dtset%typat,xred,&
-        &   idir+1,cplex,intgden=intgden,intgden_cplex=intgden_cplex,rhomag=rhomag)
+        &   idir+1,cplex,intgden=intgden,rhomag=rhomag)
 
    ! CEDrev: Should use this routine, for not do the printing myself
    !  call  prtdenmagsph(cplex,intgden,dtset%natom,nspden,dtset%ntypat,ab_out,idir+1,dtset%ratsm,dtset%ratsph,rhomag,dtset%typat)
    write(*,'(5a8)') '   ','pert','dir','atom','FO den'
    do iatom= 1,dtset%natom
-      write(*,'(a13,3i5,2e20.10e3)') 'N_DEN_AT',ipert,idir,iatom,intgden_cplex(:,1,iatom)
-      write(*,'(a13,3i5,2e20.10e3)') 'MX_DEN_AT',ipert,idir,iatom,intgden_cplex(:,2,iatom)
-      write(*,'(a13,3i5,2e20.10e3)') 'MY_DEN_AT',ipert,idir,iatom,intgden_cplex(:,3,iatom)
-      write(*,'(a13,3i5,2e20.10e3)') 'MZ_DEN_AT',ipert,idir,iatom,intgden_cplex(:,4,iatom)
+!!$      write(*,'(a13,3i5,2e20.10e3)') 'N_DEN_AT',ipert,idir,iatom,intgden_cplex(:,1,iatom)
+!!$      write(*,'(a13,3i5,2e20.10e3)') 'MX_DEN_AT',ipert,idir,iatom,intgden_cplex(:,2,iatom)
+!!$      write(*,'(a13,3i5,2e20.10e3)') 'MY_DEN_AT',ipert,idir,iatom,intgden_cplex(:,3,iatom)
+!!$      write(*,'(a13,3i5,2e20.10e3)') 'MZ_DEN_AT',ipert,idir,iatom,intgden_cplex(:,4,iatom)
+      write(*,'(a13,3i5,2e20.10e3)') 'N_DEN_AT',ipert,idir,iatom, intgden(1,iatom)
+      write(*,'(a13,3i5,2e20.10e3)') 'MX_DEN_AT',ipert,idir,iatom,intgden(2,iatom)
+      write(*,'(a13,3i5,2e20.10e3)') 'MY_DEN_AT',ipert,idir,iatom,intgden(3,iatom)
+      write(*,'(a13,3i5,2e20.10e3)') 'MZ_DEN_AT',ipert,idir,iatom,intgden(4,iatom)
       
    end do
    write(*,'(a13,2i5,2e20.10e3)') 'N_DEN_TOT',ipert,idir,rhomag(:,1)
@@ -1348,15 +1355,26 @@ end if
 
 ! CEDrev: I should get the above to work, but lets do this for now
  if (dtset%prtfomag>0 .and. me==0) then
-   call calcdenmagsph(mpi_enreg,dtset%natom,nfftf,ngfftf,nspden,&
+!!$   call calcdenmagsph(mpi_enreg,dtset%natom,nfftf,ngfftf,nspden,&
+!!$        &   dtset%ntypat,dtset%ratsm,dtset%ratsph,rhor1,rprimd,dtset%typat,xred,&
+!!$        &   idir+1,cplex,intgden=intgden,intgden_cplex=intgden_cplex,rhomag=rhomag)
+
+      call calcdenmagsph(mpi_enreg,dtset%natom,nfftf,ngfftf,nspden,&
         &   dtset%ntypat,dtset%ratsm,dtset%ratsph,rhor1,rprimd,dtset%typat,xred,&
-        &   idir+1,cplex,intgden=intgden,intgden_cplex=intgden_cplex,rhomag=rhomag)
-    write(*,'(5a8)') '   ','pert','dir','atom','FO den'
+        &   idir+1,cplex,intgden=intgden,rhomag=rhomag)
+
+
+   write(*,'(5a8)') '   ','pert','dir','atom','FO den'
     do iatom= 1,dtset%natom
-       write(*,'(a13,3i5,2e20.10e3)') 'N_DEN_AT',ipert,idir,iatom,intgden_cplex(:,1,iatom)
-       write(*,'(a13,3i5,2e20.10e3)') 'MX_DEN_AT',ipert,idir,iatom,intgden_cplex(:,2,iatom)
-       write(*,'(a13,3i5,2e20.10e3)') 'MY_DEN_AT',ipert,idir,iatom,intgden_cplex(:,3,iatom)
-       write(*,'(a13,3i5,2e20.10e3)') 'MZ_DEN_AT',ipert,idir,iatom,intgden_cplex(:,4,iatom)
+!!$       write(*,'(a13,3i5,2e20.10e3)') 'N_DEN_AT',ipert,idir,iatom,intgden_cplex(:,1,iatom)
+!!$       write(*,'(a13,3i5,2e20.10e3)') 'MX_DEN_AT',ipert,idir,iatom,intgden_cplex(:,2,iatom)
+!!$       write(*,'(a13,3i5,2e20.10e3)') 'MY_DEN_AT',ipert,idir,iatom,intgden_cplex(:,3,iatom)
+!!$       write(*,'(a13,3i5,2e20.10e3)') 'MZ_DEN_AT',ipert,idir,iatom,intgden_cplex(:,4,iatom)
+
+       write(*,'(a13,3i5,2e20.10e3)') 'N_DEN_AT',ipert,idir,iatom, intgden(1,iatom)
+       write(*,'(a13,3i5,2e20.10e3)') 'MX_DEN_AT',ipert,idir,iatom,intgden(2,iatom)
+       write(*,'(a13,3i5,2e20.10e3)') 'MY_DEN_AT',ipert,idir,iatom,intgden(3,iatom)
+       write(*,'(a13,3i5,2e20.10e3)') 'MZ_DEN_AT',ipert,idir,iatom,intgden(4,iatom)
 
        open (unit=19, file='dmdtau_at.dat', status='old',access='append')
        write(19,'(3i5,3f10.5,6e20.10e3)') ipert,idir,iatom,dtset%qptn(:), & 

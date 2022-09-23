@@ -3232,7 +3232,8 @@ subroutine velfrc(cg,cg1_active,cg1_active_prev,cplex,dig_gkk,doccde,docckqde,dt
               write(*,'(a20,i5,2e20.10e2)') 'Tot tst ',isppol,dab1(isppol)
 
            else
-              
+
+              write(*,*) 'nelect,isppol,ipert_a,ipert_b,idir_a,idir_b,dedw1(isppol),dedw2(isppol),dedw1(isppol)-dedw2(isppol)'
               write(*,'(a10,f12.4,5i5,6e20.10e2)') 'dE/dw',nelect,isppol,ipert_a,ipert_b,idir_a,idir_b, &
                    & dedw1(isppol),dedw2(isppol),dedw1(isppol)-dedw2(isppol)
 

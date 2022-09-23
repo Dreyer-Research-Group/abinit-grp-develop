@@ -3233,7 +3233,8 @@ subroutine velfrc(cg,cg1_active,cg1_active_prev,cplex,dig_gkk,doccde,docckqde,dt
 
            else
               
-              write(*,'(a10,i5,f12.4,6e20.10e2)') 'dE/dw',isppol,nelect,dedw1(isppol),dedw2(isppol),dedw1(isppol)-dedw2(isppol)
+              write(*,'(a10,f12.4,5i5,6e20.10e2)') 'dE/dw',nelect,isppol,ipert_a,ipert_b,idir_a,idir_b, &
+                   & dedw1(isppol),dedw2(isppol),dedw1(isppol)-dedw2(isppol)
 
            end if
 

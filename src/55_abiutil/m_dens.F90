@@ -1755,7 +1755,11 @@ subroutine calcdenmagsph(mpi_enreg,natom,nfft,ngfft,nspden,ntypat,ratsm,ratsph,r
 !          Integral of density or potential residual
            ! CEDrev: Take into account complex rhor
            !intg(1:nspden)=intg(1:nspden)+fsm*rhor(ifft_local,1:nspden)
-           intg(1:cplex,1:nspden)=intg(1:cplex,1:nspden)+fsm*rhor(ifft_local:ifft_local+cplex-1,1:nspden)
+           !intg(1:cplex,1:nspden)=intg(1:cplex,1:nspden)+fsm*rhor(ifft_local:ifft_local+cplex-1,1:nspden)
+           intg(1:cplex,1)=intg(1:cplex,1)+fsm*rhor(ifft_local:ifft_local+cplex-1,1)
+           intg(1:cplex,2)=intg(1:cplex,2)+fsm*rhor(ifft_local:ifft_local+cplex-1,2)
+           intg(1:cplex,3)=intg(1:cplex,3)+fsm*rhor(ifft_local:ifft_local+cplex-1,3)
+           intg(1:cplex,4)=intg(1:cplex,4)+fsm*rhor(ifft_local:ifft_local+cplex-1,4)
 
 
            if((present(gr_intgden).or.present(strs_intgden)).and. option<10 .and. ratsm2>tol12)then
@@ -1993,7 +1997,8 @@ if(present(strs_intgden) .and. option<10 .and. ratsm2>tol12) then
  endif
 
 !DEBUG BUT KEEP
- if(.false.)then
+ ! if(.false.)then
+ if (.true.) then
    call printmagvtk(mpi_enreg,cplex,nspden,nfft,ngfft,rhor,rprimd,'DEN.vtk')
  endif
 !ENDDEBUG

@@ -2099,8 +2099,10 @@ else if (.not. found_eq_gkk) then
            write(*,'(a20,5e18.8e3)') 'G=0 of rhog1 proc', two_pi*matmul(gprimd(:,:),dtset%qptn(:)),rhog1(:,1)
         end if
 #endif
-     end if
+     end if     
 
+
+     
 ! CEDrev: TEST check cg and cgq
 !!$   open (unit=19, file='cg1_after_test.dat', status='replace')
 !!$   do ii=1,mcg1

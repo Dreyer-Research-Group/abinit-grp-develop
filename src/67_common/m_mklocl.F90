@@ -1255,7 +1255,10 @@ subroutine vlocalstr(gmet,gprimd,gsqcut,istr,mgfft,mpi_enreg,&
 
        ia2=ia1+nattyp(itypat)-1
        do ia=ia1,ia2
-         vlocg0=vlocg0+vlspl(1,2,itypat)
+          vlocg0=vlocg0+vlspl(1,2,itypat)
+
+          ! CEDrev: TEST
+          !write(*,*) "VLSPL",itypat,ia,vlspl(1,2,itypat)
        end do
      end do
      work1(re,1)=-half*vlocg0

@@ -1508,6 +1508,9 @@ if (mpi_enreg%me_kpt==0)  write(*,*) "1. Symmetry reduction is",dtset%symfxe
    if (dtset%metcalc==1) then
       metpertcase=idir+(dtset%natom+6-1)*3
       call appdig(metpertcase,dtfil%fnamewff1,fiwf1i)
+   ! CEDrev: This is if we want to read in a dk calculations and run adcalc
+   else if (adcalc==1 .and. dtset%useria>0) then
+      call appdig(dtset%useria,dtfil%fnamewff1,fiwf1i)
    else
       call appdig(pertcase,dtfil%fnamewff1,fiwf1i)
    end if
@@ -1603,8 +1606,7 @@ if (mpi_enreg%me_kpt==0)  write(*,*) "1. Symmetry reduction is",dtset%symfxe
    ABI_MALLOC(eigen1,(2*dtset%mband*dtset%mband*nkpt_rbz*dtset%nsppol))
    ABI_MALLOC(resid,(dtset%mband*nkpt_rbz*dtset%nsppol))
    call timab(144,1,tsec)
-
-
+   
 !CEDrev: Only read in wavefunction if vfstep=0
    if ((file_exists(nctk_ncify(fiwf1i)) .or. file_exists(fiwf1i)) .and. &
         &      (dtset%get1wf /= 0 .or. dtset%ird1wf /= 0) .and. dtset%vfstep /= 2) then
@@ -1617,6 +1619,15 @@ if (mpi_enreg%me_kpt==0)  write(*,*) "1. Symmetry reduction is",dtset%symfxe
       eigen1 = zero
    end if
 
+   ! CEDrev: TEST
+!!$   if (adcalc==1) then
+!!$      write(*,*) 'HERE ', fiwf1i 
+!!$      
+!!$      write(*,*) cg1
+!!$      stop
+!!$   end if
+
+   
    call timab(144,2,tsec)
    if(.not.kramers_deg) then
      ABI_MALLOC(eigen1_mq,(2*dtset%mband*dtset%mband*nkpt_rbz*dtset%nsppol))

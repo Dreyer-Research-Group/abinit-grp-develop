@@ -2138,6 +2138,7 @@ else if (.not. found_eq_gkk) then
      
      if (dtset%vfstep == 2) then
 
+        if (allocated(eigen_dcovab)) ABI_FREE(eigen_dcovab)
         ABI_MALLOC(eigen_dcovab,(2*dtset%mband*dtset%mband*nkpt_rbz*dtset%nsppol))
 
         call velfrc(cg,cg1_active,cg1_tilde_dk,cplex,dig_gkk,doccde_rbz,docckqde,dtfil,dtset,eigen0,eigen1,eigenq,eigen_dcovab,gh1c_set, &

@@ -2107,7 +2107,7 @@ else if (.not. found_eq_gkk) then
      if (dtset%adcalc==0.and.dtset%symfxe==1) then ! Use symfxe as proxy for first step in Flexo phonon calc
 #ifdef HAVE_MPI
         if (mpi_enreg%me_kpt==0) then
-           write(*,'(a20,5e18.8e3)') 'G=0 of rhog1 proc', two_pi*matmul(gprimd(:,:),dtset%qptn(:)),rhog1(:,1)
+           write(*,'(a20,2i5,5e18.8e3)') 'G=0 of rhog1 proc',ipert,idir,two_pi*matmul(gprimd(:,:),dtset%qptn(:)),rhog1(:,1)
         end if
 #endif
      end if     

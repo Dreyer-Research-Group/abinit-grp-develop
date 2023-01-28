@@ -2432,6 +2432,7 @@ subroutine velfrc(cg,cg1_active,cg1_active_prev,cplex,dig_gkk,doccde,docckqde,dt
   if (dtset%userie==2) max=1
 
   ! idab==1: compute Drude weight; idab==0:no Drude weight
+  idab=0
   if (dtset%drudewt > 0) then
      idab=1
   end if

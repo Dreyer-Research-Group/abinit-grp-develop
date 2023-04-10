@@ -1323,7 +1323,7 @@ end if
    if (.not.kramers_deg) then
      ABI_FREE(nvresid1_mq)
    end if
- end if
+end if
 
 !######################################################################
 !Additional steps after SC iterations

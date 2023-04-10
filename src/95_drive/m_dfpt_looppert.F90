@@ -2151,6 +2151,10 @@ else if (.not. found_eq_gkk) then
            ! Use outgkk to output in correct format
            bantot0=sum(nband_rbz(1:nkpt_rbz*dtset%nsppol))
            bantot1=dtset%mband*dtset%mband*nkpt_rbz*dtset%nsppol
+
+           nmatel = dtset%mband*dtset%mband*nkpt_rbz*dtset%nsppol
+           ABI_MALLOC(phasecg, (2, nmatel))
+
            phasecg(1,:) = one ! This is not even really used
            phasecg(2,:) = zero
 
@@ -2159,6 +2163,9 @@ else if (.not. found_eq_gkk) then
            call appdig(dig_gkk,dtfil%fnameabo_gkk,gkkfilnam_vlfrc) 
            call outgkk(bantot0,bantot1,gkkfilnam_vlfrc,eigen0,eigen_dcovab,hdr0,hdr,mpi_enreg,phasecg)
 
+           ABI_FREE(phasecg)
+
+           
         end if
 
      ! CEDrev: For velfr 1, write out FO wf orthogonal to active

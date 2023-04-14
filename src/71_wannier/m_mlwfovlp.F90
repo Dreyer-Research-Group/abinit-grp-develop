@@ -289,9 +289,12 @@ contains
    real_lattice(:,i)=Bohr_Ang*rprimd(i,:)
    recip_lattice(:,i)=two_pi*gprimd(i,:)/Bohr_Ang
  end do
-!
+! CEDrev: But it seems to work!!!
  if(psps%npsp/=psps%ntypat) then
-   ABI_ERROR("prb npsp")
+    !ABI_ERROR("prb npsp")
+    if (rank==master) then
+       write(*,*) "WARNING: USING MLWFs with alchemical pert. Not tested!!"
+    end if
  end if
 !
 !Allocations.

@@ -660,8 +660,21 @@ subroutine dtmixflexo(asr,d2asr,blkval1d,blkval2d,blkval,gprimd,intstrn,intstrn_
                              mixflexo(elfd,qvecd,2,3),mixflexo(elfd,qvecd,1,3),mixflexo(elfd,qvecd,1,2)
        call wrtout([ab_out,std_out],msg,'COLL')
      end do
-   end if
- end if
+  end if
+
+
+! CEDrev: Output the pseudoinverse
+  write(msg,'(3a)')ch10,'Pseudo inverse of the dynamical matrix',ch10
+  call wrtout([ab_out,std_out],msg,'COLL')
+
+  do iat=1,3*natom
+     write(msg,'(2x,*(e20.10,1x))') psinvdm(iat,:)
+     call wrtout([ab_out,std_out],msg,'COLL')
+  end do
+
+
+  
+end if
 
  DBG_EXIT("COLL")
 
@@ -1524,8 +1537,8 @@ subroutine dtlattflexo(amu,blkval1d,blkvalA,blkvalB,intstrn,lattflexo,mpert,nato
  kmatrix(:,:)=Cpmatr(:,:)
 !transfer the inverse of k-matrix back to the k matrix
 !so now the inverse of k matrix is in the kmatrix
-!ending the part for pseudoinversing the K matrix
-
+!ending the part for pseudoinversing the K matrix 
+ 
  DBG_EXIT("COLL")
 
  end subroutine dm_psinv

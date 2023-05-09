@@ -1276,11 +1276,16 @@ subroutine getgh1c_setup(gs_hamkq, rf_hamkq, dtset, psps, kpoint, kpq, idir, ipe
 !arrays
  real(dp) :: ylmgr_dum(1,1,1), tsec(2)
 
+ ! CEDrev:
+ integer :: ipw
+ 
 ! *************************************************************************
 
  ! MG: This routine is called **many times** in the EPH code for phonon and DDK perturbations
  ! Please, be extremely careful when adding extra stuff that may affect performance.
 
+ DBG_ENTER("COLL")
+ 
  ! Keep track of total time spent in getgh1c_setup (use 195 slot)
  call timab(195, 1, tsec)
  !call cwtime(cpu, wall, gflops, "start")
@@ -1524,32 +1529,32 @@ end if
    ! Compute the derivative of the kinetic operator vs strain
    call kpgstr(dkinpw,dtset%ecut,dtset%ecutsm,dtset%effmass_free,gmet,gprimd,istr,kg_k,kpoint,npw_k)
  end if
-
+ 
  !===== Load the k/k+q dependent parts of the Hamiltonian
  ! Load k-dependent part in the Hamiltonian datastructure
  ABI_MALLOC(ph3d,(2,npw_k,gs_hamkq%matblk))
  call gs_hamkq%load_k(kpt_k=kpoint,npw_k=npw_k,istwf_k=istwf_k,kg_k=kg_k,kpg_k=kpg_k,&
                       ph3d_k=ph3d,compute_ph3d=.true.,compute_gbound=.true.)
-
+ 
  if (size(ffnlk)>0) then
    call gs_hamkq%load_k(ffnl_k=ffnlk)
  else
    call gs_hamkq%load_k(ffnl_k=ffnl1)
  end if
-
+ 
   ! Load k+q-dependent part in the Hamiltonian datastructure
   ! Note: istwf_k is imposed to 1 for RF calculations (should use istwf_kq instead)
  call gs_hamkq%load_kprime(kpt_kp=kpq,npw_kp=npw1_k,istwf_kp=istwf_k,&
    kinpw_kp=kinpw1,kg_kp=kg1_k,kpg_kp=kpg1_k,ffnl_kp=ffnl1,compute_gbound=.true.)
-
+ 
  if (qne0) then
    ABI_MALLOC(ph3d1,(2,npw1_k,gs_hamkq%matblk))
    call gs_hamkq%load_kprime(ph3d_kp=ph3d1,compute_ph3d=.true.)
  end if
-
+ 
  ! Load k-dependent part in the 1st-order Hamiltonian datastructure
  call rf_hamkq%load_k(npw_k=npw_k,dkinpw_k=dkinpw)
-
+ 
  if (ipert==natom+10) then
    call rf_hamkq%load_k(ddkinpw_k=ddkinpw)
    if (idir>3) call rf_hamk_dir2%load_k(dkinpw_k=dkinpw2,ddkinpw_k=ddkinpw)
@@ -1557,6 +1562,9 @@ end if
 
  call timab(195, 2, tsec)
 
+  DBG_EXIT("COLL")
+
+ 
 end subroutine getgh1c_setup
 !!***
 

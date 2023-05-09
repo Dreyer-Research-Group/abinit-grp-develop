@@ -1048,8 +1048,9 @@ subroutine load_k_hamiltonian(ham,ffnl_k,fockACE_k,gbound_k,istwf_k,kinpw_k,&
      if (.not.associated(ham%kg_k)) then
        ABI_BUG('Something is missing for gbound_k computation!')
      end if
-     !write(std_out,*)"About to call sphereboundary"
-     !write(std_out,*)"size(kg_k), npw_k, mgfft",size(ham%kg_k, dim=2), ham%npw_k, ham%mgfft
+     !CEDrev: uncomment lines to test
+     write(std_out,*)"About to call sphereboundary"
+     write(std_out,*)"size(kg_k), npw_k, mgfft",size(ham%kg_k, dim=2), ham%npw_k, ham%mgfft
      call sphereboundary(ham%gbound_k,ham%istwf_k,ham%kg_k,ham%mgfft,ham%npw_k)
    end if
    ham%gbound_kp => ham%gbound_k

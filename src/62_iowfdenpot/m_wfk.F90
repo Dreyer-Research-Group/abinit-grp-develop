@@ -3907,6 +3907,8 @@ subroutine wfk_seek(Wfk,ik_ibz,spin)
    call mvrecord(Wfk%fh, (recn_wanted - recn_fpt) ,ierr)
    ABI_CHECK(ierr == 0, "error in mvrecord")
 
+   
+   
    Wfk%f90_fptr = [ik_ibz, spin, REC_NPW]
 
  case default

@@ -1343,7 +1343,7 @@ subroutine sphereboundary(gbound, istwf_k, kg_k, mgfft, npw)
 !write(std_out, '(a)' )' sphereboundary : list of plane waves coordinates for k point '
 !write(std_out, '(a)' )'       ipw       kg_k(1:3,ipw) '
 !do ipw=1,npw
-!write(std_out, '(i10,a,3i6)' )ipw,'  ',kg_k(1:3,ipw)
+!write(std_out, '(i10,a,3i20)' )ipw,'  ',kg_k(1:3,ipw)
 !end do
 !gbound=-999
 !ENDDEBUG

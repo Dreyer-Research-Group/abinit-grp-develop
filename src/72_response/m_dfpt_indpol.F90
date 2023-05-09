@@ -741,6 +741,9 @@ subroutine joper(calcnl,cwave0_npw1,dtfil,dtset,gprimd,kg1_k,kpt,mpi_enreg,npw1,
  integer, parameter :: gamma3(10)=(/1,2,3,2,3,3,2,3,3,3/)
 !------------------------------------------------
 
+ DBG_ENTER("COLL")
+
+ 
 !************************************************
 ! Setup
 !************************************************
@@ -1051,6 +1054,9 @@ tr=0 !Only TR systyems right now
 !write(*,*) 'time in joper:',wallout-wallin
 !if (mpi_enreg%me_kpt==0) write(*,*) 'time in joper:',wallout-wallin
 
+ DBG_EXIT("COLL")
+
+ 
 end subroutine joper
 !!***
 
@@ -1151,7 +1157,7 @@ logical :: filexist
 
 ! *************************************************************************
 
-! DBG_ENTER("COLL")
+ DBG_ENTER("COLL")
 
 !Keep track of time spent in mkffnl
  call timab(16,1,tsec)
@@ -1366,7 +1372,7 @@ end do
 
  call timab(16,2,tsec)
 
-! DBG_EXIT("COLL")
+ DBG_EXIT("COLL")
 
 end subroutine cmkffnl
 !!***
@@ -1512,6 +1518,8 @@ subroutine cinitylmgi(gprimd,kg,kptns,mkmem,mpi_enreg,mpsang,mpw,&
 
 !*****************************************************************
 
+ DBG_EXIT("COLL")
+ 
 !Begin executable
  me_distrb=mpi_enreg%me_kpt
 !Initialisation of spherical harmonics (and gradients)
@@ -2274,6 +2282,8 @@ end if
 !   ABI_FREE(blm)
 ! end if
 
+ DBG_EXIT("COLL")
+
 end subroutine cinitylmgi
 !!***
 
@@ -2409,6 +2419,10 @@ subroutine velfrc(cg,cg1_active,cg1_active_prev,cplex,dig_gkk,doccde,docckqde,dt
   !real(dp) :: phasecg(2,dtset%mband*dtset%mband*nkpt*dtset%nsppol)
   !character(len=fnlen) :: gkkfilnam
 
+
+   DBG_ENTER("COLL")
+
+  
 
   !*************************************************************************************
   ! For reference, the useri's that I use:
@@ -2736,8 +2750,8 @@ subroutine velfrc(cg,cg1_active,cg1_active_prev,cplex,dig_gkk,doccde,docckqde,dt
            end if
 
            ! Get kg's for this kpoint
-           kg_k(:,:)=kg(:,1+index_kg:npw)
-           kg1_k(:,:)=kg1(:,1+index_kg1:npw1)
+           kg_k(:,:)=kg(:,1+index_kg:npw+index_kg)
+           kg1_k(:,:)=kg1(:,1+index_kg1:npw1+index_kg1)
 
            index_kg=index_kg+npw
            index_kg1=index_kg1+npw1
@@ -2787,6 +2801,9 @@ subroutine velfrc(cg,cg1_active,cg1_active_prev,cplex,dig_gkk,doccde,docckqde,dt
            end if
 
 
+           !TEST:
+           !write(*,*) 'VLFRC KPT,KG_K',kpt(:),kg_k(:,1)
+           
            call getgh1c_setup(gs_hamkq,rf_hamkq_a,dtset,psps,dtset%kptns(:,ikpt),kpq,idir_a,ipert_j_a,& ! In
                 & dtset%natom,rmet,gprimd,gmet,istwfk(ikpt),npw,npw1,&                          ! In
                 & useylmgr1,kg_k,ylm_k,kg1_k,ylm1_k,ylmgr1_k,&                           ! In
@@ -3287,6 +3304,9 @@ subroutine velfrc(cg,cg1_active,cg1_active_prev,cplex,dig_gkk,doccde,docckqde,dt
 
   end do ! iocc
 
+  DBG_EXIT("COLL")
+
+  
 end subroutine velfrc
 !!***
 

@@ -1243,6 +1243,10 @@ end if
 !  ######################################################################
  end do ! istep
 
+write(*,*) 'FERMIE1',fermie1
+write(*,*) 'RHOG1(G=0)',rhog1(:,1)
+
+ 
  ! Avoid pending requests if itime == ntime.
  call xmpi_wait(quitsum_request,ierr)
  if (timelimit_exit == 1) istep = istep - 1

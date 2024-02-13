@@ -488,7 +488,7 @@ subroutine pspini(dtset,dtfil,ecore,gencond,gsqcut,gsqcutdg,pawrad,pawtab,psps,r
 !        write(std_out,'(a,6i4)' )' pspini : indlmn_alch(:,2,ipspalch)=',indlmn_alch(:,2,ipspalch)
        end if
 
-     end do ! ipsp
+    end do ! ipsp
 
      ! Generate data for alchemical pseudos.
      do itypalch=1,ntypalch

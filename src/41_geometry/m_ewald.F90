@@ -787,6 +787,11 @@ subroutine ewald9(acell,dielt,dyew,gmet,gprim,natom,qphon,rmet,rprim,sumg0,ucvol
 & gmet(2,2)+gmet(2,3)+gmet(3,1)+gmet(3,2)+gmet(3,3)
  eta=pi*100.0_dp/33.0_dp*sqrt(1.69_dp*recip/direct)
 
+ !CEDrev: TEST: what is eta?
+!eta = 1.0e-2
+! write(*,*) 'ETA', eta
+
+ 
  ! Compute a material-dependent width for the Gaussians that hopefully
  ! will make the Ewald real-space summation unnecessary.
  if (ewald_option == 1) then
@@ -837,6 +842,8 @@ subroutine ewald9(acell,dielt,dyew,gmet,gprim,natom,qphon,rmet,rprim,sumg0,ucvol
  dydqt = zero
  dyqqt = zero
 
+!CEDrev: skip this :)
+!if (.false.) then
 !Sum terms over g space:
  ng=0
  do
@@ -986,11 +993,13 @@ subroutine ewald9(acell,dielt,dyew,gmet,gprim,natom,qphon,rmet,rprim,sumg0,ucvol
          end if ! End triple summation over Gs:
        end do
      end do
-   end do
+  end do
 
 !  Check if new shell must be calculated
    if(newg==0)exit
- end do
+end do
+
+!end if !CEDrev
 
 !Multiplies by common factor
  fact1=4.0_dp*pi/ucvol
@@ -1003,7 +1012,7 @@ subroutine ewald9(acell,dielt,dyew,gmet,gprim,natom,qphon,rmet,rprim,sumg0,ucvol
        end do
      end do
    end do
- end do
+end do
  if (do_quadrupole) then
    dydqt=dydqt*fact1/two  * two_pi
    dyqqt=dyqqt*fact1/four * two_pi ** 2
@@ -1049,7 +1058,7 @@ subroutine ewald9(acell,dielt,dyew,gmet,gprim,natom,qphon,rmet,rprim,sumg0,ucvol
                      invdlt(2,ii)*xredcar(ii,ia)+&
                      invdlt(3,ii)*xredcar(ii,ia)
    end do
- end do
+end do
 
  ! Prepare the evaluation of exp(iq*R)
  do ir=-mr,mr
@@ -1065,7 +1074,10 @@ subroutine ewald9(acell,dielt,dyew,gmet,gprim,natom,qphon,rmet,rprim,sumg0,ucvol
  end do
 
  do nr=1,mr
-   newr=0
+    newr=0
+
+    ! CEDrev:
+    !write(*,*) "NR",nr
 
    ! Begin big loop on real space vectors
    do ir3=-nr,nr

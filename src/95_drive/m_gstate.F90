@@ -323,6 +323,11 @@ subroutine gstate(args_gs,acell,codvsn,cpui,dtfil,dtset,iexit,initialized,&
  type(coulomb_operator) :: kernel_dummy
  type(pawcprj_type),allocatable :: cprj(:,:)
 
+
+ ! CEDrev
+ integer :: ichg,index_bnd,isppol,iband
+ real(dp) :: chg,doccde_tot
+ 
 ! ***********************************************************************
 
  DBG_ENTER("COLL")
@@ -1443,6 +1448,50 @@ subroutine gstate(args_gs,acell,codvsn,cpui,dtfil,dtset,iexit,initialized,&
 
  ebands%fermie = results_gs%energies%e_fermie
  ebands%fermih = results_gs%energies%e_fermih ! CP modified
+
+ ! CEDrev: Lets calculate here doccde versus occ
+ if (dtset%userra > 1.0d-10 .and. dtset%userrb < 1.0d-10) then
+    
+    do ichg=0,dtset%useria
+
+       chg=dtset%nelect+dtset%userra + (real(ichg)/real(dtset%useria))*(dtset%userrb-dtset%userra)
+       call newocc(doccde,eigen,results_gs%energies%entropy,&
+         &   results_gs%energies%e_fermie,results_gs%energies%e_fermih,dtset%ivalence,&
+         &   dtset%spinmagntarget,dtset%mband,dtset%nband,&
+         &   chg,dtset%ne_qFD,dtset%nh_qFD,dtset%nkpt,dtset%nspinor,dtset%nsppol,occ,&
+         &   dtset%occopt,dtset%prtvol,zero,dtset%tphysel,dtset%tsmear,dtset%wtk,&
+         &   extfpmd)
+
+       doccde_tot=0.0
+       index_bnd=1
+       do isppol=1,dtset%nsppol
+          do ikpt=1,dtset%nkpt
+             do iband=1,dtset%nband(ikpt+(isppol-1)*dtset%nkpt)
+                !if (proc_distrb_cycle(mpi_enreg%proc_distrb,ikpt,1,dtset%nband(ikpt),isppol,mpi_enreg%me_kpt)) then
+                !   index_bnd=index_bnd+dtset%nband(ikpt)
+                !   cycle
+                !end if
+
+                !write(*,*) 'TEST', isppol, ikpt, iband, dtset%wtk(ikpt),doccde(index_bnd+iband-1)
+                doccde_tot=doccde_tot-dtset%wtk(ikpt)*doccde(index_bnd+iband-1)
+             end do
+             index_bnd=index_bnd+dtset%nband(ikpt)
+          end do
+       end do
+
+!#ifdef HAVE_MPI
+
+!     call xmpi_barrier(mpi_enreg%comm_kpt)
+!     call xmpi_sum_master(doccde_tot,0,mpi_enreg%comm_kpt,ierr)
+!     if (ierr==1) write(*,*) 'ERROR: Summation of doccde_tot'
+!#endif
+                
+     write(*,*) 'DOCCDE',chg,doccde_tot
+  end do
+
+end if
+
+
  ABI_FREE(doccde)
  !write(std_out,*)"efermi after ebands_init",ebands%fermie
 

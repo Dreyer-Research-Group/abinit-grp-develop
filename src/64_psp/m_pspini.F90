@@ -181,8 +181,9 @@ subroutine pspini(dtset,dtfil,ecore,gencond,gsqcut,gsqcutdg,pawrad,pawtab,psps,r
  real(dp),allocatable :: xccc1d_alch(:,:,:),xcccrc_alch(:)
  type(nctab_t),target,allocatable :: nctab_alch(:)
 
-!CEDrev:                                                                                                                                                                                                 
+!CEDrev              
  real(dp),allocatable :: ffspl1(:,:,:)
+type(pseudopotential_type),intent(inout) :: dpsps
 
 
 ! *************************************************************************
@@ -569,6 +570,11 @@ subroutine pspini(dtset,dtfil,ecore,gencond,gsqcut,gsqcutdg,pawrad,pawtab,psps,r
 
      end do ! itypalch
 
+
+     ! CEDrev: Let's obtain the a psp object that stores the DIFFERENCE in the psps
+     psps_copy(psps,dpsps)
+     
+     
      ABI_FREE(epsatm_alch)
      ABI_FREE(ekb_alch)
      ABI_FREE(ffspl_alch)

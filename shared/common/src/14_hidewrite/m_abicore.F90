@@ -105,11 +105,18 @@ subroutine appdig(integ,string,strinn)
 
 !Find how many digits "integ" has
  ndig=int(log10(real(integ)+0.50))+1
-
+ 
 !Create a format for exact number of digits using internal write
- write(unit=ncha,fmt='(i2)') ndig
+write(unit=ncha,fmt='(i2)') ndig
+
+
  form='(i'//ncha//')'
-!Do internal write to get digits of integer into character string,
+
+ ! CEDrev
+write(*,*) 'NCHA',ncha,form
+
+ 
+ !Do internal write to get digits of integer into character string,
 !placing digits into appropriate end of string.
  write(unit=strinn(1+length:length+ndig),fmt=form) integ
 !(Note that present version writes "1" or "2" for single digit,

@@ -359,7 +359,7 @@ subroutine dfpt_looppert(atindx,blkflg,codvsn,cpus,dim_eigbrd,dim_eig2nkq,doccde
  real(dp),allocatable :: cgp(:,:),eigenp(:),rhonlrout(:),rhorout(:),eigen_dcovab(:)
  real(dp),allocatable :: cg1_tilde_dk(:,:),eigen1_dk(:)
  character(len=fnlen) :: fiwf1o_tild
- character(len=fnlen) :: gkkfilnam_vlfrc
+ character(len=:), allocatable :: gkkfilnam_vlfrc
  character(18) :: file_name
 ! ***********************************************************************
 
@@ -2158,9 +2158,13 @@ else if (.not. found_eq_gkk) then
            phasecg(1,:) = one ! This is not even really used
            phasecg(2,:) = zero
 
-           write(*,*) "BEFORE OUTGKK",dig_gkk
+           gkkfilnam_vlfrc=trim(dtfil%fnameabo_gkk)//'0000000000'
+           write(*,*) "BEFORE OUTGKK",dig_gkk,len(gkkfilnam_vlfrc)
 
-           call appdig(dig_gkk,dtfil%fnameabo_gkk,gkkfilnam_vlfrc) 
+           call appdig(dig_gkk,dtfil%fnameabo_gkk,gkkfilnam_vlfrc)
+
+           write(*,*) "AFTER APPDIG",gkkfilnam_vlfrc
+
            call outgkk(bantot0,bantot1,gkkfilnam_vlfrc,eigen0,eigen_dcovab,hdr0,hdr,mpi_enreg,phasecg)
 
            ABI_FREE(phasecg)

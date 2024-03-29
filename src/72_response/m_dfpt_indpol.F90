@@ -1949,8 +1949,48 @@ end if
                  ylmgr3_cart(3,3,3,1)=-ylmcst*72.*zz*(xx**2+yy**2)*(xx**2+yy**2-zz**2)
 
               else if (ll==3) then
-                 write(*,*) 'Third deriv of ylm not implemented for f electrons'
-                 stop
+                 !write(*,*) 'Third deriv of ylm not implemented for f electrons'
+                 !stop
+                 ylmcst=(3./4.)*sqrt(7./pi)/(rr**9)
+                 
+                 !xxx
+                 ylmgr3_cart(1,1,1,1)=ylmcst*xx*zz*(6.*xx**4 - 9.*yy**4 + 57.*yy**2*zz**2 + 66.*zz**4 - xx**2*(3.*yy**2 + 103.*zz**2))
+                 !xxy
+                 ylmgr3_cart(1,1,2,1)=ylmcst*yy*zz*(12.*xx**4 - 3.*yy**4 + 19.*yy**2*zz**2 + 22.*zz**4 + 3.*xx**2*(3.*yy**2 - 47.*zz**2))
+                 ylmgr3_cart(1,2,1,:)= ylmgr3_cart(1,1,2,:)
+                 ylmgr3_cart(2,1,1,:)= ylmgr3_cart(1,1,2,:)
+                 !xxz
+                 ylmgr3_cart(1,1,3,1)=ylmcst*(-2.)*xx**6 + yy**6 - 15.*yy**4*zz**2 - 8.*yy**2*zz**4 + 8.*zz**6 - 3.*xx**4*(yy**2 - 23.*zz**2) + 6.*xx**2*(9.*yy**2*zz**2 - 16.*zz**4)
+                 ylmgr3_cart(1,3,1,:)= ylmgr3_cart(1,1,3,:)
+                 ylmgr3_cart(3,1,1,:)= ylmgr3_cart(1,1,3,:)
+                 !xyy
+                 ylmgr3_cart(1,2,2,1)=ylmcst*xx*zz*((-3.)*xx**4 + 12.*yy**4 - 141.*yy**2*zz**2 + 22.*zz**4 + xx**2*(9.*yy**2 + 19.*zz**2))
+                 ylmgr3_cart(2,1,2,:)= ylmgr3_cart(1,2,2,:)
+                 ylmgr3_cart(1,2,2,:)= ylmgr3_cart(1,2,2,:)
+                 !xyz
+                 ylmgr3_cart(1,2,3,1)=ylmcst*(-1)*(xx*yy*(3.*xx**4 + 3.*yy**4 - 84.*yy**2*zz**2 + 88.*zz**4 + 6.*xx**2*(yy**2 - 14.*zz**2)))
+                 ylmgr3_cart(3,2,1,:)= ylmgr3_cart(1,2,3,:)
+                 ylmgr3_cart(2,1,3,:)= ylmgr3_cart(1,2,3,:)
+                 ylmgr3_cart(2,3,1,:)= ylmgr3_cart(1,2,3,:)
+                 ylmgr3_cart(3,1,2,:)= ylmgr3_cart(1,2,3,:)
+                 ylmgr3_cart(1,3,2,:)= ylmgr3_cart(1,2,3,:)
+                 !yyy
+                 ylmgr3_cart(2,2,2,1)=ylmcst*yy*zz*(-9.*xx**4 + 6.*yy**4 - 103.*yy**2*zz**2 + 66.*zz**4 - 3.*xx**2*(yy**2 - 19.*zz**2))
+                 !yyz
+                 ylmgr3_cart(2,2,3,1)=ylmcst*xx**6 - 2.*yy**6 - 15.*xx**4*zz**2 + 69.*yy**4*zz**2 - 96.*yy**2*zz**4 + 8.*zz**6 + xx**2*(-3.*yy**4 + 54.*yy**2*zz**2 - 8.*zz**4)
+                 ylmgr3_cart(2,3,2,:)= ylmgr3_cart(2,2,3,:)
+                 ylmgr3_cart(3,2,2,:)= ylmgr3_cart(2,2,3,:)
+                 !yzz
+                 ylmgr3_cart(2,3,3,1)=-ylmcst*yy*zz*(39.*xx**4 + 39.*yy**4 - 112.*yy**2*zz**2 + 24.*zz**4 + 2.*xx**2*(39.*yy**2 - 56.*zz**2))
+                 ylmgr3_cart(3,2,3,:)= ylmgr3_cart(2,3,3,:)
+                 ylmgr3_cart(3,3,2,:)= ylmgr3_cart(2,3,3,:)
+                 !zzx
+                 ylmgr3_cart(3,3,1,1)=-ylmcst*(xx*zz*(39.*xx**4 + 39.*yy**4 - 112.*yy**2*zz**2 + 24.*zz**4 + 2.*xx**2*(39.*yy**2 - 56.*zz**2)))
+                 ylmgr3_cart(3,1,3,:)= ylmgr3_cart(3,3,1,:)
+                 ylmgr3_cart(1,3,3,:)= ylmgr3_cart(3,3,1,:)
+                 !zzz
+                 ylmgr3_cart(3,3,3,1)= ylmcst*(xx**2 + yy**2)*(13.*xx**4 + 13.*yy**4 - 114.*yy**2*zz**2 + 48.*zz**4 + 2.*xx**2*(13.*yy**2 - 57.*zz**2))
+
               end if
 
               ! 2-Transfer gradients into reduced coordinates
@@ -2139,8 +2179,132 @@ end if
                     !zzz
                     ylmgr3_cart(3,3,3,1)=ylmcst*24.*zz*xx*(xx**2+yy**2-zz**2)
                     ylmgr3_cart(3,3,3,2)=ylmcst*24.*zz*yy*(xx**2+yy**2-zz**2)
+                 else if (ll==3 .and. mm==1) then
+                    ylmcst=sqrt(3./2.)*(3./4.)*sqrt(7./pi)/(rr**9)
+                    
+                    !xxx
+                    ylmgr3_cart(1,1,1,1)=ylmcst*(yy**2 - 14.*zz**2)*(yy**2 + zz**2)**2 - 4.*xx**4*(yy**2 + 11.*zz**2) - 3.*xx**2*(yy**4 - 38.*yy**2*zz**2 - 39.*zz**4)
+                    !xxy
+                    ylmgr3_cart(1,1,2,1)=ylmcst*xx*yy*(2.*xx**4 - 3.*yy**4 + 69.*yy**2*zz**2 + 72.*zz**4 - xx**2*(yy**2 + 101.*zz**2))
+                    ylmgr3_cart(1,2,1,:)= ylmgr3_cart(1,1,2,:)
+                    ylmgr3_cart(2,1,1,:)= ylmgr3_cart(1,1,2,:)
+                    !xxz
+                    ylmgr3_cart(1,1,3,1)=ylmcst*xx*zz*(22.*xx**4 - 33.*yy**4 + 9.*yy**2*zz**2 + 42.*zz**4 - xx**2*(11.*yy**2 + 111.*zz**2))
+                    ylmgr3_cart(1,3,1,:)= ylmgr3_cart(1,1,3,:)
+                    ylmgr3_cart(3,1,1,:)= ylmgr3_cart(1,1,3,:)
+                    !xyy
+                    ylmgr3_cart(1,2,2,1)=ylmcst*((-2.)*xx**6 - 2.*yy**6 + 57.*yy**4*zz**2 + 45.*yy**2*zz**4 - 14.*zz**6 + xx**4*(9.*yy**2 + 57.*zz**2) + 9.*xx**2*(yy**4 - 44.*yy**2*zz**2 + 5.*zz**4))/3.
+                    ylmgr3_cart(2,1,2,:)= ylmgr3_cart(1,2,2,:)
+                    ylmgr3_cart(1,2,2,:)= ylmgr3_cart(1,2,2,:)
+                    !xyz
+                    ylmgr3_cart(1,2,3,1)=ylmcst*yy*zz*(44.*xx**4 - 11.*yy**4 + 3.*yy**2*zz**2 + 14.*zz**4 + 3.*xx**2*(11.*yy**2 - 39.*zz**2))
+                    ylmgr3_cart(3,2,1,:)= ylmgr3_cart(1,2,3,:)
+                    ylmgr3_cart(2,1,3,:)= ylmgr3_cart(1,2,3,:)
+                    ylmgr3_cart(2,3,1,:)= ylmgr3_cart(1,2,3,:)
+                    ylmgr3_cart(3,1,2,:)= ylmgr3_cart(1,2,3,:)
+                    ylmgr3_cart(1,3,2,:)= ylmgr3_cart(1,2,3,:)
+                    !yyy
+                    ylmgr3_cart(2,2,2,1)=-ylmcst*(xx*yy*(3.*xx**4 - 2.*yy**4 + 101.*yy**2*zz**2 - 72.*zz**4 + xx**2*(yy**2 - 69.*zz**2)))
+                    !yyz
+                    ylmgr3_cart(2,2,3,1)=ylmcst*xx*zz*((-11.)*xx**4 + 44.*yy**4 - 117.*yy**2*zz**2 + 14.*zz**4 + 3.*xx**2*(11.*yy**2 + zz**2))
+                    ylmgr3_cart(2,3,2,:)= ylmgr3_cart(2,2,3,:)
+                    ylmgr3_cart(3,2,2,:)= ylmgr3_cart(2,2,3,:)
+                    !yzz
+                    ylmgr3_cart(2,3,3,1)=-ylmcst*(xx*yy*(11.*xx**4 + 11.*yy**4 - 108.*yy**2*zz**2 + 56.*zz**4 + 2.*xx**2*(11.*yy**2 - 54.*zz**2)))
+                    ylmgr3_cart(3,2,3,:)= ylmgr3_cart(2,3,3,:)
+                    ylmgr3_cart(3,3,2,:)= ylmgr3_cart(2,3,3,:)
+                    !zzx
+                    ylmgr3_cart(3,3,1,1)=ylmcst*(-22.*xx**6 + 11.*yy**6 - 45.*yy**4*zz**2 - 48.*yy**2*zz**4 + 8.*zz**6 + 3.*xx**4*(-11.*yy**2 + 93.*zz**2) + 3.*xx**2*(78.*yy**2*zz**2 - 72.*zz**4))/3.
+                    ylmgr3_cart(3,1,3,:)= ylmgr3_cart(3,3,1,:)
+                    ylmgr3_cart(1,3,3,:)= ylmgr3_cart(3,3,1,:)
+                    !zzz
+                    ylmgr3_cart(3,3,3,1)= -ylmcst*(xx*zz*(63.*xx**4 + 63.*yy**4 - 104.*yy**2*zz**2 + 8.*zz**4 + 2.*xx**2*(63.*yy**2 - 52.*zz**2)))
+
+                 else if (ll==3 .and. mm==2) then
+                    ylmcst=sqrt(15.)*(3./4.)*sqrt(7./pi)/(rr**9)
+
+                    !xxx
+                    ylmgr3_cart(1,1,1,1)=ylmcst*xx*zz*(-2.*xx**4 + xx**2*(41.*yy**2 + 21.*zz**2) - 3.*(9.*yy**4 + 13.*yy**2*zz**2 + 4.*zz**4))
+                    !xxy
+                    ylmgr3_cart(1,1,2,1)=-ylmcst*5.*yy*zz*(4.*xx**4 + yy**2*(yy**2 + zz**2) - 3.*xx**2*(3.*yy**2 + zz**2))
+                    ylmgr3_cart(1,2,1,:)= ylmgr3_cart(1,1,2,:)
+                    ylmgr3_cart(2,1,1,:)= ylmgr3_cart(1,1,2,:)
+                    !xxz
+                    ylmgr3_cart(1,1,3,1)=ylmcst*(2.*xx**6)/3. + (5.*yy**6)/3. - 3.*yy**4*zz**2 - 6.*yy**2*zz**4 - (4.*zz**6)/3. - &
+                         & xx**4*(7.*yy**2 + 15.*zz**2) - 6.*xx**2*(yy**4 - 7.*yy**2*zz**2 - 3.*zz**4)
+                    ylmgr3_cart(1,3,1,:)= ylmgr3_cart(1,1,3,:)
+                    ylmgr3_cart(3,1,1,:)= ylmgr3_cart(1,1,3,:)
+                    !xyy
+                    ylmgr3_cart(1,2,2,1)=ylmcst*5.*xx*zz*(xx**4 + 4.*yy**4 - 3.*yy**2*zz**2 + xx**2*(-9.*yy**2 + zz**2))
+                    ylmgr3_cart(2,1,2,:)= ylmgr3_cart(1,2,2,:)
+                    ylmgr3_cart(1,2,2,:)= ylmgr3_cart(1,2,2,:)
+                    !xyz
+                    ylmgr3_cart(1,2,3,1)=ylmcst*5.*xx*yy*(xx**2 - yy**2)*(xx**2 + yy**2 - 6.*zz**2)
+                    ylmgr3_cart(3,2,1,:)= ylmgr3_cart(1,2,3,:)
+                    ylmgr3_cart(2,1,3,:)= ylmgr3_cart(1,2,3,:)
+                    ylmgr3_cart(2,3,1,:)= ylmgr3_cart(1,2,3,:)
+                    ylmgr3_cart(3,1,2,:)= ylmgr3_cart(1,2,3,:)
+                    ylmgr3_cart(1,3,2,:)= ylmgr3_cart(1,2,3,:)
+                    !yyy
+                    ylmgr3_cart(2,2,2,1)=ylmcst*yy*zz*(27.*xx**4 + 2.*yy**4 - 21.*yy**2*zz**2 + 12.*zz**4 + xx**2*(-41.*yy**2 + 39.*zz**2))
+                    !yyz
+                    ylmgr3_cart(2,2,3,1)=ylmcst*(-5.*xx**6 - 2.*yy**6 + 45.*yy**4*zz**2 - 54.*yy**2*zz**4 + 4.*zz**6 + 9.*xx**4*(2.*yy**2 + zz**2) + 3.*xx**2*(7.*yy**4 - 42.*yy**2*zz**2 + 6.*zz**4))/3.
+                    ylmgr3_cart(2,3,2,:)= ylmgr3_cart(2,2,3,:)
+                    ylmgr3_cart(3,2,2,:)= ylmgr3_cart(2,2,3,:)
+                    !yzz
+                    ylmgr3_cart(2,3,3,1)=ylmcst*yy*zz*(21.*xx**4 - 9.*yy**4 + 22.*yy**2*zz**2 - 4.*zz**4 + 6.*xx**2*(2.*yy**2 - 3.*zz**2))
+                    ylmgr3_cart(3,2,3,:)= ylmgr3_cart(2,3,3,:)
+                    ylmgr3_cart(3,3,2,:)= ylmgr3_cart(2,3,3,:)
+                    !zzx
+                    ylmgr3_cart(3,3,1,1)=ylmcst*xx*zz*(9.*xx**4 - 21.*yy**4 + 18.*yy**2*zz**2 + 4.*zz**4 - 2.*xx**2*(6.*yy**2 + 11.*zz**2))
+                    ylmgr3_cart(3,1,3,:)= ylmgr3_cart(3,3,1,:)
+                    ylmgr3_cart(1,3,3,:)= ylmgr3_cart(3,3,1,:)
+                    !zzz
+                    ylmgr3_cart(3,3,3,1)= -ylmcst*((xx**2 - yy**2)*(3.*xx**4 + 3.*yy**4 - 24.*yy**2*zz**2 + 8.*zz**4 + 6.*xx**2*(yy**2 - 4.*zz**2)))
+
+                 else if (ll==3 .and. mm==3) then
+                    ylmcst=sqrt(5./2.)*(3./4.)*sqrt(7./pi)/(rr**9)
+
+                    !xxx
+                    ylmgr3_cart(1,1,1,1)=ylmcst*12.*xx**4*(3.*yy**2 + zz**2) + (yy**2 + zz**2)**2*(11.*yy**2 + 2.*zz**2) - 3.*xx**2*(31.*yy**4 + 38.*yy**2*zz**2 + 7.*zz**4)
+                    !xxy
+                    ylmgr3_cart(1,1,2,1)= ylmcst*xx*yy*(-18.*xx**4 + xx**2*(89.*yy**2 + 29.*zz**2) - 3.*(11.*yy**4 + 7.*yy**2*zz**2 - 4.*zz**4))
+                    ylmgr3_cart(1,2,1,:)= ylmgr3_cart(1,1,2,:)
+                    ylmgr3_cart(2,1,1,:)= ylmgr3_cart(1,1,2,:)
+                    !xxz
+                    ylmgr3_cart(1,1,3,1)=-ylmcst*xx*zz*(6.*xx**4 + 51.*yy**4 + 57.*yy**2*zz**2 + 6.*zz**4 - xx**2*(83.*yy**2 + 23.*zz**2))
+                    ylmgr3_cart(1,3,1,:)= ylmgr3_cart(1,1,3,:)
+                    ylmgr3_cart(3,1,1,:)= ylmgr3_cart(1,1,3,:)
+                    !xyy
+                    ylmgr3_cart(1,2,2,1)=ylmcst*6.*xx**6 - 2.*yy**6 + 9.*yy**4*zz**2 + 9.*yy**2*zz**4 - 2.*zz**6 + xx**4*(-75.*yy**2 + 5.*zz**2) + xx**2*(57.*yy**4 - 36.*yy**2*zz**2 - 3.*zz**4)
+                    ylmgr3_cart(2,1,2,:)= ylmgr3_cart(1,2,2,:)
+                    ylmgr3_cart(1,2,2,:)= ylmgr3_cart(1,2,2,:)
+                    !xyz
+                    ylmgr3_cart(1,2,3,1)=-ylmcst*(yy*zz*(44.*xx**4 + 9.*yy**4 + 3.*yy**2*zz**2 - 6.*zz**4 + xx**2*(-87.*yy**2 + 3.*zz**2)))
+                    ylmgr3_cart(3,2,1,:)= ylmgr3_cart(1,2,3,:)
+                    ylmgr3_cart(2,1,3,:)= ylmgr3_cart(1,2,3,:)
+                    ylmgr3_cart(2,3,1,:)= ylmgr3_cart(1,2,3,:)
+                    ylmgr3_cart(3,1,2,:)= ylmgr3_cart(1,2,3,:)
+                    ylmgr3_cart(1,3,2,:)= ylmgr3_cart(1,2,3,:)
+                    !yyy
+                    ylmgr3_cart(2,2,2,1)=ylmcst*xx*yy*(51.*xx**4 + 6.*yy**4 - 63.*yy**2*zz**2 + 36.*zz**4 + xx**2*(-83.*yy**2 + 87.*zz**2))
+                    !yyz
+                    ylmgr3_cart(2,2,3,1)=ylmcst*xx*zz*(11.*xx**4 + 36.*yy**4 - 63.*yy**2*zz**2 + 6.*zz**4 + xx**2*(-93.*yy**2 + 17.*zz**2))
+                    ylmgr3_cart(2,3,2,:)= ylmgr3_cart(2,2,3,:)
+                    ylmgr3_cart(3,2,2,:)= ylmgr3_cart(2,2,3,:)
+                    !yzz
+                    ylmgr3_cart(2,3,3,1)=ylmcst*xx*yy*(11.*xx**4 - 9.*yy**4 + 72.*yy**2*zz**2 - 24.*zz**4 + 2.*xx**2*(yy**2 - 24.*zz**2))
+                    ylmgr3_cart(3,2,3,:)= ylmgr3_cart(2,3,3,:)
+                    ylmgr3_cart(3,3,2,:)= ylmgr3_cart(2,3,3,:)
+                    !zzx
+                    ylmgr3_cart(3,3,1,1)=ylmcst*2.*xx**6 - xx**4*(13.*yy**2 + 21.*zz**2) + xx**2*(-12.*yy**4 + 90.*yy**2*zz**2 + 12.*zz**4) + 3.*(yy**6 - 3.*yy**4*zz**2 - 4.*yy**2*zz**4)
+                    ylmgr3_cart(3,1,3,:)= ylmgr3_cart(3,3,1,:)
+                    ylmgr3_cart(1,3,3,:)= ylmgr3_cart(3,3,1,:)
+                    !zzz
+                    ylmgr3_cart(3,3,3,1)= ylmcst*5.*xx*(xx**2 - 3.*yy**2)*zz*(3.*xx**2 + 3.*yy**2 - 4.*zz**2)
+
                  else
-                    write(*,*) 'Illegal mm and ll in initylmg. Remember, ll=3 not implemented yet.'
+                    write(*,*) 'Illegal mm and ll in initylmg. '
                     write(*,*) 'll',ll,'mm',mm
                     stop
                  end if

@@ -183,7 +183,7 @@ subroutine pspini(dtset,dtfil,ecore,gencond,gsqcut,gsqcutdg,pawrad,pawtab,psps,r
 
 !CEDrev              
  real(dp),allocatable :: ffspl1(:,:,:)
-type(pseudopotential_type),intent(inout) :: dpsps
+ type(pseudopotential_type):: dpsps
 
 
 ! *************************************************************************
@@ -572,7 +572,7 @@ type(pseudopotential_type),intent(inout) :: dpsps
 
 
      ! CEDrev: Let's obtain the a psp object that stores the DIFFERENCE in the psps
-     psps_copy(psps,dpsps)
+     !psps_copy(psps,dpsps)
      
      
      ABI_FREE(epsatm_alch)
